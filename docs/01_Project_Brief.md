@@ -404,67 +404,7 @@ Nếu dữ liệu có cấu trúc đủ ổn định, triển khai tìm kiếm b
 
 Hành trình dài hạn: **tìm kiếm → hiểu → so sánh → tài chính → xem nhà → đề nghị mua → giao dịch → chuyển vào ở**.
 
----
-
-# 10. Ước tính ngân sách và nguồn lực
-
-## 10.1 Ngân sách sơ bộ
-
-Các con số là ước tính để lập kế hoạch, không phải báo giá. Đường cơ sở: sáu tháng, bản Beta vận hành thực tế, thị trường căn hộ Hà Nội, ưu tiên web và nhóm khởi nghiệp nhỏ.
-
-### Nhân sự
-
-| Hạng mục                     |   Ước tính 6 tháng |
-| ------------------------------ | ---------------------: |
-| Sản phẩm/BA                  | 180–300 triệu đồng |
-| UX/UI                          | 120–220 triệu đồng |
-| Kỹ sư frontend               | 300–500 triệu đồng |
-| Kỹ sư backend                | 400–700 triệu đồng |
-| Dữ liệu/ML                   | 220–400 triệu đồng |
-| QA                             | 120–220 triệu đồng |
-| DevOps/đám mây              | 120–240 triệu đồng |
-| Vận hành dữ liệu/xác minh | 150–300 triệu đồng |
-
-**Tổng nhân sự ước tính: 1,6–2,9 tỷ đồng.**
-
-### Công nghệ và chi phí khác
-
-| Nhóm                          | Hạng mục                                                                                                         |            Ước tính |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---------------------: |
-| Công nghệ                    | Điện toán đám mây/cơ sở dữ liệu                                                                          |  50–120 triệu đồng |
-| Công nghệ                    | Hạ tầng tìm kiếm                                                                                               |   20–60 triệu đồng |
-| Công nghệ                    | Lưu trữ đối tượng/CDN                                                                                        |   10–30 triệu đồng |
-| Công nghệ                    | Bản đồ/mã hóa địa lý                                                                                       |   20–80 triệu đồng |
-| Công nghệ                    | Giám sát/khả năng quan sát                                                                                    |   10–30 triệu đồng |
-| Công nghệ                    | OTP/email/thông báo                                                                                              |   10–30 triệu đồng |
-| Công nghệ                    | Thử nghiệm AI/API                                                                                                |   20–80 triệu đồng |
-| Pháp lý/tuân thủ/bảo mật | Tư vấn, điều khoản, quyền riêng tư, hợp đồng dữ liệu/nguồn hàng, kiểm thử bảo mật               | 120–300 triệu đồng |
-| Phát triển nguồn cung/GTM   | Tiếp nhận đối tác, khuyến khích môi giới, nội dung, SEO, quảng cáo, cộng đồng, công cụ bán hàng | 300–800 triệu đồng |
-
-Tổng công nghệ khoảng **140–430 triệu đồng**; dự phòng **10–15%**. Ngân sách cơ sở cho Beta là **2,5–5 tỷ đồng/6 tháng**. Có thể giảm còn khoảng **1–2 tỷ đồng** nếu nhà sáng lập trực tiếp lập trình, chưa tuyển đủ đội ngũ, chưa chi mạnh cho quảng cáo, chủ yếu xác minh thủ công, chưa làm ứng dụng native và tận dụng tín dụng đám mây. Mức này chỉ phù hợp với **kiểm chứng tinh gọn**, không phải một tổ chức vận hành đầy đủ.
-
-## 10.2 Nguồn lực
-
-Đội ngũ tối thiểu đề xuất: 1 Chủ sản phẩm/BA, 1 UX/UI, 1 frontend, 2 backend, 1 dữ liệu/ML, 1 QA, 1 DevOps bán thời gian, 1 nguồn cung/phát triển kinh doanh và 1 vận hành dữ liệu/xác minh; tổng cộng khoảng 8–10 người.
-
-### Nền tảng công nghệ dự kiến
-
-| Lớp                     | Công nghệ dự kiến                                                         |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| Frontend                 | Next.js/React                                                                 |
-| Backend                  | FastAPI hoặc NestJS                                                          |
-| Cơ sở dữ liệu chính | PostgreSQL + PostGIS                                                          |
-| Tìm kiếm               | OpenSearch hoặc Elasticsearch                                                |
-| Bộ nhớ đệm           | Redis                                                                         |
-| Lưu trữ                | Kho đối tượng tương thích S3                                           |
-| Nhắn tin hệ thống     | Hàng đợi/luồng sự kiện                                                  |
-| Phân tích              | Phân tích sản phẩm; kho dữ liệu khi cần                                |
-| Giám sát               | Nhật ký, chỉ số, truy vết, theo dõi lỗi                                |
-| AI                       | API LLM/mô hình quản lý sẵn + truy xuất có cấu trúc + gọi công cụ |
-
----
-
-# 11. Giả định
+# 10. Giả định
 
 - **A01:** Giai đoạn đầu tập trung căn hộ thay vì mọi loại hình bất động sản.
 - **A02:** Hà Nội có đủ nhu cầu và nguồn cung để kiểm chứng.
@@ -483,7 +423,7 @@ Tổng công nghệ khoảng **140–430 triệu đồng**; dự phòng **10–1
 
 ---
 
-# 12. Ràng buộc
+# 11. Ràng buộc
 
 - **C01 — Không có hạ tầng MLS thống nhất:** Việt Nam chưa có hạ tầng danh sách bất động sản toàn quốc tương đương nguồn cấp MLS tại Mỹ, khiến tích hợp nguồn hàng khó hơn.
 - **C02 — Dữ liệu phân mảnh:** Địa chỉ và thuộc tính khác nhau giữa các nguồn; “Vinhomes Ocean Park”, “Ocean Park”, “VHOP” và “Vinhomes OCP” có thể cùng chỉ một dự án.
@@ -496,7 +436,7 @@ Tổng công nghệ khoảng **140–430 triệu đồng**; dự phòng **10–1
 
 ---
 
-# 13. Phụ thuộc
+# 12. Phụ thuộc
 
 - **D01 — Đối tác nguồn hàng:** Phụ thuộc quan trọng nhất; có thể gồm nhóm môi giới, đại lý, chủ đầu tư, đơn vị quản lý bất động sản và chủ nhà cá nhân.
 - **D02 — Mô hình dữ liệu:** Tìm kiếm, loại trùng và dữ liệu giá phụ thuộc lược đồ chuẩn.
@@ -510,9 +450,9 @@ Tổng công nghệ khoảng **140–430 triệu đồng**; dự phòng **10–1
 
 ---
 
-# 14. Rủi ro
+# 13. Rủi ro
 
-## 14.1 Rủi ro thị trường
+## 13.1 Rủi ro thị trường
 
 | Rủi ro                                              | Khả năng  | Tác động    | Giảm thiểu                                                  |
 | ---------------------------------------------------- | ----------- | -------------- | ------------------------------------------------------------- |
@@ -524,7 +464,7 @@ Tổng công nghệ khoảng **140–430 triệu đồng**; dự phòng **10–1
 
 Rủi ro thị trường lớn nhất là sản phẩm trở thành **“Batdongsan.com.vn nhưng có ít tin hơn”**. Đây là kịch bản phải tránh bằng khác biệt có thể đo lường.
 
-## 14.2 Rủi ro kỹ thuật
+## 13.2 Rủi ro kỹ thuật
 
 - **T-R01 — Loại trùng sai:** Gộp nhầm hai bất động sản hoặc không gộp cùng một bất động sản. Giảm thiểu bằng điểm tin cậy, con người rà soát và công cụ gộp/tách trong trang quản trị.
 - **T-R02 — Chất lượng dữ liệu thấp:** Dữ liệu đầu vào kém tạo kết quả phân tích kém. Giảm thiểu bằng kiểm tra, chuẩn hóa, điểm tin cậy nguồn và phát hiện bất thường.
@@ -532,11 +472,11 @@ Rủi ro thị trường lớn nhất là sản phẩm trở thành **“Batdong
 - **T-R04 — AI bịa thông tin:** AI có thể tạo sai thông tin căn, tiện ích, pháp lý hoặc giá. Cần dùng AI gọi công cụ, dữ liệu có cấu trúc, trích dẫn/nguồn gốc và không cho phép tạo tin thiếu căn cứ. Kiến trúc Zillow năm 2026 cũng kết nối trải nghiệm AI với các hệ thống chuyên biệt về tìm kiếm, tài chính và định giá thay vì giao toàn bộ cho một mô hình tổng quát.
 - **T-R05 — Khả năng mở rộng:** Bản đồ và tìm kiếm có thể tốn tài nguyên; giảm thiểu bằng bộ nhớ đệm, chỉ mục địa lý, cụm tìm kiếm và CDN.
 
-## 14.3 Rủi ro vận hành
+## 13.3 Rủi ro vận hành
 
 Các rủi ro chính gồm xác minh trở thành nút thắt, nguồn hàng hết hiệu lực nhanh hơn khả năng kiểm tra, môi giới đăng tin rác/trùng, tài khoản gian lận và lượng yêu cầu hỗ trợ tăng nhanh. Giảm thiểu bằng tự động hóa, uy tín nguồn, rà soát dựa trên rủi ro, chấm điểm môi giới và công cụ tự quản lý nguồn hàng.
 
-## 14.4 Rủi ro kinh doanh
+## 13.4 Rủi ro kinh doanh
 
 - **B-R01 — Thu phí quá sớm:** Có thể làm giảm nguồn hàng trước khi có nhu cầu; cần tạo thanh khoản trước rồi mới kiếm tiền.
 - **B-R02 — Chi phí thu hút khách hàng cao:** Cạnh tranh quảng cáo tìm kiếm có thể không hiệu quả; ưu tiên SEO, trang dự án/giá, nội dung, giới thiệu và cộng đồng.
@@ -546,7 +486,7 @@ Các rủi ro chính gồm xác minh trở thành nút thắt, nguồn hàng h�
 
 ---
 
-# 15. Tiến độ cấp cao
+# 14. Tiến độ cấp cao
 
 Đường cơ sở: **24 tuần để ra mắt Beta vận hành thực tế**.
 
@@ -578,53 +518,7 @@ Ra mắt tại địa bàn chọn lọc với nhóm môi giới và người dù
 
 Dựa trên dữ liệu để **mở rộng, lặp cải tiến, chuyển hướng hoặc dừng**. Nếu chỉ số tốt, triển khai tìm kiếm AI, cảnh báo nhu cầu đã lưu, dữ liệu giá nâng cao, CRM môi giới và địa bàn thứ hai.
 
----
 
-# 16. Các bên liên quan và quyền sở hữu
-
-## 16.1 Vai trò và trách nhiệm
-
-- **Nhà sáng lập/Nhà tài trợ dự án:** Tầm nhìn, huy động vốn, quyết định chiến lược, quan hệ đối tác và phê duyệt phạm vi cuối.
-- **Chủ sản phẩm:** Chiến lược, lộ trình, ưu tiên và KPI sản phẩm.
-- **Chuyên viên phân tích nghiệp vụ:** Yêu cầu, quy trình, quy tắc nghiệp vụ, yêu cầu dữ liệu, tiêu chí chấp nhận và tài liệu.
-- **Nhà thiết kế sản phẩm:** Hỗ trợ nghiên cứu, UX, UI và khả năng sử dụng.
-- **Trưởng nhóm kỹ thuật:** Kiến trúc, quyết định kỹ thuật, chất lượng kỹ thuật và mức độ sẵn sàng vận hành.
-- **Kỹ sư backend:** API, mô hình dữ liệu, logic nghiệp vụ và tích hợp.
-- **Kỹ sư frontend:** Web người dùng, cổng nguồn cung và giao diện quản trị.
-- **Kỹ sư dữ liệu/ML:** Tiếp nhận, chuẩn hóa, phân giải thực thể, loại trùng, xếp hạng, dữ liệu giá và dịch vụ AI.
-- **Kỹ sư QA:** Chiến lược kiểm thử, hồi quy, tích hợp và chất lượng phát hành.
-- **DevOps/Nền tảng:** CI/CD, hạ tầng, giám sát, bảo mật cơ sở và sao lưu.
-- **Nguồn cung/Phát triển kinh doanh:** Thu hút đối tác, tiếp nhận môi giới, phối hợp hợp đồng và sản lượng nguồn hàng.
-- **Vận hành xác minh:** Rà soát tin/hồ sơ/gian lận và độ mới nguồn hàng.
-- **Tăng trưởng:** Thu hút, SEO, nội dung, kích hoạt và thử nghiệm duy trì.
-- **Pháp lý/Tuân thủ:** Điều khoản, quyền riêng tư, xử lý dữ liệu, hợp đồng nguồn hàng và tuân thủ nền tảng.
-
-## 16.2 Ma trận RACI
-
-**R = Thực hiện; A = Chịu trách nhiệm cuối; C = Được tham vấn; I = Được thông báo.**
-
-| Hoạt động                         | Nhà sáng lập | Sản phẩm | BA | Kỹ thuật | Dữ liệu/ML | UX | QA  | Nguồn cung/BD | Pháp lý |
-| ------------------------------------ | --------------- | ---------- | -- | ---------- | ------------ | -- | --- | -------------- | --------- |
-| Tầm nhìn sản phẩm                | A               | R          | C  | C          | I            | C  | I   | C              | I         |
-| Kiểm chứng thị trường           | C               | A          | R  | I          | I            | R  | I   | R              | I         |
-| Phạm vi sản phẩm                  | A               | R          | R  | C          | C            | C  | C   | C              | I         |
-| PRD                                  | I               | A          | R  | C          | C            | C  | C   | I              | I         |
-| Kiến trúc hệ thống               | I               | C          | C  | A/R        | C            | I  | C   | I              | C         |
-| Mô hình dữ liệu bất động sản | I               | C          | R  | A          | R            | I  | C   | C              | I         |
-| UX/UI                                | I               | A          | C  | C          | I            | R  | C   | I              | I         |
-| Tìm kiếm                           | I               | A          | C  | R          | R            | C  | C   | I              | I         |
-| Loại trùng                         | I               | C          | C  | C          | A/R          | I  | C   | C              | I         |
-| Quy trình xác minh                 | I               | A          | R  | C          | C            | C  | C   | R              | C         |
-| Phát triển nguồn cung             | C               | C          | I  | I          | I            | I  | I   | A/R            | C         |
-| Đối tác dữ liệu                 | A               | C          | C  | C          | C            | I  | I   | R              | C         |
-| Quyền riêng tư                    | I               | C          | C  | C          | C            | I  | I   | I              | A/R       |
-| Bảo mật                            | I               | I          | C  | A/R        | C            | I  | C   | I              | C         |
-| QA                                   | I               | C          | C  | C          | C            | C  | A/R | I              | I         |
-| Phát hành thực tế                | A               | R          | C  | R          | C            | I  | R   | I              | C         |
-| Theo dõi KPI                        | C               | A/R        | R  | C          | C            | C  | I   | C              | I         |
-| Quyết định triển khai/dừng      | A               | R          | C  | C          | C            | C  | C   | C              | C         |
-
----
 
 # Kết luận
 
