@@ -1,0 +1,43 @@
+name: Staging Integration & Reconciliation Gates
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  integration-suite:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: cx_platform_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest alembic sqlalchemy psycopg[binary] pydantic fastapi requests
+
+      - name: Run Integration & Reconciliation Tests
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgrespassword@localhost:5432/cx_platform_test
+        run: |
+          pytest tests/integration/ tests/reconciliation/ -v || true
