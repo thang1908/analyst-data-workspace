@@ -1,10 +1,23 @@
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.src.app import app
+from cx_db.src.session import get_async_session
 
 client = TestClient(app)
+
+
+async def override_get_async_session():
+    mock_session = AsyncMock()
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_session.execute.return_value = mock_result
+    yield mock_session
+
+
+app.dependency_overrides[get_async_session] = override_get_async_session
 
 
 def test_health_endpoints():

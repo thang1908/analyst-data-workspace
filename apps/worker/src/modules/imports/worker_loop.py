@@ -5,7 +5,7 @@ from cx_contracts.common.enums import ImportJobState
 from cx_db.src.models.tables import ImportJobModel
 from cx_db.src.session import AsyncSessionLocal
 from apps.worker.src.modules.imports.validate_job import validate_import_job
-from apps.worker.src.modules/imports.execute_job import execute_import_job
+from apps.worker.src.modules.imports.execute_job import execute_import_job
 from apps.api.src.modules.imports.source_file_store import SourceFileStore
 
 logger = logging.getLogger("cx-worker-import")

@@ -12,7 +12,7 @@ from cx_contracts.import_pkg.import_job import (
     ValidateJobRequest,
 )
 from cx_db.src.session import get_async_session
-from apps.api.src.modules/imports.handlers import (
+from apps.api.src.modules.imports.handlers import (
     handle_create_import_job,
     handle_execute_job,
     handle_get_import_job,
@@ -112,7 +112,7 @@ async def retry_import_job(
 )
 async def get_job_errors(
     job_id: UUID,
-    format: str = Query("json", regex="^(json|csv)$"),
+    format: str = Query("json", pattern="^(json|csv)$"),
     limit: int = Query(50, ge=1, le=200),
     session: AsyncSession = Depends(get_async_session),
     actor: ActorContext = Depends(get_actor_context),

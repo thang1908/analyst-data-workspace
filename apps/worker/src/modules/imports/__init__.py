@@ -2,8 +2,8 @@
 
 from apps.worker.src.modules.imports.execute_job import execute_import_job
 from apps.worker.src.modules.imports.retry_policy import apply_job_retry
-from apps.worker.src.modules/imports.validate_job import validate_import_job
-from apps.worker.src.modules/imports.worker_loop import process_queued_import_jobs
+from apps.worker.src.modules.imports.validate_job import validate_import_job
+from apps.worker.src.modules.imports.worker_loop import process_queued_import_jobs
 
 __all__ = [
     "validate_import_job",
