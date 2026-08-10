@@ -60,9 +60,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ initialFilters, onApply, o
               width: '100%',
               padding: '8px 12px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid var(--border-color)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               color: 'var(--text-primary)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               fontFamily: 'inherit'
             }}
           />
@@ -80,9 +81,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ initialFilters, onApply, o
               width: '100%',
               padding: '8px 12px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid var(--border-color)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               color: 'var(--text-primary)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               fontFamily: 'inherit'
             }}
           />
@@ -99,9 +101,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ initialFilters, onApply, o
               width: '100%',
               padding: '8px 12px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid var(--border-color)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               color: 'var(--text-primary)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               fontFamily: 'inherit'
             }}
           >
@@ -124,9 +127,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ initialFilters, onApply, o
               width: '100%',
               padding: '8px 12px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid var(--border-color)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               color: 'var(--text-primary)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               fontFamily: 'inherit'
             }}
           >
@@ -149,9 +153,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ initialFilters, onApply, o
               width: '100%',
               padding: '8px 12px',
               borderRadius: 'var(--radius-sm)',
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid var(--border-color)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               color: 'var(--text-primary)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
               fontFamily: 'inherit'
             }}
           >

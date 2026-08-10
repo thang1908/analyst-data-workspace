@@ -123,7 +123,7 @@ export const DashboardView: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {summary?.snapshot_token && (
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255, 255, 255, 0.04)', padding: '6px 12px', borderRadius: 8 }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '6px 12px', borderRadius: 8 }}>
               <Clock size={14} /> Snapshot: <code>{summary.snapshot_token}</code>
             </div>
           )}
@@ -147,7 +147,7 @@ export const DashboardView: React.FC = () => {
 
       {/* Error Notice if any */}
       {error && (
-        <div style={{ background: 'rgba(244, 63, 94, 0.15)', border: '1px solid rgba(244, 63, 94, 0.4)', borderRadius: 8, padding: 16, marginBottom: 24, color: '#fb7185' }}>
+        <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: 16, marginBottom: 24, color: '#e11d48' }}>
           {error}
         </div>
       )}
