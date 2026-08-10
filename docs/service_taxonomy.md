@@ -6,7 +6,6 @@
 - **Status:** Draft / Pilot Baseline — chưa phải production baseline
 - **Source journey:** `Customer Journey(2).xlsx`
 - **Purpose:** Master taxonomy cho Database, API, UI filter, AI classification, Hotspot và RCA
-- **Total service groups:** 8
 - **Total services:** 34
 - **Total issue rows:** 217
 
@@ -194,42 +193,42 @@ Mỗi feedback có đúng một `intake_channel` khi nguồn đã biết và có
 
 `Default Handling Unit`, `Default Priority` và `Journey Step refs` là thuộc tính/mapping mặc định ở cấp Service. Giá trị routing thực tế có thể được override theo project, location, issue và hard trigger; các chuỗi phân tách bằng `/` phải được normalize thành quan hệ với `org_unit`, không lưu như một owner ID duy nhất.
 
-| Service Code | Group                       | Service                                  | Default Handling Unit            | Default Priority | Journey Step refs                                                                                                   |
-| ------------ | --------------------------- | ---------------------------------------- | -------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `SVC-01`   | Commercial                  | Brand & Marketing Content                | Marketing/Brand                  | P4               | `A1,A2,A3,A4,A5,A6,C1,C4,C13`                                                                                     |
-| `SVC-02`   | Commercial                  | Project / Product Information            | Product Marketing/Sales          | P4               | `A2,A3,A6,C1,C2,C3,C4,C5,C6,C7,C8,C13,C14`                                                                        |
-| `SVC-03`   | Commercial                  | Sales Advisory & Site Visit              | Sales                            | P3               | `A4,A5,C10,C11,C12,C13,C14`                                                                                       |
-| `SVC-04`   | Transaction                 | Inventory & Booking                      | Sales Operations                 | P3               | `C5,C6,C14,TR-01,TR-02`                                                                                           |
-| `SVC-05`   | Transaction                 | KYC / Transaction Documentation          | Transaction Operations           | P3               | `TR-03,TR-10`                                                                                                     |
-| `SVC-06`   | Transaction                 | Contract / Legal Process                 | Legal/Transaction Operations     | P2               | `C7,TR-04,TR-06,TR-08,TR-10`                                                                                      |
-| `SVC-07`   | Transaction                 | Finance / Loan / Payment                 | Finance/Sales Operations         | P2               | `C8,C9,TR-05,TR-07,TR-09,TR-10,HO-02`                                                                             |
-| `SVC-08`   | Handover                    | Handover Scheduling & Clearance          | Handover Operations              | P3               | `HO-01,HO-02,HO-03`                                                                                               |
-| `SVC-09`   | Handover                    | Apartment Inspection / Defect            | Handover/Quality                 | P2               | `HO-04,HO-05,HO-06,HO-07`                                                                                         |
-| `SVC-10`   | Handover                    | Warranty & Defect Resolution             | Warranty/Technical               | P2               | `HO-06,HO-08,RES-15,SRV-02,SRV-03,SRV-05,SRV-06,SRV-07`                                                           |
-| `SVC-11`   | Resident Administration     | Resident Profile & Account               | Resident Operations/BQL          | P3               | `RES-01,RES-02,SRV-01,SRV-02,SRV-03,SRV-05,SRV-06`                                                                |
-| `SVC-12`   | Resident Administration     | Resident App / Digital Services          | Digital Product/IT               | P3               | `RES-01,RES-02,RES-04,RES-07,RES-08,RES-09,RES-11,RES-12,RES-15,SRV-01,SRV-02,SRV-03,SRV-04,SRV-06,SRV-07,SRV-08` |
-| `SVC-13`   | Resident Administration     | Billing / Fees / Payment                 | Finance/BQL                      | P2               | `TR-09,HO-02,RES-11,SRV-01,SRV-04,SRV-06,SRV-07`                                                                  |
-| `SVC-14`   | Resident Administration     | Resident Service Desk                    | CX/CSKH/BQL                      | P2               | `RES-15,RES-16,SRV-01,SRV-02,SRV-03,SRV-05,SRV-06,SRV-07,SRV-08`                                                  |
-| `SVC-15`   | Access & Mobility           | Access Control / Resident Card / Face ID | Security/BQL/IT                  | P2               | `RES-03,RES-04,RES-05,RES-06,RES-09,RES-10,RES-13,RES-15,SRV-02,SRV-05,SRV-06`                                    |
-| `SVC-16`   | Access & Mobility           | Visitor / Intercom                       | Front Desk/Security/IT           | P3               | `RES-09,RES-10,RES-15,SRV-02,SRV-05,SRV-06`                                                                       |
-| `SVC-17`   | Access & Mobility           | Elevator / Vertical Transportation       | Engineering/Elevator Vendor      | P2               | `RES-06,RES-09,RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                         |
-| `SVC-18`   | Access & Mobility           | Parking                                  | Parking Operations/Security      | P3               | `RES-07,RES-15,SRV-02,SRV-03,SRV-04,SRV-05,SRV-06,SRV-07`                                                         |
-| `SVC-19`   | Access & Mobility           | Internal Mobility / Shuttle / Bus        | Transport Operations             | P3               | `RES-08,RES-15,SRV-01,SRV-02,SRV-05,SRV-06`                                                                       |
-| `SVC-20`   | Technical Building Services | Water & Plumbing                         | MEP Water/Technical              | P2               | `RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
-| `SVC-21`   | Technical Building Services | Electrical & Lighting                    | MEP Electrical/Technical         | P2               | `RES-05,RES-06,RES-11,RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                  |
-| `SVC-22`   | Technical Building Services | Backup Power                             | MEP Electrical/Generator Vendor  | P1               | `RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
-| `SVC-23`   | Technical Building Services | HVAC / Ventilation                       | MEP HVAC/Technical               | P2               | `RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
-| `SVC-24`   | Technical Building Services | Fire Safety                              | Fire Safety/Technical/Security   | P1               | `RES-11,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
-| `SVC-25`   | Technical Building Services | Building / Common Area Assets            | Facilities/Technical             | P3               | `HO-04,HO-06,RES-05,RES-06,RES-10,RES-12,RES-13,RES-15,SRV-02,SRV-05,SRV-06`                                      |
-| `SVC-26`   | Soft FM                     | Security                                 | Security Operations              | P2               | `RES-03,RES-05,RES-09,RES-10,RES-16,SRV-02,SRV-05,SRV-06`                                                         |
-| `SVC-27`   | Soft FM                     | Cleaning                                 | Housekeeping/Vendor              | P3               | `RES-06,RES-10,RES-12,RES-13,RES-15,SRV-02,SRV-05,SRV-06`                                                         |
-| `SVC-28`   | Soft FM                     | Waste Management                         | Housekeeping/Waste Vendor        | P3               | `RES-10,RES-12,RES-15,SRV-02,SRV-05,SRV-06`                                                                       |
-| `SVC-29`   | Soft FM                     | Pest Control                             | Pest Control Vendor/BQL          | P3               | `RES-12,RES-15,SRV-02,SRV-05,SRV-06`                                                                              |
-| `SVC-30`   | Soft FM                     | Landscaping                              | Landscape Vendor/Facilities      | P4               | `RES-08,RES-12,RES-15,SRV-02,SRV-05,SRV-06`                                                                       |
-| `SVC-31`   | Lifestyle & Operations      | Amenities                                | Amenities Operations/BQL         | P3               | `RES-12,RES-13,RES-15,SRV-01,SRV-02,SRV-03,SRV-04,SRV-05,SRV-06,SRV-07,SRV-08`                                    |
-| `SVC-32`   | Lifestyle & Operations      | Renovation / Construction Permit         | Urban Management/BQL/Technical   | P3               | `RES-14,RES-15,SRV-01,SRV-02,SRV-03,SRV-04,SRV-05,SRV-06,SRV-07`                                                  |
-| `SVC-33`   | Lifestyle & Operations      | Move-in / Move-out                       | Resident Operations/Security/BQL | P3               | `HO-08,RES-01,RES-03,RES-05,RES-14,RES-15,SRV-01,SRV-02,SRV-03,SRV-05,SRV-06,SRV-07`                              |
-| `SVC-34`   | Lifestyle & Operations      | Community Communication / Notification   | CX/Communications/BQL            | P3               | `RES-11,RES-15,RES-16,SRV-01,SRV-03,SRV-06,SRV-07,SRV-08`                                                         |
+| Service Code | Service                                  | Default Handling Unit            | Default Priority | Journey Step refs                                                                                                   |
+| ------------ | ---------------------------------------- | -------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `SVC-01`   | Brand & Marketing Content                | Marketing/Brand                  | P4               | `A1,A2,A3,A4,A5,A6,C1,C4,C13`                                                                                     |
+| `SVC-02`   | Project / Product Information            | Product Marketing/Sales          | P4               | `A2,A3,A6,C1,C2,C3,C4,C5,C6,C7,C8,C13,C14`                                                                        |
+| `SVC-03`   | Sales Advisory & Site Visit              | Sales                            | P3               | `A4,A5,C10,C11,C12,C13,C14`                                                                                       |
+| `SVC-04`   | Inventory & Booking                      | Sales Operations                 | P3               | `C5,C6,C14,TR-01,TR-02`                                                                                           |
+| `SVC-05`   | KYC / Transaction Documentation          | Transaction Operations           | P3               | `TR-03,TR-10`                                                                                                     |
+| `SVC-06`   | Contract / Legal Process                 | Legal/Transaction Operations     | P2               | `C7,TR-04,TR-06,TR-08,TR-10`                                                                                      |
+| `SVC-07`   | Finance / Loan / Payment                 | Finance/Sales Operations         | P2               | `C8,C9,TR-05,TR-07,TR-09,TR-10,HO-02`                                                                             |
+| `SVC-08`   | Handover Scheduling & Clearance          | Handover Operations              | P3               | `HO-01,HO-02,HO-03`                                                                                               |
+| `SVC-09`   | Apartment Inspection / Defect            | Handover/Quality                 | P2               | `HO-04,HO-05,HO-06,HO-07`                                                                                         |
+| `SVC-10`   | Warranty & Defect Resolution             | Warranty/Technical               | P2               | `HO-06,HO-08,RES-15,SRV-02,SRV-03,SRV-05,SRV-06,SRV-07`                                                           |
+| `SVC-11`   | Resident Profile & Account               | Resident Operations/BQL          | P3               | `RES-01,RES-02,SRV-01,SRV-02,SRV-03,SRV-05,SRV-06`                                                                |
+| `SVC-12`   | Resident App / Digital Services          | Digital Product/IT               | P3               | `RES-01,RES-02,RES-04,RES-07,RES-08,RES-09,RES-11,RES-12,RES-15,SRV-01,SRV-02,SRV-03,SRV-04,SRV-06,SRV-07,SRV-08` |
+| `SVC-13`   | Billing / Fees / Payment                 | Finance/BQL                      | P2               | `TR-09,HO-02,RES-11,SRV-01,SRV-04,SRV-06,SRV-07`                                                                  |
+| `SVC-14`   | Resident Service Desk                    | CX/CSKH/BQL                      | P2               | `RES-15,RES-16,SRV-01,SRV-02,SRV-03,SRV-05,SRV-06,SRV-07,SRV-08`                                                  |
+| `SVC-15`   | Access Control / Resident Card / Face ID | Security/BQL/IT                  | P2               | `RES-03,RES-04,RES-05,RES-06,RES-09,RES-10,RES-13,RES-15,SRV-02,SRV-05,SRV-06`                                    |
+| `SVC-16`   | Visitor / Intercom                       | Front Desk/Security/IT           | P3               | `RES-09,RES-10,RES-15,SRV-02,SRV-05,SRV-06`                                                                       |
+| `SVC-17`   | Elevator / Vertical Transportation       | Engineering/Elevator Vendor      | P2               | `RES-06,RES-09,RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                         |
+| `SVC-18`   | Parking                                  | Parking Operations/Security      | P3               | `RES-07,RES-15,SRV-02,SRV-03,SRV-04,SRV-05,SRV-06,SRV-07`                                                         |
+| `SVC-19`   | Internal Mobility / Shuttle / Bus        | Transport Operations             | P3               | `RES-08,RES-15,SRV-01,SRV-02,SRV-05,SRV-06`                                                                       |
+| `SVC-20`   | Water & Plumbing                         | MEP Water/Technical              | P2               | `RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
+| `SVC-21`   | Electrical & Lighting                    | MEP Electrical/Technical         | P2               | `RES-05,RES-06,RES-11,RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                  |
+| `SVC-22`   | Backup Power                             | MEP Electrical/Generator Vendor  | P1               | `RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
+| `SVC-23`   | HVAC / Ventilation                       | MEP HVAC/Technical               | P2               | `RES-15,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
+| `SVC-24`   | Fire Safety                              | Fire Safety/Technical/Security   | P1               | `RES-11,RES-16,SRV-02,SRV-05,SRV-06,SRV-07`                                                                       |
+| `SVC-25`   | Building / Common Area Assets            | Facilities/Technical             | P3               | `HO-04,HO-06,RES-05,RES-06,RES-10,RES-12,RES-13,RES-15,SRV-02,SRV-05,SRV-06`                                      |
+| `SVC-26`   | Security                                 | Security Operations              | P2               | `RES-03,RES-05,RES-09,RES-10,RES-16,SRV-02,SRV-05,SRV-06`                                                         |
+| `SVC-27`   | Cleaning                                 | Housekeeping/Vendor              | P3               | `RES-06,RES-10,RES-12,RES-13,RES-15,SRV-02,SRV-05,SRV-06`                                                         |
+| `SVC-28`   | Waste Management                         | Housekeeping/Waste Vendor        | P3               | `RES-10,RES-12,RES-15,SRV-02,SRV-05,SRV-06`                                                                       |
+| `SVC-29`   | Pest Control                             | Pest Control Vendor/BQL          | P3               | `RES-12,RES-15,SRV-02,SRV-05,SRV-06`                                                                              |
+| `SVC-30`   | Landscaping                              | Landscape Vendor/Facilities      | P4               | `RES-08,RES-12,RES-15,SRV-02,SRV-05,SRV-06`                                                                       |
+| `SVC-31`   | Amenities                                | Amenities Operations/BQL         | P3               | `RES-12,RES-13,RES-15,SRV-01,SRV-02,SRV-03,SRV-04,SRV-05,SRV-06,SRV-07,SRV-08`                                    |
+| `SVC-32`   | Renovation / Construction Permit         | Urban Management/BQL/Technical   | P3               | `RES-14,RES-15,SRV-01,SRV-02,SRV-03,SRV-04,SRV-05,SRV-06,SRV-07`                                                  |
+| `SVC-33`   | Move-in / Move-out                       | Resident Operations/Security/BQL | P3               | `HO-08,RES-01,RES-03,RES-05,RES-14,RES-15,SRV-01,SRV-02,SRV-03,SRV-05,SRV-06,SRV-07`                              |
+| `SVC-34`   | Community Communication / Notification   | CX/Communications/BQL            | P3               | `RES-11,RES-15,RES-16,SRV-01,SRV-03,SRV-06,SRV-07,SRV-08`                                                         |
 
 ---
 
@@ -587,15 +586,9 @@ Customer Lifecycle Step bắt buộc có `journey_stage_id`; Service Request Ste
 ### 6.3 Service và Issue
 
 ```text
-service_group
-  service_group_id
-  service_group_code
-  service_group_name
-
 service
   service_id
   service_code
-  service_group_id
   service_name
   description
   default_operational_severity # SEV-1..SEV-4; fallback khi Issue không có override
@@ -1030,7 +1023,7 @@ Các invariant dưới đây là release-blocking và phải chạy tự động
 
 ### Source-table integrity
 
-- Release pilot này phải có đúng 8 service groups, 34 services và 217 issue rows; số metadata phải khớp dữ liệu parse được.
+- Release pilot này phải có đúng 34 services và 217 issue rows; số metadata phải khớp dữ liệu parse được.
 - Issue row number liên tục, Issue Code unique, Service Code hợp lệ và priority chỉ thuộc `P1–P4`.
 - Mọi `Journey Step refs` tồn tại trong dictionary. Cột derived Handling Unit/Journey refs ở bảng Issue phải khớp Service Catalog.
 - Mọi cause group token phải thuộc `CG01–CG18`; production mapping chỉ nhận atomic `cause_code` thuộc `CG01–CG17`.

@@ -1,3 +1,4 @@
+à
 
 # 01 — Product Requirements Document
 
@@ -118,16 +119,16 @@ Hai sheet Cư trú và Dịch vụ chưa có ID ổn định trong workbook; pla
 
 Service Request Lifecycle trả lời: **một yêu cầu dịch vụ đang ở bước xử lý nào?** Đây là dimension độc lập và có thể xuất hiện tại bất kỳ Customer Lifecycle Stage nào.
 
-| Step | Ý nghĩa |
-| ---- | ------- |
-| `SRV-01` | Tìm thông tin |
-| `SRV-02` | Gửi yêu cầu |
+| Step       | Ý nghĩa              |
+| ---------- | ---------------------- |
+| `SRV-01` | Tìm thông tin        |
+| `SRV-02` | Gửi yêu cầu         |
 | `SRV-03` | Xác nhận/phê duyệt |
-| `SRV-04` | Thanh toán |
-| `SRV-05` | Được phục vụ |
-| `SRV-06` | Theo dõi/escalate |
-| `SRV-07` | Hoàn tất |
-| `SRV-08` | Đánh giá |
+| `SRV-04` | Thanh toán            |
+| `SRV-05` | Được phục vụ      |
+| `SRV-06` | Theo dõi/escalate     |
+| `SRV-07` | Hoàn tất             |
+| `SRV-08` | Đánh giá            |
 
 Ví dụ, một cư dân có thể đồng thời ở `Customer Lifecycle = Cư trú / RES-06` và `Service Request Lifecycle = SRV-02`.
 
@@ -318,41 +319,41 @@ CX Platform
 
 ## 10. User Stories & Acceptance Criteria
 
-| Epic                               | User Story      | Persona            | I want                                                             | So that                                                          | Priority     | Acceptance Criteria                                                                                          |
-| ---------------------------------- | --------------- | ------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------ |
-| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-01`   | Taxonomy Admin     | publish 5 Customer Lifecycle Stage và 8 Service Request Step | CX data được phân loại đúng hai lifecycle độc lập | **P0** | Code duy nhất; dictionary riêng; import seed đã validate; draft/approved/published/retired; effective date; không hard-delete. |
-| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-02`   | Taxonomy Admin     | xem dictionary theo đúng workbook đã chốt             | team dùng cùng một định nghĩa lifecycle                      | **P0** | Giữ wording approved; hiển thị code/type/stage/step/version; mọi publish/retire tạo audit.             |
-| `EPIC-02` Service Catalog        | `US-SVC-01`   | Taxonomy Admin     | publish Service Catalog trong pilot scope                       | feedback được gắn đúng đơn vị/năng lực vận hành     | **P0** | Service có code, group, owner, default operational severity, active/version; ngoài pilot có thể seed nhưng không là release gate. |
-| `EPIC-02` Service Catalog        | `US-SVC-02`   | Taxonomy Admin     | map Lifecycle Step với nhiều Service                             | system biết service nào có thể tác động tới từng bước | **P0** | N:N mapping; bật/tắt; lịch sử hiệu lực; API đọc mapping; Customer và Service Request mapping không trộn type. |
-| `EPIC-03` Issue & Cause Taxonomy | `US-ISS-01`   | Service Owner      | quản lý Issue thuộc Service                                     | complaint được chuẩn hóa theo triệu chứng                 | **P0** | Issue phải thuộc Service; unique code; synonym; default operational severity; active/version. |
-| `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-01` | Technical Owner    | quản lý Candidate Cause theo Issue                               | investigation có checklist nguyên nhân nhất quán            | **P1** | Issue↔Cause N:N; suggestion set hỗ trợ nhiều cause có rank/confidence; `UNKNOWN` không đi cùng cause cụ thể. |
-| `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-02` | Technical Owner    | xác nhận Root Cause sau điều tra                               | giả thuyết không bị coi là sự thật                        | **P1** | Root cause CONFIRMED bắt buộc evidence + confirmed_by + confirmed_at; AI không được confirm.           |
-| `EPIC-04` Feedback Intake        | `US-INT-01`   | CX Analyst         | import feedback từ CSV/XLSX                                       | dữ liệu lịch sử có thể vào platform                       | **P0** | Async job; preview; reusable column mapping; validate; idempotency; error file; partial/failed status; retry; row lineage; batch audit. |
-| `EPIC-04` Feedback Intake        | `US-INT-02`   | Integration System | gửi feedback qua API                                              | feedback mới đi vào platform tự động                       | **P1** | Idempotency key; source/channel; timestamp; content; response trả feedback_id.                              |
-| `EPIC-04` Feedback Intake        | `US-INT-03`   | CX Analyst         | nhìn thấy nguồn và raw content nguyên bản                    | có thể audit classification                                    | **P0** | Raw content immutable; source URL/ref; ingested_at; original payload reference.                              |
-| `EPIC-05` Feedback Workspace     | `US-FB-01`    | CX Analyst         | xem feedback và các feedback item                                 | điều tra từng vấn đề nguyên tử trên một workspace        | **P0** | Table có event date, channel, project, location, lifecycle, primary/secondary service, issue, sentiment, operational severity và review status. |
-| `EPIC-05` Feedback Workspace     | `US-FB-02`    | CX Analyst         | filter feedback item theo các dimension CX                        | thu hẹp chính xác phạm vi điều tra                         | **P0** | Filter date/project/location/customer lifecycle/service-request step/service/issue/sentiment/severity/channel/status. |
-| `EPIC-05` Feedback Workspace     | `US-FB-03`    | CX Analyst         | save view                                                          | không phải cấu hình filter lặp lại                         | **P1** | Save private/shared view; owner; default view; delete/rename.                                                |
-| `EPIC-05` Feedback Workspace     | `US-FB-04`    | Operator           | split item và quyết định classification thủ công                | multi-intent và label sai được xử lý có kiểm soát       | **P0** | Raw content không đổi; mỗi correction tạo immutable decision version mới có actor, reason, timestamp và reference tới version trước; projection rebuild được; correction vào gold-set candidate. |
-| `EPIC-06` AI Classification      | `US-AI-01`    | Operator           | nhận AI suggestion cho lifecycle/service/issue/sentiment          | giảm tagging thủ công                                         | **P0** | Suggest-only; prediction tách theo item+field, có candidate value, confidence, model/prompt/taxonomy version; không tự sửa current projection. |
-| `EPIC-06` AI Classification      | `US-AI-02`    | AI Reviewer        | accept/correct/unknown AI suggestion                               | chỉ decision được duyệt mới vào analytics                  | **P0** | Queue theo field/confidence; Accept/Correct/Unknown/Skip; review decision và audit độc lập prediction. |
-| `EPIC-06` AI Classification      | `US-AI-03`    | AI/ML Team         | tạo gold set và theo dõi chất lượng theo label                  | biết model đủ điều kiện để mở rộng hay chưa               | **P0** | Gold set versioned; sampling rule; label guideline; correction/unknown/confidence distribution; offline metrics theo field. |
-| `EPIC-07` Ticket / Case          | `US-TKT-01`   | Operator           | chuyển feedback thành ticket hoặc attach ticket có sẵn        | chỉ vấn đề cần action mới thành case                      | **P1** | Feedback có thể remain feedback/create/attach; audit relationship.                                         |
-| `EPIC-07` Ticket / Case          | `US-TKT-02`   | Operator           | assign ticket tới handling unit                                   | đảm bảo có owner xử lý                                     | **P1** | Assignment history; accepted_at; reassignment reason; current accountable owner.                             |
-| `EPIC-07` Ticket / Case          | `US-TKT-03`   | Building Manager   | theo dõi SLA và escalation                                       | case rủi ro được ưu tiên                                   | **P1** | SLA countdown; near-breach; breach; pause reason; escalation event.                                          |
-| `EPIC-08` Hotspot                | `US-HOT-01`   | CX Manager         | phát hiện cluster theo deterministic rule Service+Issue+Location+Time | vấn đề lặp lại được phát hiện nhất quán             | **P0** | Rule dùng accepted item, cấu hình threshold/window/location level, có rule version và evidence items; cùng key/window không tạo candidate trùng. |
-| `EPIC-08` Hotspot                | `US-HOT-02`   | CX Manager         | drill-down hotspot về feedback item                               | hiểu dữ liệu nào tạo ra cảnh báo                          | **P0** | Hotspot detail có trend, evidence items, locations, sentiment và operational severity. |
-| `EPIC-08` Hotspot                | `US-HOT-03`   | Building Manager   | acknowledge/assign hotspot                                         | candidate P0 có accountable owner                           | **P0** | Owner mặc định từ Service; acknowledge/assign/dismiss/resolve có actor, timestamp, reason và timeline. |
-| `EPIC-08` Hotspot                | `US-HOT-04`   | System             | kích hoạt hard trigger với vấn đề an toàn                   | không chờ volume đủ lớn mới cảnh báo                     | **P1** | SEV-1 safety issue tạo alert tức thời; rule độc lập AI score và chỉ bật sau sign-off. |
-| `EPIC-09` RCA                    | `US-RCA-01`   | Service Owner      | mở RCA từ hotspot hoặc repeat issue                             | tìm nguyên nhân gốc thay vì đóng triệu chứng            | **P1** | RCA liên kết hotspot/ticket/asset; problem statement; candidate causes; evidence.                          |
-| `EPIC-09` RCA                    | `US-RCA-02`   | Technical Owner    | xác nhận root cause và corrective action                        | ngăn lỗi tái diễn                                            | **P1** | Confirmed cause; corrective/preventive action; owner; due date; verification.                                |
-| `EPIC-10` Pilot Analytics        | `US-ANA-01`   | CX Manager         | xem KPI pilot theo Customer Lifecycle/Service/Issue/Location     | biết friction trong phạm vi pilot                           | **P0** | Item volume, negative rate, unknown rate và breakdown; dùng accepted current projection; click drill-down đúng cùng filter context. |
-| `EPIC-10` Journey Analytics      | `US-ANA-02`   | CX Manager         | so sánh các Journey Step theo thời gian                         | biết step nào đang xấu đi                                   | **P1** | WoW/MoM/YoY; same filter context; metric definitions versioned.                                              |
-| `EPIC-11` Service Analytics      | `US-ANA-03`   | Service Owner      | xem performance mở rộng theo Service/Issue/Location               | biết dịch vụ nào cần cải thiện                            | **P1** | Volume, negative, hotspot, top issue, top building, trend; drill-down. |
-| `EPIC-11` Service Analytics      | `US-ANA-04`   | Service Owner      | xem recurring issue và candidate cause                            | ưu tiên hoạt động phòng ngừa                              | **P1** | Repeat rate; RCA linkage; asset/location concentration.                                                      |
-| `EPIC-12` Governance             | `US-GOV-01`   | Platform Admin     | quản lý basic role và quyền xem PII                              | dữ liệu chỉ hiển thị đúng đối tượng                   | **P0** | SSO; Pilot Admin/Analyst/Reviewer/Viewer; server-side authorization; raw PII/export privilege; audit privileged actions. |
-| `EPIC-12` Governance             | `US-GOV-02`   | Data Steward       | theo dõi data quality thiết yếu                                  | analytics không dựa trên dữ liệu bẩn                     | **P0** | Import errors, duplicate, missing/invalid taxonomy/location, unknown rate, stale prediction và ineligible item counts. |
-| `EPIC-13` Location               | `US-LOC-01`   | Taxonomy Admin     | quản lý location hierarchy trong pilot                           | filter và hotspot dùng cùng stable location ID            | **P0** | Project→site/building→floor/zone→space/point; code unique trong parent; timezone; active/effective date; không hard-delete. |
+| Epic                               | User Story      | Persona            | I want                                                                  | So that                                                          | Priority     | Acceptance Criteria                                                                                                                                                                                             |
+| ---------------------------------- | --------------- | ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-01`   | Taxonomy Admin     | publish 5 Customer Lifecycle Stage và 8 Service Request Step           | CX data được phân loại đúng hai lifecycle độc lập      | **P0** | Code duy nhất; dictionary riêng; import seed đã validate; draft/approved/published/retired; effective date; không hard-delete.                                                                             |
+| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-02`   | Taxonomy Admin     | xem dictionary theo đúng workbook đã chốt                          | team dùng cùng một định nghĩa lifecycle                    | **P0** | Giữ wording approved; hiển thị code/type/stage/step/version; mọi publish/retire tạo audit.                                                                                                                 |
+| `EPIC-02` Service Catalog        | `US-SVC-01`   | Taxonomy Admin     | publish Service Catalog trong pilot scope                               | feedback được gắn đúng đơn vị/năng lực vận hành     | **P0** | Service có code, group, owner, default operational severity, active/version; ngoài pilot có thể seed nhưng không là release gate.                                                                        |
+| `EPIC-02` Service Catalog        | `US-SVC-02`   | Taxonomy Admin     | map Lifecycle Step với nhiều Service                                  | system biết service nào có thể tác động tới từng bước | **P0** | N:N mapping; bật/tắt; lịch sử hiệu lực; API đọc mapping; Customer và Service Request mapping không trộn type.                                                                                        |
+| `EPIC-03` Issue & Cause Taxonomy | `US-ISS-01`   | Service Owner      | quản lý Issue thuộc Service                                          | complaint được chuẩn hóa theo triệu chứng                 | **P0** | Issue phải thuộc Service; unique code; synonym; default operational severity; active/version.                                                                                                                 |
+| `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-01` | Technical Owner    | quản lý Candidate Cause theo Issue                                    | investigation có checklist nguyên nhân nhất quán            | **P1** | Issue↔Cause N:N; suggestion set hỗ trợ nhiều cause có rank/confidence;`UNKNOWN` không đi cùng cause cụ thể.                                                                                         |
+| `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-02` | Technical Owner    | xác nhận Root Cause sau điều tra                                    | giả thuyết không bị coi là sự thật                        | **P1** | Root cause CONFIRMED bắt buộc evidence + confirmed_by + confirmed_at; AI không được confirm.                                                                                                              |
+| `EPIC-04` Feedback Intake        | `US-INT-01`   | CX Analyst         | import feedback từ CSV/XLSX                                            | dữ liệu lịch sử có thể vào platform                       | **P0** | Async job; preview; reusable column mapping; validate; idempotency; error file; partial/failed status; retry; row lineage; batch audit.                                                                         |
+| `EPIC-04` Feedback Intake        | `US-INT-02`   | Integration System | gửi feedback qua API                                                   | feedback mới đi vào platform tự động                       | **P1** | Idempotency key; source/channel; timestamp; content; response trả feedback_id.                                                                                                                                 |
+| `EPIC-04` Feedback Intake        | `US-INT-03`   | CX Analyst         | nhìn thấy nguồn và raw content nguyên bản                         | có thể audit classification                                    | **P0** | Raw content immutable; source URL/ref; ingested_at; original payload reference.                                                                                                                                 |
+| `EPIC-05` Feedback Workspace     | `US-FB-01`    | CX Analyst         | xem feedback và các feedback item                                     | điều tra từng vấn đề nguyên tử trên một workspace      | **P0** | Table có event date, channel, project, location, lifecycle, primary/secondary service, issue, sentiment, operational severity và review status.                                                               |
+| `EPIC-05` Feedback Workspace     | `US-FB-02`    | CX Analyst         | filter feedback item theo các dimension CX                             | thu hẹp chính xác phạm vi điều tra                         | **P0** | Filter date/project/location/customer lifecycle/service-request step/service/issue/sentiment/severity/channel/status.                                                                                           |
+| `EPIC-05` Feedback Workspace     | `US-FB-03`    | CX Analyst         | save view                                                               | không phải cấu hình filter lặp lại                         | **P1** | Save private/shared view; owner; default view; delete/rename.                                                                                                                                                   |
+| `EPIC-05` Feedback Workspace     | `US-FB-04`    | Operator           | split item và quyết định classification thủ công                  | multi-intent và label sai được xử lý có kiểm soát       | **P0** | Raw content không đổi; mỗi correction tạo immutable decision version mới có actor, reason, timestamp và reference tới version trước; projection rebuild được; correction vào gold-set candidate. |
+| `EPIC-06` AI Classification      | `US-AI-01`    | Operator           | nhận AI suggestion cho lifecycle/service/issue/sentiment               | giảm tagging thủ công                                         | **P0** | Suggest-only; prediction tách theo item+field, có candidate value, confidence, model/prompt/taxonomy version; không tự sửa current projection.                                                             |
+| `EPIC-06` AI Classification      | `US-AI-02`    | AI Reviewer        | accept/correct/unknown AI suggestion                                    | chỉ decision được duyệt mới vào analytics                 | **P0** | Queue theo field/confidence; Accept/Correct/Unknown/Skip; review decision và audit độc lập prediction.                                                                                                      |
+| `EPIC-06` AI Classification      | `US-AI-03`    | AI/ML Team         | tạo gold set và theo dõi chất lượng theo label                    | biết model đủ điều kiện để mở rộng hay chưa           | **P0** | Gold set versioned; sampling rule; label guideline; correction/unknown/confidence distribution; offline metrics theo field.                                                                                     |
+| `EPIC-07` Ticket / Case          | `US-TKT-01`   | Operator           | chuyển feedback thành ticket hoặc attach ticket có sẵn             | chỉ vấn đề cần action mới thành case                      | **P1** | Feedback có thể remain feedback/create/attach; audit relationship.                                                                                                                                            |
+| `EPIC-07` Ticket / Case          | `US-TKT-02`   | Operator           | assign ticket tới handling unit                                        | đảm bảo có owner xử lý                                     | **P1** | Assignment history; accepted_at; reassignment reason; current accountable owner.                                                                                                                                |
+| `EPIC-07` Ticket / Case          | `US-TKT-03`   | Building Manager   | theo dõi SLA và escalation                                            | case rủi ro được ưu tiên                                   | **P1** | SLA countdown; near-breach; breach; pause reason; escalation event.                                                                                                                                             |
+| `EPIC-08` Hotspot                | `US-HOT-01`   | CX Manager         | phát hiện cluster theo deterministic rule Service+Issue+Location+Time | vấn đề lặp lại được phát hiện nhất quán              | **P0** | Rule dùng accepted item, cấu hình threshold/window/location level, có rule version và evidence items; cùng key/window không tạo candidate trùng.                                                       |
+| `EPIC-08` Hotspot                | `US-HOT-02`   | CX Manager         | drill-down hotspot về feedback item                                    | hiểu dữ liệu nào tạo ra cảnh báo                          | **P0** | Hotspot detail có trend, evidence items, locations, sentiment và operational severity.                                                                                                                        |
+| `EPIC-08` Hotspot                | `US-HOT-03`   | Building Manager   | acknowledge/assign hotspot                                              | candidate P0 có accountable owner                               | **P0** | Owner mặc định từ Service; acknowledge/assign/dismiss/resolve có actor, timestamp, reason và timeline.                                                                                                    |
+| `EPIC-08` Hotspot                | `US-HOT-04`   | System             | kích hoạt hard trigger với vấn đề an toàn                        | không chờ volume đủ lớn mới cảnh báo                     | **P1** | SEV-1 safety issue tạo alert tức thời; rule độc lập AI score và chỉ bật sau sign-off.                                                                                                                  |
+| `EPIC-09` RCA                    | `US-RCA-01`   | Service Owner      | mở RCA từ hotspot hoặc repeat issue                                  | tìm nguyên nhân gốc thay vì đóng triệu chứng            | **P1** | RCA liên kết hotspot/ticket/asset; problem statement; candidate causes; evidence.                                                                                                                             |
+| `EPIC-09` RCA                    | `US-RCA-02`   | Technical Owner    | xác nhận root cause và corrective action                             | ngăn lỗi tái diễn                                            | **P1** | Confirmed cause; corrective/preventive action; owner; due date; verification.                                                                                                                                   |
+| `EPIC-10` Pilot Analytics        | `US-ANA-01`   | CX Manager         | xem KPI pilot theo Customer Lifecycle/Service/Issue/Location            | biết friction trong phạm vi pilot                              | **P0** | Item volume, negative rate, unknown rate và breakdown; dùng accepted current projection; click drill-down đúng cùng filter context.                                                                        |
+| `EPIC-10` Journey Analytics      | `US-ANA-02`   | CX Manager         | so sánh các Journey Step theo thời gian                              | biết step nào đang xấu đi                                   | **P1** | WoW/MoM/YoY; same filter context; metric definitions versioned.                                                                                                                                                 |
+| `EPIC-11` Service Analytics      | `US-ANA-03`   | Service Owner      | xem performance mở rộng theo Service/Issue/Location                   | biết dịch vụ nào cần cải thiện                            | **P1** | Volume, negative, hotspot, top issue, top building, trend; drill-down.                                                                                                                                          |
+| `EPIC-11` Service Analytics      | `US-ANA-04`   | Service Owner      | xem recurring issue và candidate cause                                 | ưu tiên hoạt động phòng ngừa                              | **P1** | Repeat rate; RCA linkage; asset/location concentration.                                                                                                                                                         |
+| `EPIC-12` Governance             | `US-GOV-01`   | Platform Admin     | quản lý basic role và quyền xem PII                                 | dữ liệu chỉ hiển thị đúng đối tượng                   | **P0** | SSO; Pilot Admin/Analyst/Reviewer/Viewer; server-side authorization; raw PII/export privilege; audit privileged actions.                                                                                        |
+| `EPIC-12` Governance             | `US-GOV-02`   | Data Steward       | theo dõi data quality thiết yếu                                      | analytics không dựa trên dữ liệu bẩn                       | **P0** | Import errors, duplicate, missing/invalid taxonomy/location, unknown rate, stale prediction và ineligible item counts.                                                                                         |
+| `EPIC-13` Location               | `US-LOC-01`   | Taxonomy Admin     | quản lý location hierarchy trong pilot                                | filter và hotspot dùng cùng stable location ID                | **P0** | Project→site/building→floor/zone→space/point; code unique trong parent; timezone; active/effective date; không hard-delete.                                                                                 |
 
 ---
 
@@ -372,7 +373,6 @@ Mỗi Service có:
 ```text
 service_id
 service_code
-service_group
 service_name
 owner_unit_id
 default_operational_severity
@@ -783,12 +783,12 @@ Raw content immutable. Split item, masking, prediction, decision và projection 
 
 P0 vận hành ở chế độ **suggest-only** cho mọi confidence. Confidence chỉ dùng để sắp hàng review và phân tích calibration; không có threshold auto-apply trước khi có gold set và phê duyệt rủi ro theo từng field.
 
-| Trạng thái | Hành vi P0 |
-| ---------- | ----------- |
-| Prediction mới | Lưu riêng, không vào current projection/analytics |
-| Reviewer Accept | Tạo decision version và cập nhật projection |
-| Reviewer Correct | Tạo decision version; đưa vào gold-set candidate |
-| Reviewer Unknown | Projection dùng UNKNOWN có chủ đích |
+| Trạng thái     | Hành vi P0                                                       |
+| ---------------- | ----------------------------------------------------------------- |
+| Prediction mới  | Lưu riêng, không vào current projection/analytics             |
+| Reviewer Accept  | Tạo decision version và cập nhật projection                   |
+| Reviewer Correct | Tạo decision version; đưa vào gold-set candidate              |
+| Reviewer Unknown | Projection dùng UNKNOWN có chủ đích                          |
 | Safety/legal/RCA | Luôn cần người có thẩm quyền; AI không được xác nhận |
 
 ### P0
@@ -1194,16 +1194,16 @@ Ngoài pilot scope có thể seed để thử nghiệm nhưng không được t�
 
 ### 21.1 Feature slices
 
-| Slice | Outcome có thể demo/test | Delivery |
-| ----- | ------------------------- | -------- |
-| `F0 Governance Foundation` | Pilot scope, enums, SSO/basic roles, PII policy enforcement, audit/correlation ID | P0 |
-| `F1 Reference Data` | Hai lifecycle, Service/Issue, mapping, location được seed/validate/publish bằng stable ID | P0 |
-| `F2 Trusted Intake` | Một file thật đi qua async job; mọi row có feedback hoặc error/lineage | P0 |
-| `F3 Human Classification` | Feedback được tách item, quyết định nhãn, rebuild projection và filter/drill-down | P0 |
-| `F4 AI Assist` | Suggestion theo field được review; correction vào gold-set candidate; không auto-apply | P0 |
-| `F5 Pilot Insight` | KPI versioned drill-down đúng về eligible item | P0 |
-| `F6 Detect & Own` | Rule thang máy tạo đúng một hotspot, có evidence, owner và lifecycle | P0 |
-| `F7 Operational Action` | Ticket/SLA/RCA hoặc integration system of record | P1 |
+| Slice                        | Outcome có thể demo/test                                                                    | Delivery |
+| ---------------------------- | --------------------------------------------------------------------------------------------- | -------- |
+| `F0 Governance Foundation` | Pilot scope, enums, SSO/basic roles, PII policy enforcement, audit/correlation ID             | P0       |
+| `F1 Reference Data`        | Hai lifecycle, Service/Issue, mapping, location được seed/validate/publish bằng stable ID | P0       |
+| `F2 Trusted Intake`        | Một file thật đi qua async job; mọi row có feedback hoặc error/lineage                  | P0       |
+| `F3 Human Classification`  | Feedback được tách item, quyết định nhãn, rebuild projection và filter/drill-down    | P0       |
+| `F4 AI Assist`             | Suggestion theo field được review; correction vào gold-set candidate; không auto-apply   | P0       |
+| `F5 Pilot Insight`         | KPI versioned drill-down đúng về eligible item                                             | P0       |
+| `F6 Detect & Own`          | Rule thang máy tạo đúng một hotspot, có evidence, owner và lifecycle                   | P0       |
+| `F7 Operational Action`    | Ticket/SLA/RCA hoặc integration system of record                                             | P1       |
 
 ### 21.2 Recommended build order
 
@@ -1236,6 +1236,7 @@ Không build AI, chart hoặc hotspot trực tiếp trên raw import table. Tấ
 ---
 
 ## 22. First Manual Vertical Slice — FEAT-001
+
 ### 22.1 Manual intake-to-insight
 
 Input:
@@ -1341,24 +1342,24 @@ MVP được xem là hoàn thành khi:
 
 Mỗi decision phải có một người chịu trách nhiệm theo vai trò, deadline và link Decision Record. “Cần workshop” không được dùng như trạng thái vô thời hạn.
 
-| Decision | Delivery impact | Accountable role | Default an toàn nếu chưa chốt |
-| -------- | --------------- | ---------------- | ----------------------------- |
-| Pilot project/building, 1–3 Service, source, date range, volume và user cohort | **Blocks P0** | Product Owner | Không bắt đầu Sprint 1 |
-| Data sample quyền sử dụng, language/encoding, required columns và source trust rule | **Blocks P0** | Data Owner | Chỉ synthetic fixture; không production data |
-| Authoritative `Customer Journey(2).xlsx` revision, checksum, approval owner và nơi lưu được team truy cập | **Blocks P0 taxonomy publish** | Product + Data Owner | Không tuyên bố wording/mapping đã được freeze |
-| Multi-intent split guideline và field nào bắt buộc/cho phép UNKNOWN | **Blocks P0** | CX/Data Steward | Manual split; prediction không auto-apply |
-| Location hierarchy, normalized S2 ID, grouping level và timezone | **Blocks P0** | BQL + Data Owner | Record thiếu location bị ineligible cho hotspot |
-| Pilot Service/Issue owner và mapping; mapping legacy Priority P1–P4 sang SEV-1–SEV-4 | **Blocks P0** | Service Owner | Không publish taxonomy version |
-| PII classification, masking, retention, raw-view/export role và AI data boundary | **Blocks P0** | Security/Privacy Owner | Mask trước AI; deny raw/export by default |
-| Hotspot pilot `N`, `W`, location level, cooldown, owner và resolve/dismiss playbook | **Blocks P0** | CX Manager + Service Owner | Dùng test default chỉ trong non-production; feature flag off production |
-| Pilot sizing, file limit, daily ingest, concurrent users và retention | **Blocks P0 architecture/performance sign-off** | Product + Engineering | Không tuyên bố production SLO |
-| Gold-set sampling, label guideline, adjudication owner và target coverage | **Blocks P0 AI evaluation**, không block manual workflow | Data Steward + ML Lead | AI suggest-only; không auto-apply |
-| Metric baseline window, eligible source và operational target | P0 measurement | Product Analytics | Hiển thị baseline, chưa tuyên bố % cải thiện |
-| Fine-grained RBAC theo project/building/service | P1 | Security + Platform Owner | Pilot project allowlist |
-| Realtime API/connectors và idempotency contract theo source | P1 | Integration Owner | File import P0 |
-| Ticket/Case system of record; native module hay integration | P1 | Operations Owner | Chỉ lưu external reference trong P0 |
-| SLA từng Service/Issue, assignment/escalation và contractor/vendor ownership | P1 | Operations + Service Owner | Không hiển thị SLA giả định |
-| Hard trigger chính thức, SEV-1 rule và safety/legal playbook | P1; không bật tự động ở P0 | Safety/Legal + BQL | Feature flag off; manual escalation |
-| Required evidence và thẩm quyền confirm Root Cause | P1 | Technical Owner + Legal | Không có trạng thái CONFIRMED |
-| Asset hierarchy/BMS/CMMS naming và work-order integration | P1/P2 | Technical/Integration Owner | `asset_id` nullable |
-| Survey policy CSAT/CES/NPS | P2 | CX Owner | Ngoài pilot |
+| Decision                                                                                                          | Delivery impact                                                 | Accountable role            | Default an toàn nếu chưa chốt                                         |
+| ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------- |
+| Pilot project/building, 1–3 Service, source, date range, volume và user cohort                                  | **Blocks P0**                                             | Product Owner               | Không bắt đầu Sprint 1                                                |
+| Data sample quyền sử dụng, language/encoding, required columns và source trust rule                           | **Blocks P0**                                             | Data Owner                  | Chỉ synthetic fixture; không production data                            |
+| Authoritative`Customer Journey(2).xlsx` revision, checksum, approval owner và nơi lưu được team truy cập | **Blocks P0 taxonomy publish**                            | Product + Data Owner        | Không tuyên bố wording/mapping đã được freeze                     |
+| Multi-intent split guideline và field nào bắt buộc/cho phép UNKNOWN                                          | **Blocks P0**                                             | CX/Data Steward             | Manual split; prediction không auto-apply                                |
+| Location hierarchy, normalized S2 ID, grouping level và timezone                                                 | **Blocks P0**                                             | BQL + Data Owner            | Record thiếu location bị ineligible cho hotspot                         |
+| Pilot Service/Issue owner và mapping; mapping legacy Priority P1–P4 sang SEV-1–SEV-4                           | **Blocks P0**                                             | Service Owner               | Không publish taxonomy version                                           |
+| PII classification, masking, retention, raw-view/export role và AI data boundary                                 | **Blocks P0**                                             | Security/Privacy Owner      | Mask trước AI; deny raw/export by default                               |
+| Hotspot pilot`N`, `W`, location level, cooldown, owner và resolve/dismiss playbook                           | **Blocks P0**                                             | CX Manager + Service Owner  | Dùng test default chỉ trong non-production; feature flag off production |
+| Pilot sizing, file limit, daily ingest, concurrent users và retention                                            | **Blocks P0 architecture/performance sign-off**           | Product + Engineering       | Không tuyên bố production SLO                                          |
+| Gold-set sampling, label guideline, adjudication owner và target coverage                                        | **Blocks P0 AI evaluation**, không block manual workflow | Data Steward + ML Lead      | AI suggest-only; không auto-apply                                        |
+| Metric baseline window, eligible source và operational target                                                    | P0 measurement                                                  | Product Analytics           | Hiển thị baseline, chưa tuyên bố % cải thiện                       |
+| Fine-grained RBAC theo project/building/service                                                                   | P1                                                              | Security + Platform Owner   | Pilot project allowlist                                                   |
+| Realtime API/connectors và idempotency contract theo source                                                      | P1                                                              | Integration Owner           | File import P0                                                            |
+| Ticket/Case system of record; native module hay integration                                                       | P1                                                              | Operations Owner            | Chỉ lưu external reference trong P0                                     |
+| SLA từng Service/Issue, assignment/escalation và contractor/vendor ownership                                    | P1                                                              | Operations + Service Owner  | Không hiển thị SLA giả định                                         |
+| Hard trigger chính thức, SEV-1 rule và safety/legal playbook                                                   | P1; không bật tự động ở P0                                | Safety/Legal + BQL          | Feature flag off; manual escalation                                       |
+| Required evidence và thẩm quyền confirm Root Cause                                                             | P1                                                              | Technical Owner + Legal     | Không có trạng thái CONFIRMED                                         |
+| Asset hierarchy/BMS/CMMS naming và work-order integration                                                        | P1/P2                                                           | Technical/Integration Owner | `asset_id` nullable                                                     |
+| Survey policy CSAT/CES/NPS                                                                                        | P2                                                              | CX Owner                    | Ngoài pilot                                                              |
