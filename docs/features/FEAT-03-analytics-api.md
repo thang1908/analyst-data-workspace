@@ -55,7 +55,7 @@ Unit, contract và module integration test được co-locate trong các path tr
 ### Integration seams được phép sửa tối thiểu
 
 ```text
-apps/api/src/app.py                  # chỉ register FastAPI plugin
+apps/api/src/app.py                  # chỉ register FastAPI router
 ```
 
 Contract được public bằng subpath export đã scaffold trong FEAT-01; không thêm central barrel dùng chung chỉ để export feature mới.

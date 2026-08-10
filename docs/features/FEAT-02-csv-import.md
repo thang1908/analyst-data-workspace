@@ -95,7 +95,7 @@ Không sửa root config, `packages/domain/**`, `packages/db/**`, analytics/feed
 
 ## 5. CSV contract và normalization
 
-FEAT-02 import nguyên văn contract mục 4 của FEAT-00 bằng `@cx/contracts/import/csv-v1`; không copy schema vào handler/worker.
+FEAT-02 import nguyên văn contract mục 4 của FEAT-00 bằng `cx_contracts.import_pkg.csv_v1`; không copy schema vào handler/worker.
 
 Exact header:
 

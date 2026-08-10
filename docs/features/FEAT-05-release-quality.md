@@ -57,7 +57,7 @@ Chỉ được sửa tối thiểu khi cần expose test/deploy interface:
 
 ```text
 package.json                         # root quality scripts only
-pip-workspace.yaml                  # include existing ADR packages only
+pyproject.toml                       # root workspace config only
 apps/api/src/app.py                  # registration/health wiring only
 apps/worker/src/worker.py            # health/shutdown wiring only
 apps/web/src/app/**                  # flag/error-boundary wiring only
@@ -96,11 +96,11 @@ Nếu chính test/harness sai, FEAT-05 sửa trong owned path và ghi lý do.
 
 ```bash
 pip install -r requirements.txt
-pip lint
-pip typecheck
-pip test
-pip test:contract
-pip build
+make lint
+make typecheck
+make test
+make test-contract
+make build
 ```
 
 Gates bổ sung:
@@ -114,11 +114,11 @@ Gates bổ sung:
 ### `dev` integration gates
 
 ```bash
-pip db:migrate
-pip db:seed
-pip db:verify
-pip test:integration
-pip test:e2e
+make db-migrate
+make db-seed
+make db-verify
+make test-integration
+make test-e2e
 ```
 
 - Chạy migration trên database sạch và upgrade fixture từ version đang hỗ trợ.

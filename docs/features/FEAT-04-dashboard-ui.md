@@ -4,7 +4,7 @@
 - **Priority:** P0 — one-week pilot
 - **Owner:** Frontend Engineer
 - **Branch:** `codex/feat-pilot-web-ui` từ `dev`; pull request merge về `dev`
-- **Stack:** React, Vite, Python with type hints; không dùng Next.js trong pilot
+- **Stack:** React, Vite, TypeScript; không dùng Next.js trong pilot
 - **Personas:** CX Analyst, CX Manager
 - **Bounded contexts:** Feedback Intake, Analytics, Feedback Exploration
 - **Related:** [PRD](../PRD.md), [Build Rules](../BUILD_RULES.md), [FEAT-01](./FEAT-01-data-foundation.md), [FEAT-02](./FEAT-02-csv-import.md), [FEAT-03](./FEAT-03-analytics-api.md), [FEAT-05](./FEAT-05-release-quality.md)
@@ -64,9 +64,9 @@ Unit/component/contract-mock test được co-locate trong các path trên. Cros
 ### Integration seams được phép sửa tối thiểu
 
 ```text
-apps/web/src/app/router.pyx            # chỉ register routes/lazy modules
-apps/web/src/client/index.py           # configure base URL/auth/correlation
-apps/web/src/mocks/browser.py          # chỉ register feature handlers
+apps/web/src/app/router.tsx            # chỉ register routes/lazy modules
+apps/web/src/client/index.ts           # configure base URL/auth/correlation
+apps/web/src/mocks/browser.ts          # chỉ register feature handlers
 ```
 
 Giữ registration/export trong commit riêng nếu có nguy cơ conflict khi merge `dev`.

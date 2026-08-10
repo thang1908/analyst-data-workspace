@@ -245,18 +245,18 @@ Root CI interface sau scaffold phải cung cấp tương đương:
 
 ```bash
 pip install -r requirements.txt
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm test:contract
-pnpm test:integration
-pnpm test:e2e
-pnpm build
-pnpm db:migrate
-pnpm db:verify
+make lint
+make typecheck
+make test
+make test-contract
+make test-integration
+make test-e2e
+make build
+make db-migrate
+make db-verify
 ```
 
-Tên script là placeholder cho tới khi scaffold PR khóa root `package.json`; sau đó đổi tên cần approval của FEAT-00 và FEAT-05.
+Tên target là placeholder cho tới khi scaffold PR khóa root `Makefile`; sau đó đổi tên cần approval của FEAT-00 và FEAT-05.
 
 ## 14. Five-day coordination
 

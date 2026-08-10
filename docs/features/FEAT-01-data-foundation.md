@@ -67,43 +67,18 @@ apps/worker/src/worker.py
 apps/worker/src/platform/**
 apps/web/package.json
 apps/web/pyproject.toml
-apps/web/vite.config.py
-apps/web/src/main.pyx
+apps/web/vite.config.ts
+apps/web/src/main.tsx
 apps/web/src/app/**
-apps/web/src/client/index.py
+apps/web/src/client/index.ts
 packages/contracts/pyproject.toml
 packages/contracts/src/common/**
 packages/contracts/src/reference_data/**
 packages/domain/**
 packages/db/**
 ```
-prettier.config.mjs
-pytest.ini
-.env.example
-apps/api/pyproject.toml
-apps/api/pyproject.toml
-apps/api/src/app.py
-apps/api/src/server.py
-apps/api/src/platform/**
-apps/worker/pyproject.toml
-apps/worker/pyproject.toml
-apps/worker/src/worker.py
-apps/worker/src/platform/**
-apps/web/package.json
-apps/web/pyproject.toml
-apps/web/vite.config.py
-apps/web/src/main.pyx
-apps/web/src/app/**
-apps/web/src/client/index.py
-packages/pyproject.toml
-packages/contracts/pyproject.toml
-packages/contracts/src/common/**
-packages/contracts/src/reference-data/**
-packages/domain/**
-packages/db/**
-```
 
-Public package exports dùng subpath wildcard, ví dụ `@cx/contracts/import`, `@cx/contracts/analytics`; không dùng một central barrel buộc mọi feature cùng sửa. FEAT-01 sở hữu package config, `common` và `reference-data`; FEAT-02/030 sở hữu folder contract riêng theo feature spec.
+Public package exports dùng Python package convention, ví dụ `cx_contracts.import_pkg`, `cx_contracts.analytics`; không dùng một central barrel buộc mọi feature cùng sửa. FEAT-01 sở hữu package config, `common` và `reference_data`; FEAT-02/030 sở hữu folder contract riêng theo feature spec.
 
 Không tạo file trong `apps/api/src/modules/**`, `apps/worker/src/modules/**`, `apps/web/src/features/**`, `apps/web/src/client/generated/**`, `apps/web/src/mocks/**` hoặc `packages/test-fixtures/**`. Root script và cả ba app shell phải hoạt động khi workspace được cài fresh.
 
@@ -127,7 +102,6 @@ packages/contracts  ← packages/domain
 FEAT-01 không được tạo import business endpoint, analytics query hoặc UI component; chúng thuộc FEAT-02/03/04.
 
 Authentication baseline validate token/session từ issuer được cấu hình và tạo `ActorContext` gồm actor, permissions, project scopes và correlation ID. Test adapter chỉ được bật khi `APP_ENV=test`; staging/production phải fail closed nếu issuer hoặc key validation thiếu/sai. FEAT-01 không tự provision identity provider hoặc hard-code pilot user.
-```
 
 - `contracts` không import domain, DB hoặc app.
 - `domain` chỉ import common/reference contract và không import SQLAlchemy/PostgreSQL/FastAPI.
@@ -202,17 +176,31 @@ Tên table/column dùng `snake_case`; mọi table có `created_at`; mutable oper
 
 `packages/domain` khai báo, `packages/db` implement tối thiểu:
 
-```ts
-ReferenceDataReader.resolveTrustedCodes(input)
-ImportJobRepository.createOrGetByIdempotencyKey(input)
-ImportJobRepository.compareAndSetState(input)
-ImportJobRepository.saveValidationBatch(input)
-TrustedFeedbackUnitOfWork.commitValidatedRow(input)
-ImportJobRepository.reconcile(jobId)
-TerminalImportOutcomeReader.summarize(input) // terminal COMPLETED|PARTIAL by project/completed_at/snapshot
-ClassificationProjectionRepository.rebuild(itemIds)
-OutboxRepository.claimBatch(input)
-AuditRepository.append(input)
+```python
+class ReferenceDataReader(Protocol):
+    def resolve_trusted_codes(self, input: ResolveTrustedCodesInput) -> ...: ...
+
+class ImportJobRepository(Protocol):
+    def create_or_get_by_idempotency_key(self, input: CreateJobInput) -> ...: ...
+    def compare_and_set_state(self, input: SetStateInput) -> ...: ...
+    def save_validation_batch(self, input: ValidationBatchInput) -> ...: ...
+    def reconcile(self, job_id: uuid.UUID) -> ...: ...
+
+class TrustedFeedbackUnitOfWork(Protocol):
+    def commit_validated_row(self, input: CommitRowInput) -> ...: ...
+
+class TerminalImportOutcomeReader(Protocol):
+    # terminal COMPLETED|PARTIAL by project/completed_at/snapshot
+    def summarize(self, input: SummarizeInput) -> ...: ...
+
+class ClassificationProjectionRepository(Protocol):
+    def rebuild(self, item_ids: list[uuid.UUID]) -> ...: ...
+
+class OutboxRepository(Protocol):
+    def claim_batch(self, input: ClaimBatchInput) -> ...: ...
+
+class AuditRepository(Protocol):
+    def append(self, input: AuditInput) -> ...: ...
 ```
 
 Mỗi public method nhận `correlation_id`/actor context cần thiết, trả domain type, và map lỗi sang stable code. Không trả SQLAlchemy row hoặc database connection cho app.
@@ -286,7 +274,7 @@ Validator phải fail khi duplicate code/ID, parent location sai project/release
 | Architecture | Dependency direction, public exports, forbidden app/DB imports. |
 | Compatibility | Migration up từ supported baseline; app rollback tương thích expanded schema. |
 
-Root commands phải có ít nhất `pip lint`, `pip typecheck`, `pip test`, `pip db:migrate`, `pip db:seed`, `pip db:verify`. CI dùng `pip install -r requirements.txt`.
+Root commands phải có ít nhất `make lint`, `make typecheck`, `make test`, `make db-migrate`, `make db-seed`, `make db-verify`. CI dùng `pip install -r requirements.txt`.
 
 ## 12. Telemetry
 
