@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY pyproject.toml /app/
+COPY packages /app/packages
+COPY apps/worker /app/apps/worker
+
+RUN pip install --no-cache-dir pydantic sqlalchemy psycopg[binary] alembic
+
+CMD ["python", "apps/worker/src/worker.py"]
