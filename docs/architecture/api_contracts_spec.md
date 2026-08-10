@@ -18,6 +18,8 @@ Mọi API Analytics và Feedback Drill-down đều sử dụng chung một cấu
 | `to_date` | `string` (ISO-8601 Date) | Yes | Ngày kết thúc | `2026-08-10` |
 | `service_ids` | `string` (Comma-separated) | No | Danh sách mã Service | `SRV_SUPPORT,SRV_BILLING` |
 | `location_ids` | `string` (Comma-separated) | No | Danh sách mã Location | `LOC_BLDG_A` |
+| `customer_lifecycle_stages` | `string` (Comma-separated) | No | (ADR-001 Dim A) Stage: `A`, `C`, `TR`, `HO`, `RES` | `RES` |
+| `service_request_steps` | `string` (Comma-separated) | No | (ADR-001 Dim B) Step: `SRV-01`..`SRV-08` | `SRV-02` |
 | `sentiments` | `string` (Comma-separated) | No | Sentiment filter (`POSITIVE`, `NEUTRAL`, `NEGATIVE`) | `NEGATIVE` |
 | `severities` | `string` (Comma-separated) | No | Severity filter (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) | `HIGH,CRITICAL` |
 
