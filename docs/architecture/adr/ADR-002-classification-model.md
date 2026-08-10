@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-10
 - **Scope:** MVP baseline
-- **Related:** [PRD](../../PRD.md), [Service Taxonomy](../../service_taxonomy.md), [Build Rules](../../BUILD_RULES.md), [ADR-001](./ADR-001-journey-dimensions.md), [FEAT-001](../../features/FEAT-001-elevator-manual-slice.md)
+- **Related:** [PRD](../../PRD.md), [Service Taxonomy](../../service_taxonomy.md), [Build Rules](../../BUILD_RULES.md), [ADR-001](./ADR-001-journey-dimensions.md)
 
 ## Context
 
@@ -40,7 +40,6 @@ Lưu source lineage, original payload/content reference, reported/ingested time 
 
 Là đơn vị được phân loại và đưa vào issue-level analytics/hotspot. Một raw feedback có thể sinh một hoặc nhiều item. Item giữ link/offset hoặc evidence reference về raw feedback để không mất ngữ cảnh.
 
-MVP có thể tạo một item thủ công/mặc định cho feedback đơn vấn đề; automatic multi-issue splitting không phải dependency của FEAT-001.
 
 ### `classification_prediction`
 

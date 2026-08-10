@@ -1236,7 +1236,6 @@ Không build AI, chart hoặc hotspot trực tiếp trên raw import table. Tấ
 ---
 
 ## 22. First Manual Vertical Slice — FEAT-001
-
 ### 22.1 Manual intake-to-insight
 
 Input:

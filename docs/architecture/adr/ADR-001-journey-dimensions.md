@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-08-10
 - **Scope:** MVP baseline
-- **Related:** [PRD](../../PRD.md), [Service Taxonomy](../../service_taxonomy.md), [Build Rules](../../BUILD_RULES.md), [FEAT-001](../../features/FEAT-001-elevator-manual-slice.md)
+- **Related:** [PRD](../../PRD.md), [Service Taxonomy](../../service_taxonomy.md), [Build Rules](../../BUILD_RULES.md)
 
 ## Context
 
@@ -55,23 +55,6 @@ Mỗi feedback item có thể có tối đa một step ở mỗi dimension và c
 6. Filter, API và metric phải đặt tên dimension rõ; không dùng một field chung `journey_step` mà không có dimension type.
 7. Dashboard không cộng Customer Lifecycle và Service Request Lifecycle vào cùng hierarchy/tổng số.
 8. Service Request Lifecycle có thể đến từ workflow/source metadata; không bắt buộc suy luận từ content.
-
-## Application to FEAT-001
-
-Với feedback:
-
-```text
-"Thang máy S2 sáng nào cũng phải chờ rất lâu."
-```
-
-accepted Customer Lifecycle là:
-
-```text
-Stage = Cư trú
-Step  = RES-06 — Di chuyển trong tòa
-```
-
-Service Request Lifecycle để `UNKNOWN` hoặc `NOT_APPLICABLE` nếu source không chứng minh feedback đang ở bước nào của workflow. Không tự gán `SRV-02` chỉ vì nội dung là một lời phàn nàn.
 
 ## Data/API implications
 

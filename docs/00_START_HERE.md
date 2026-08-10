@@ -1,7 +1,8 @@
+
 # 00 — Bắt đầu từ đây
 
 - **Sản phẩm:** CX Journey, Service & Root Cause Intelligence Platform
-- **Phiên bản hướng dẫn:** 0.1
+- **Phiên bản hướng dẫn:** 0.2
 - **Trạng thái:** Active — Build Baseline
 - **Đối tượng:** Product, BA, UX, Engineering, Data/AI, QA, Security, Operations
 - **Cập nhật:** 2026-08-10
@@ -25,21 +26,27 @@ Mục tiêu của bộ tài liệu là để một thành viên mới có thể 
 2. [Service Taxonomy](./service_taxonomy.md) — dictionary Journey, Service, Issue, Cause Group và mapping baseline.
 3. [ADR-001: Hai chiều Lifecycle độc lập](./architecture/adr/ADR-001-journey-dimensions.md) — cách mô hình hóa Customer Lifecycle và Service Request Lifecycle.
 4. [ADR-002: Mô hình Classification](./architecture/adr/ADR-002-classification-model.md) — cách tách raw feedback, feedback item, prediction, decision và current projection.
-5. [Build Rules](./BUILD_RULES.md) — quy tắc kiến trúc, data, API, security, AI, test, observability và release.
-6. [FEAT-001: Elevator Manual Intake-to-Insight](./features/FEAT-001-elevator-manual-slice.md) — vertical slice đầu tiên để kiểm chứng toàn bộ nền tảng.
+5. [ADR-003: Data-to-Dashboard Stack &amp; Code Layout](./architecture/adr/ADR-003-data-dashboard-stack-and-code-layout.md) — stack và vị trí code chuẩn cho pilot tuần đầu.
+6. [Build Rules](./BUILD_RULES.md) — quy tắc kiến trúc, data, API, security, AI, test, observability và release.
+7. [Team Build Playbook](./TEAM_BUILD_PLAYBOOK.md) — branch, ownership, dependency, merge order và lịch phối hợp.
+8. [Pilot Kickoff Checklist](./PILOT_KICKOFF_CHECKLIST.md) — named owners, data/metric/security decisions và go/no-go trước code.
+9. [FEAT-00: Trusted CSV to Dashboard Pilot](./features/FEAT-00-trusted-csv-to-dashboard-pilot.md) — scope tích hợp tuần đầu và dependency graph.
 
 Khi làm một feature cụ thể, luôn đọc lại PRD/taxonomy liên quan, ADR áp dụng, Build Rules và feature spec. Không bắt đầu từ mockup hoặc API riêng lẻ mà bỏ qua domain rule.
 
 ## 3. Trạng thái tài liệu hiện tại
 
-| Tài liệu | Trạng thái | Ý nghĩa |
-| --- | --- | --- |
-| PRD v1.1 | Pilot Build Baseline / Pending Named Stakeholder Decisions | Có thể dùng để lập backlog pilot; các decision được đánh dấu `Blocks P0` phải đóng trước build/release tương ứng. |
-| Service Taxonomy v1.0.0 | Draft / Pilot Baseline | Có thể dùng làm seed/pilot; SLA, handling unit, severity, hard trigger và evidence vẫn cần owner xác nhận. |
-| ADR-001 | Accepted cho MVP baseline | Hai chiều Journey được lưu và phân tích độc lập. |
-| ADR-002 | Accepted cho MVP baseline | Prediction không phải decision; raw feedback không bị sửa. |
-| Build Rules | Active | Áp dụng cho mọi feature mới và mọi pull request. |
-| FEAT-001 | Ready for refinement | Chỉ được kéo vào sprint khi pass Definition of Ready trong feature spec. |
+| Tài liệu              | Trạng thái                                               | Ý nghĩa                                                                                                                               |
+| ----------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| PRD v1.1                | Pilot Build Baseline / Pending Named Stakeholder Decisions | Có thể dùng để lập backlog pilot; các decision được đánh dấu`Blocks P0` phải đóng trước build/release tương ứng. |
+| Service Taxonomy v1.0.0 | Draft / Pilot Baseline                                     | Có thể dùng làm seed/pilot; SLA, handling unit, severity, hard trigger và evidence vẫn cần owner xác nhận.                     |
+| ADR-001                 | Accepted cho MVP baseline                                  | Hai chiều Journey được lưu và phân tích độc lập.                                                                             |
+| ADR-002                 | Accepted cho MVP baseline                                  | Prediction không phải decision; raw feedback không bị sửa.                                                                         |
+| ADR-003                 | Accepted cho pilot tuần đầu                             | Python modular monolith, code layout và dependency direction dùng chung.                                                          |
+| Build Rules             | Active                                                     | Áp dụng cho mọi feature mới và mọi pull request.                                                                                  |
+| Team Build Playbook     | Active                                                     | Quy định branch, code ownership, contract-first và merge vào`dev`.                                                                |
+| Pilot Kickoff Checklist | Blocking                                                   | Phải điền named owners/evidence và pass trước khi feature chuyển`Ready for build`.                                             |
+| FEAT-00                | Ready for refinement                                       | Pilot một tuần, chỉ nhận CSV đã mask và đã có nhãn nguồn đáng tin cậy.                                                   |
 
 Các trạng thái chuẩn dùng trong bộ tài liệu:
 
@@ -54,16 +61,16 @@ Các trạng thái chuẩn dùng trong bộ tài liệu:
 
 ## 4. Source of truth
 
-| Nội dung | Source of truth | Ghi chú |
-| --- | --- | --- |
-| Product outcome, persona, priority, MVP/non-goal | [PRD](./PRD.md) | Feature spec không được tự mở rộng phạm vi sản phẩm. |
+| Nội dung                                               | Source of truth                          | Ghi chú                                                                                                                           |
+| ------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Product outcome, persona, priority, MVP/non-goal        | [PRD](./PRD.md)                           | Feature spec không được tự mở rộng phạm vi sản phẩm.                                                                     |
 | Giá trị Journey, Service, Issue, Cause Group baseline | [Service Taxonomy](./service_taxonomy.md) | Khi có seed machine-readable, seed + validator là nguồn thực thi; Markdown được generate hoặc đối soát từ nguồn đó. |
-| Cách diễn giải domain còn mơ hồ | ADR đã `Accepted` | ADR được dùng để giải quyết mâu thuẫn hoặc khoảng trống trong PRD/taxonomy. |
-| Hành vi của một feature | Feature spec tương ứng | Acceptance criteria phải truy vết được về PRD và ADR. |
-| API runtime | OpenAPI đã review | Ví dụ endpoint trong PRD/feature spec không thay thế OpenAPI. |
-| Database runtime | Migration + constraint đã review | ERD/tài liệu mô tả phải khớp migration. |
-| Metric runtime | Metric Catalog phiên bản đã duyệt | Mọi dashboard phải dùng cùng numerator, denominator, event time và exclusion rule. |
-| Engineering/delivery policy | [Build Rules](./BUILD_RULES.md) | Ngoại lệ cần ghi rõ lý do và người phê duyệt trong ADR/feature spec. |
+| Cách diễn giải domain còn mơ hồ                   | ADR đã`Accepted`                     | ADR được dùng để giải quyết mâu thuẫn hoặc khoảng trống trong PRD/taxonomy.                                           |
+| Hành vi của một feature                              | Feature spec tương ứng                | Acceptance criteria phải truy vết được về PRD và ADR.                                                                       |
+| API runtime                                             | OpenAPI đã review                      | Ví dụ endpoint trong PRD/feature spec không thay thế OpenAPI.                                                                  |
+| Database runtime                                        | Migration + constraint đã review       | ERD/tài liệu mô tả phải khớp migration.                                                                                      |
+| Metric runtime                                          | Metric Catalog phiên bản đã duyệt   | Mọi dashboard phải dùng cùng numerator, denominator, event time và exclusion rule.                                            |
+| Engineering/delivery policy                             | [Build Rules](./BUILD_RULES.md)           | Ngoại lệ cần ghi rõ lý do và người phê duyệt trong ADR/feature spec.                                                     |
 
 Khi hai source of truth mâu thuẫn:
 
@@ -76,19 +83,28 @@ Yêu cầu security, privacy, legal và policy đã được phê duyệt luôn 
 
 ## 5. Feature map
 
+### Pilot tuần đầu — Trusted CSV to Dashboard
+
+| Thứ tự | Feature                                                                             | Branch                         | Dependency                     |
+| -------- | ----------------------------------------------------------------------------------- | ------------------------------ | ------------------------------ |
+| 1        | [FEAT-01 — Platform &amp; Data Foundation](./features/FEAT-01-data-foundation.md) | `codex/feat-data-foundation` | Không                         |
+| 2        | [FEAT-02 — CSV Import](./features/FEAT-02-csv-import.md)                          | `codex/feat-csv-import`      | FEAT-01                       |
+| 3        | [FEAT-03 — Analytics API](./features/FEAT-03-analytics-api.md)                    | `codex/feat-analytics-api`   | FEAT-01; contract FEAT-02    |
+| 4        | [FEAT-04 — Pilot Web UI](./features/FEAT-04-dashboard-ui.md)                      | `codex/feat-pilot-web-ui`    | contract FEAT-02 và FEAT-03 |
+| 5        | [FEAT-05 — Release Quality](./features/FEAT-05-release-quality.md)                | `codex/feat-release-quality` | Tích hợp FEAT-01..040       |
+
+Mọi branch bắt đầu từ `dev`, chỉ sửa code path được feature sở hữu và merge lại `dev` theo [Team Build Playbook](./TEAM_BUILD_PLAYBOOK.md).
+
 ### P0 — MVP foundation và intelligence
 
-| Nhóm | Outcome | Trạng thái |
-| --- | --- | --- |
-| Identity & Governance | SSO/RBAC tối thiểu, scope theo project/building/service, privileged audit | Planned — bắt buộc trước pilot |
-| Taxonomy & Location | Versioned Journey/Service/Issue mapping và location hierarchy | Planned |
-| Feedback Intake | CSV/XLSX intake có validate, idempotency, raw record và job audit | CSV đầu tiên nằm trong FEAT-001; realtime API thuộc P1 |
-| Manual Classification | Operator tạo/correct accepted classification có audit | [FEAT-001](./features/FEAT-001-elevator-manual-slice.md) |
-| Feedback Workspace | List, filter, detail, masked/raw access theo quyền | Bắt đầu trong FEAT-001 |
-| AI Classification & Review | Prediction, confidence, review queue, correction dataset | Follow-up sau FEAT-001 |
-| Journey/Service Analytics | Metric có định nghĩa, mọi chart drill-down về feedback | Basic insight bắt đầu trong FEAT-001 |
-| Hotspot MVP | Rule deterministic theo Service + Issue + Location + Time | Follow-up sau analytics baseline |
-| Data Quality | Missing/invalid/duplicate/unknown/low-confidence visibility | Tích lũy theo từng slice |
+| Nhóm                      | Outcome                                                                                                                         | Trạng thái                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Identity & Governance      | Authentication + RBAC tối thiểu, giới hạn project pilot và privileged audit; fine-grained building/service scope thuộc P1 | Bắt đầu trong FEAT-01; bắt buộc trước pilot                        |
+| Taxonomy & Location        | Versioned Journey/Service/Issue mapping và location hierarchy                                                                  | Planned                                                                    |
+| Feedback Intake            | CSV/XLSX intake có validate, idempotency, raw record và job audit                                                             | CSV trusted đầu tiên trong FEAT-02; XLSX/realtime API thuộc follow-up |
+| Journey/Service Analytics  | Metric có định nghĩa, mọi chart drill-down về feedback                                                                    | Trusted-data insight bắt đầu trong FEAT-03/040                         |
+| Hotspot MVP                | Rule deterministic theo Service + Issue + Location + Time                                                                       | Follow-up sau analytics baseline                                           |
+| Data Quality               | Missing/invalid/duplicate/unknown/low-confidence visibility                                                                     | Tích lũy theo từng slice                                                |
 
 ### P1/P2 — Chưa đưa vào vertical slice đầu tiên
 
@@ -101,7 +117,19 @@ Yêu cầu security, privacy, legal và policy đã được phê duyệt luôn 
 
 ## 6. Vertical slice hiện tại
 
-Vertical slice đầu tiên là [FEAT-001](./features/FEAT-001-elevator-manual-slice.md):
+Slice đang ưu tiên để giao trong một tuần là [FEAT-00](./features/FEAT-00-trusted-csv-to-dashboard-pilot.md):
+
+```text
+CSV đã mask + source-trusted labels
+→ validate/dedupe
+→ immutable source + canonical feedback item
+→ analytics query/projection
+→ dashboard/filter
+→ drill-down về đúng feedback tạo ra số liệu
+```
+
+Slice này không gồm manual classification, AI, hotspot, ticket/RCA, XLSX hoặc full production hardening.
+
 
 ```text
 CSV feedback

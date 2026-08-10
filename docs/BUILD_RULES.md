@@ -3,7 +3,7 @@
 - **Phiên bản:** 0.1
 - **Trạng thái:** Active
 - **Áp dụng cho:** Mọi feature, API, migration, job, dashboard, model và release
-- **Tài liệu liên quan:** [START HERE](./00_START_HERE.md), [PRD](./PRD.md), [Service Taxonomy](./service_taxonomy.md)
+- **Tài liệu liên quan:** [START HERE](./00_START_HERE.md), [PRD](./PRD.md), [Service Taxonomy](./service_taxonomy.md), [Team Build Playbook](./TEAM_BUILD_PLAYBOOK.md)
 
 ## 1. Mục tiêu
 
@@ -57,7 +57,6 @@ Một slice không bắt buộc phải có mọi màn hình hoặc mọi integra
 
 ### 3.3 Ví dụ đúng
 
-[FEAT-001](./features/FEAT-001-elevator-manual-slice.md) bao gồm CSV intake, validate, raw record, manual classification, workspace/filter, basic insight, audit và telemetry cho một use case elevator.
 
 ### 3.4 Ví dụ không được coi là vertical slice
 
@@ -501,3 +500,12 @@ Câu hỏi, owner, due-before-build/release.
 - [ ] Authorization và PII/logging đã kiểm tra.
 - [ ] Telemetry đủ để biết feature đang chạy đúng hay sai.
 - [ ] Rollout/rollback và backward compatibility được mô tả.
+
+## 17. Branch và integration rules
+
+- Không commit trực tiếp vào `main` hoặc `dev`; ngoại lệ bootstrap repository phải được người sở hữu repository cho phép rõ ràng.
+- Mọi feature branch tạo từ `dev`, có tên được ghi trong feature spec và chỉ sở hữu các code path đã khai báo.
+- Thay đổi contract dùng chung phải được review trước khi consumer implement; không copy type/schema sang từng app.
+- Trước khi yêu cầu merge, branch phải cập nhật từ `origin/dev`, giải quyết conflict tại branch của feature và chạy đủ gate được feature yêu cầu.
+- Pull request phải target `dev`, link feature ID và acceptance criteria; merge theo dependency graph trong [Team Build Playbook](./TEAM_BUILD_PLAYBOOK.md).
+- `dev` chỉ merge vào `main` sau khi FEAT-05 hoàn tất reconciliation, E2E, staging UAT và release/rollback evidence.
