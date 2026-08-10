@@ -25,3 +25,12 @@ coverage/
 playwright-report/
 test-results/
 packages/test-fixtures/import/generated/
+
+# Python cache & virtualenv
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+

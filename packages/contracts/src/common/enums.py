@@ -1,0 +1,51 @@
+from enum import Enum
+
+
+class ValueStatus(str, Enum):
+    KNOWN = "KNOWN"
+    UNKNOWN = "UNKNOWN"
+    MISSING = "MISSING"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
+class DecisionSource(str, Enum):
+    MANUAL = "MANUAL"
+    SOURCE_TRUSTED = "SOURCE_TRUSTED"
+    HUMAN_ACCEPTED_AI = "HUMAN_ACCEPTED_AI"
+    HUMAN_CORRECTED_AI = "HUMAN_CORRECTED_AI"
+    POLICY_AUTO_APPLIED = "POLICY_AUTO_APPLIED"
+    SYSTEM_MIGRATION = "SYSTEM_MIGRATION"
+
+
+class Sentiment(str, Enum):
+    POSITIVE = "POSITIVE"
+    NEUTRAL = "NEUTRAL"
+    NEGATIVE = "NEGATIVE"
+    MIXED = "MIXED"
+    UNKNOWN = "UNKNOWN"
+
+
+class Severity(str, Enum):
+    SEV1 = "SEV-1"
+    SEV2 = "SEV-2"
+    SEV3 = "SEV-3"
+    SEV4 = "SEV-4"
+
+
+class ImportJobState(str, Enum):
+    UPLOADED = "UPLOADED"
+    MAPPED = "MAPPED"
+    VALIDATING = "VALIDATING"
+    VALIDATED = "VALIDATED"
+    QUEUED = "QUEUED"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    PARTIAL = "PARTIAL"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+
+class ImportRowOutcome(str, Enum):
+    VALID = "VALID"
+    INVALID = "INVALID"
+    DUPLICATE = "DUPLICATE"

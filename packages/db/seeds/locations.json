@@ -1,0 +1,20 @@
+{
+  "kind": "LOCATION",
+  "version": "v1.0.0",
+  "locations": [
+    {
+      "id": "66666666-6666-6666-6666-666666666666",
+      "code": "LOC_BLDG_A",
+      "name": "Building A",
+      "node_type": "BUILDING",
+      "parent_id": null
+    },
+    {
+      "id": "77777777-7777-7777-7777-777777777777",
+      "code": "LOC_BLDG_B",
+      "name": "Building B",
+      "node_type": "BUILDING",
+      "parent_id": null
+    }
+  ]
+}
