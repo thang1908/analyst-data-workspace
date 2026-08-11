@@ -2,11 +2,11 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 2.0  
+**Version:** 2.1  
 **Status:** P0 CX-First UI/UX Baseline  
 **Scope:** Desktop-first CX Intelligence Platform  
 **Primary Users:** CX Manager, CX Analyst, Reviewer, Operations Manager, Pilot Admin  
-**Derived from:** `PRD.md`, `service_taxonomy.md`, `Business_Rules.md`, `System_Design.md`, `05_Data_Model.md`, `06_API_Specification.md`
+**Derived from:** `PRD.md` v1.3, `service_taxonomy.md` v3.0.0, `Business_Rules.md` v1.1, `System_Design.md` v1.1, `05_Data_Model.md` v1.1, `06_API_Specification.md` v1.1
 
 ---
 
@@ -34,10 +34,8 @@ Feedback nào là bằng chứng?
 Có hình thành Hotspot không?
         ↓
 Candidate Cause là gì?
-        ↓
-Confirmed Root Cause là gì?
-        ↓
-Doanh nghiệp đã làm gì để cải thiện?
+        ↓ [P1]
+Confirmed Root Cause và improvement action là gì?
 ```
 
 The P0 UI is therefore organized around:
@@ -347,6 +345,7 @@ Issue
 Location
 Source System
 Intake Channel
+Affected Channel
 
 Sentiment
 Operational Severity
@@ -412,10 +411,10 @@ Route:
 P0 cards:
 
 ```text
-CX Score / CX Health Index
 Negative Rate
 Feedback Volume
 Active Hotspots
+Unknown / Ineligible Rate
 ```
 
 Optional secondary metrics:
@@ -427,20 +426,7 @@ Top Service
 Top Journey Stage
 ```
 
-### Important
-
-If a formal CX Score formula has not yet been approved, the UI must not imply an official metric.
-
-Possible P0 alternatives:
-
-```text
-CX Health
-Negative Rate
-Feedback Volume
-Active Hotspots
-```
-
-until an approved score definition exists.
+`CX Score` và `CX Health Index` không phải P0 KPI vì chưa có formula được phê duyệt. Không dùng hai nhãn này trên card, chart, status hoặc navigation P0.
 
 ---
 
@@ -459,10 +445,10 @@ until an approved score definition exists.
 │ Customer Journey    │ [ Project ▼ ] [ Date ▼ ] [ Journey ▼ ] [ Service ▼ ] [ Location ▼ ] [ Channel ▼ ]           │
 │                     │                                                                                                  │
 │ Service &           │ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐             │
-│ Pain Points         │ │ CX HEALTH       │ │ NEGATIVE RATE   │ │ FEEDBACK        │ │ ACTIVE HOTSPOT  │             │
+│ Pain Points         │ │ UNKNOWN RATE    │ │ NEGATIVE RATE   │ │ FEEDBACK        │ │ ACTIVE HOTSPOT  │             │
 │                     │ │                 │ │                 │ │                 │ │                 │             │
-│ Hotspot & RCA       │ │   Status        │ │    34.2%        │ │    18,546       │ │       7         │             │
-│                     │ │   Improving     │ │    ↓ 2.1 pts    │ │    ↑ 8.4%       │ │    2 critical   │             │
+│ Hotspot & RCA       │ │    7.4%         │ │    34.2%        │ │    18,546       │ │       7         │             │
+│                     │ │   ↓ 0.8 pts     │ │    ↓ 2.1 pts    │ │    ↑ 8.4%       │ │    2 critical   │             │
 │ ─────────────────   │ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘             │
 │ Feedback Explorer   │                                                                                                  │
 │ Review Queue    128 │ CUSTOMER JOURNEY                                                                                │
@@ -718,7 +704,7 @@ Top Related Services
 │ CUSTOMER JOURNEY                                                                                              │
 │ Khách hàng đang gặp khó khăn ở đâu trong lifecycle?                                                           │
 ├───────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ [Project ▼] [Date ▼] [Persona ▼] [Channel ▼] [Location ▼]                                                   │
+│ [Project ▼] [Date ▼] [Intake Channel ▼] [Affected Channel ▼] [Location ▼]                                  │
 ├───────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                                               │
 │ CUSTOMER LIFECYCLE                                                                                            │
@@ -822,12 +808,6 @@ Feedback Volume
 Negative Rate
 Active Hotspots
 Trend
-```
-
-Optional approved metric:
-
-```text
-CX Score
 ```
 
 Example:
@@ -1184,12 +1164,8 @@ Customer Pain / Context
 Evidence
 Candidate Causes
 
-Investigation Timeline
-
-Confirmed Root Cause
-
-Corrective Actions
-Preventive Actions
+P1-only extension (hidden/absent in P0):
+Investigation Timeline → Confirmed Root Cause → Corrective/Preventive Actions
 ```
 
 ---
@@ -1210,9 +1186,9 @@ Preventive Actions
 │ ┌──────┬───────────────────────────────┬──────────┬──────────┬───────────┬──────────────┬───────────────────┐ │
 │ │ Sev  │ Pain Point                    │ Location │ Feedback │ Trend     │ Owner        │ Status            │ │
 │ ├──────┼───────────────────────────────┼──────────┼──────────┼───────────┼──────────────┼───────────────────┤ │
-│ │ S2   │ Elevator waiting              │ S2       │ 42       │ ↑ 180%    │ Engineering  │ Investigating     │ │
-│ │ S3   │ App login / OTP               │ All      │ 27       │ ↑ 75%     │ Digital      │ Candidate         │ │
-│ │ S3   │ Parking access                │ S10      │ 19       │ ↑ 42%     │ Security     │ Acknowledged      │ │
+│ │ SEV-2│ Elevator waiting              │ S2       │ 42       │ ↑ 180%    │ Engineering  │ Investigating     │ │
+│ │ SEV-3│ App login / OTP               │ All      │ 27       │ ↑ 75%     │ Digital      │ Candidate         │ │
+│ │ SEV-3│ Parking access                │ S10      │ 19       │ ↑ 42%     │ Security     │ Acknowledged      │ │
 │ └──────┴───────────────────────────────┴──────────┴──────────┴───────────┴──────────────┴───────────────────┘ │
 │                                                                                                               │
 │ Selected Hotspot                                                                                              │
@@ -1236,33 +1212,21 @@ Preventive Actions
 │ │ One elevator unavailable               │ 47%        │                                                      │
 │ └─────────────────────────────────────────┴────────────┘                                                      │
 │                                                                                                               │
-│ INVESTIGATION                                                                                                 │
-│                                                                                                               │
-│ Feedback ──────┐                                                                                              │
-│ BMS Data ──────┼──→ Investigation ───→ Confirmed Root Cause ───→ Corrective Action ───→ Preventive Action   │
-│ Maint. Log ────┤                                                                                              │
-│ Inspection ────┘                                                                                              │
-│                                                                                                               │
-│ CONFIRMED ROOT CAUSE                                                                                          │
-│ ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────┐ │
-│ │ 1/4 elevator unavailable + dispatch settings not optimized for morning peak                              │ │
-│ └───────────────────────────────────────────────────────────────────────────────────────────────────────────┘ │
-│                                                                                                               │
-│ ACTIONS                                                                                                       │
-│ ✓ Restore elevator                    Completed                                                               │
-│ ✓ Reconfigure dispatch                Completed                                                               │
-│ ○ Monitor 7 days                      In progress                                                             │
-│ ○ Update PM checklist                 Planned                                                                 │
+│ P0 boundary: evidence + owner/status + Candidate Cause only.                                                  │
+│ Investigation / Confirmed Root Cause / Corrective / Preventive workflows are introduced in P1.               │
 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Intelligence-to-Action Contract
 
 ```text
+P0:
 Pain Point
 → Hotspot
 → Candidate Cause
 → Evidence
+
+P1:
 → Investigation
 → Confirmed Root Cause
 → Corrective Action
@@ -1270,7 +1234,7 @@ Pain Point
 → Resolve / Monitor
 ```
 
-The UI MUST clearly show where the workflow currently is and must not visually skip directly from AI hypothesis to confirmed root cause.
+P0 MUST NOT render P1 controls as enabled or imply Candidate Cause is confirmed. When P1 is enabled, the UI MUST show each workflow stage and must not visually skip directly from AI hypothesis to confirmed root cause.
 
 ---
 
@@ -1342,12 +1306,9 @@ Feedback Items
 Source distribution
 Time pattern
 Location pattern
-Operational records
-BMS/CMMS evidence references
-Inspection records
 ```
 
-P0 starts with feedback evidence and linked investigation evidence.
+P0 uses linked Feedback Items as reproducible hotspot evidence. Operational records, BMS/CMMS references and inspection evidence are introduced with Investigation in P1.
 
 ---
 
@@ -1379,7 +1340,9 @@ before confirmation.
 
 ---
 
-# 28. Investigation Timeline
+# 28. P1 Only — Investigation Timeline
+
+This section is not rendered, routed or called by P0.
 
 Visual flow:
 
@@ -1418,7 +1381,7 @@ Hotspot resolved
 
 ---
 
-# 29. Confirmed Root Cause
+# 29. P1 Only — Confirmed Root Cause
 
 Only display when investigation confirms it.
 
@@ -1442,7 +1405,7 @@ Evidence summary
 
 ---
 
-# 30. Action / Improvement Section
+# 30. P1 Only — Action / Improvement Section
 
 Sections:
 
@@ -1712,15 +1675,16 @@ Hard trigger / safety
 Allowed:
 
 ```text
-Accept
-Correct
-Mark Unknown
-Mark Missing
-Mark Not Applicable
-Split Required
-Skip
-Save & Next
+ACCEPT
+CORRECT
+MARK_UNKNOWN
+MARK_MISSING
+MARK_NOT_APPLICABLE
+SPLIT_REQUIRED
+SKIP
 ```
+
+UI labels may be localized/title-cased, but submitted wire values are exactly those above. The first five actions create ClassificationDecision + ReviewEvent; `SPLIT_REQUIRED` and `SKIP` create only ReviewEvent. “Save & Next” is navigation after a successful action, not a review action.
 
 Do not allow blind bulk acceptance of AI classification in P0.
 
@@ -1905,7 +1869,7 @@ Do not expose raw feedback in audit table.
 
 # 47. CX Score / CX Health Metric Policy
 
-The UI may use a high-level CX score only when its formula is approved.
+P0 MUST NOT display `CX Score` or `CX Health` as an official KPI because no formula is approved.
 
 Possible score inputs may include:
 
@@ -1917,7 +1881,7 @@ Resolution Improvement
 Unknown/Data Quality Penalty
 ```
 
-But the UI spec does NOT define the business formula.
+This UI spec does NOT define or approve the business formula. A future version may add the metric only after governance approval and versioned API/metric-definition support.
 
 Until approved, use explicit metrics:
 
@@ -2321,11 +2285,12 @@ Do not put raw PII in URLs.
 | UI Surface | API |
 |---|---|
 | CX Overview | `/analytics/summary`, `/analytics/trend`, `/analytics/breakdown`, `/hotspots` |
-| Customer Journey | `/analytics/breakdown?dimension=journey_stage`, `/analytics/breakdown?dimension=journey_step` |
-| Service & Pain Points | `/analytics/breakdown?dimension=service`, `/analytics/breakdown?dimension=issue`, `/feedback-items` |
-| Hotspot & RCA | `/hotspots`, `/hotspots/{id}`, `/investigations/{id}` |
+| Customer Journey | `/analytics/breakdown?dimension=journey_stage&metrics=item_volume,negative_rate,active_hotspots,trend`, same contract for `journey_step` |
+| Service & Pain Points | `/analytics/breakdown?dimension=service&metrics=item_volume,negative_rate,active_hotspots,trend`, same contract for `issue`, plus `/feedback-items` |
+| Hotspot & RCA [P0] | `/hotspots`, `/hotspots/{id}` |
+| Investigation/RCA [P1 only] | `/investigations/{id}` and P1 mutation endpoints |
 | Feedback Explorer | `/feedback-items`, `/feedback-items/{id}` |
-| Review Queue | `/review-queue`, `/feedback-items/{id}/decisions` |
+| Review Queue | `/review-queue`, `/ai/predictions/{id}/review`, `/feedback-items/{id}/decisions` |
 | Imports | `/import-jobs/*` |
 | Data Quality | `/analytics/data-quality` |
 | Taxonomy | taxonomy endpoints |
@@ -2354,7 +2319,7 @@ Open Hotspot & Root Cause
 ↓
 See S2 hotspot
 ↓
-Review confirmed root cause / actions
+Review evidence, owner/status and Candidate Causes
 ```
 
 ---
@@ -2388,7 +2353,7 @@ Read Feedback evidence
 ↓
 Review AI suggestions
 ↓
-Accept / Correct
+Submit one canonical review action
 ↓
 Save Decision
 ↓
@@ -2410,15 +2375,10 @@ Acknowledge hotspot
 ↓
 Assign owner
 ↓
-Start investigation
-↓
-Add evidence
-↓
-Confirm root cause
-↓
-Track corrective/preventive actions
-↓
-Resolve
+Update hotspot status / resolve or dismiss
+
+P1 extension:
+Start Investigation → add evidence → confirm Root Cause → track Corrective/Preventive Actions
 ```
 
 ---
@@ -2586,8 +2546,8 @@ The UI/UX is considered build-ready when:
 5. Feedback is always available as evidence behind aggregated insights.
 6. Customer Lifecycle and Service Request Lifecycle are visually separate.
 7. AI Prediction is visibly different from accepted Classification.
-8. Issue is visibly different from Candidate Cause and Confirmed Root Cause.
-9. Hotspot flows into Investigation → Root Cause → Action.
+8. Issue is visibly different from Candidate Cause; Confirmed Root Cause is absent in P0 and distinct when P1 is enabled.
+9. P0 Hotspot shows evidence, owner/status and Candidate Cause without RCA mutations; Investigation → Root Cause → Action is P1-only.
 10. Analytics filters persist across dashboard drill-down.
 11. Taxonomy labels are loaded from API, not hard-coded.
 12. PII remains masked by default.
@@ -2595,10 +2555,13 @@ The UI/UX is considered build-ready when:
 14. Service constrains Issue.
 15. Customer Lifecycle Stage is derived from Step.
 16. Dashboard and drill-down counts use the same analytics eligibility logic.
-17. The UI supports wide desktop analysis efficiently.
-18. Core workflows have loading, empty, error and permission states.
-19. All operational mutations map to defined API endpoints.
-20. The UI can be implemented without changing the domain model.
+17. Journey Step and Service/Issue breakdowns show Feedback Volume, Negative Rate, Active Hotspots and Trend from the multi-metric API contract.
+18. Persona is not shown as a P0 filter; Intake Channel and Affected Channel are distinct supported filters.
+19. Review Queue submits exactly seven canonical action values and reflects Decision-versus-ReviewEvent behavior.
+20. The UI supports wide desktop analysis efficiently.
+21. Core workflows have loading, empty, error and permission states.
+22. All operational mutations map to defined API endpoints.
+23. The UI can be implemented without changing the domain model.
 
 ---
 

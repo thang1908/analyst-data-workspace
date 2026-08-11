@@ -2,9 +2,9 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Draft for Engineering Baseline  
-**Derived from:** `docs/PRD.md` v1.2 and `docs/service_taxonomy.md` v3.0.0  
+**Derived from:** `docs/PRD.md` v1.3 and `docs/service_taxonomy.md` v3.0.0  
 **Scope:** P0 Pilot Build Baseline, with selected P1 rules explicitly marked  
 **Purpose:** Convert product/taxonomy decisions into enforceable domain rules that can be implemented in schema, API, jobs, UI validation, and automated tests.
 
@@ -370,7 +370,7 @@ P0 is suggest-only for all confidence values.
 ## BR-CLS-006 — Accepted Sources
 
 **Priority:** P0  
-**Rule:** Current projection may be updated only from an authorized decision source such as:
+**Rule:** `decision_source` MUST use exactly this canonical enum across rules, database, API and UI:
 
 ```text
 MANUAL
@@ -385,19 +385,25 @@ For P0, `POLICY_AUTO_APPLIED` MUST remain disabled unless explicitly approved fo
 
 ---
 
-## BR-CLS-007 — Human Review Actions
+## BR-CLS-007 — Canonical Human Review Actions
 
 **Priority:** P0  
-**Rule:** AI review MUST support:
+**Rule:** AI review MUST use exactly:
 
 ```text
-Accept
-Correct
-Unknown
-Skip
+ACCEPT
+CORRECT
+MARK_UNKNOWN
+MARK_MISSING
+MARK_NOT_APPLICABLE
+SPLIT_REQUIRED
+SKIP
 ```
 
-`Accept`, `Correct`, or an explicit `Unknown` that changes classification state MUST create a new immutable decision snapshot.
+- `ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` MUST create one immutable `ClassificationDecision` and one `ReviewEvent`.
+- `SPLIT_REQUIRED` and `SKIP` MUST create only a `ReviewEvent`.
+- Actual split MUST use a separate split mutation; it creates child Feedback Items and MUST NOT create a decision for the split-parent.
+- API/UI labels MAY be localized, but wire values MUST remain the canonical enum above.
 
 ---
 
@@ -435,7 +441,7 @@ Cause data MUST NOT be encoded into the Issue catalog.
 
 ## BR-CAUSE-002 — Candidate Cause Is 0:N
 
-**Priority:** P0 schema / P1 usage  
+**Priority:** P0  
 **Rule:** A decision/investigation MAY contain zero to many Candidate Causes.
 
 Each suggested cause SHOULD retain:
@@ -454,19 +460,24 @@ Each suggested cause SHOULD retain:
 
 ---
 
-## BR-CAUSE-004 — Classification Cannot Confirm Root Cause
+## BR-CAUSE-004 — Canonical Cause Determination Status
 
 **Priority:** P0  
-**Rule:** Classification write paths may use:
+**Rule:** `cause_determination_status` MUST use exactly:
 
 ```text
 NOT_ASSESSED
 UNKNOWN
 SUGGESTED
 UNDER_INVESTIGATION
+CONFIRMED
+NOT_APPLICABLE
 ```
 
-`CONFIRMED` MUST be derived from an authorized RCA/investigation finding, not from a classifier decision.
+- P0 classification/review MAY write only `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE`.
+- `SUGGESTED` requires at least one Candidate Cause; `UNKNOWN` MUST NOT coexist with a concrete Candidate Cause.
+- `UNDER_INVESTIGATION` and `CONFIRMED` are P1 states written only by Investigation/RCA workflow.
+- Classifier/AI MUST NOT write `UNDER_INVESTIGATION` or `CONFIRMED`.
 
 ---
 
@@ -493,6 +504,15 @@ UNDER_INVESTIGATION
 
 **Priority:** P1  
 **Rule:** Asset IDs, BMS objects, CMMS work orders, and technical-system identifiers MAY be linked to investigations but MUST NOT become core Service/Issue classification dimensions.
+
+---
+
+## BR-CAUSE-008 — P0/P1 RCA Boundary
+
+**Priority:** P0/P1  
+**Rule:** P0 is limited to Hotspot, evidence Feedback Items, owner, hotspot status and basic Candidate Cause. P1 owns Investigation, Confirmed Root Cause, Corrective Action, Preventive Action and full RCA workflow/storage/API/UI.
+
+P0 MUST NOT expose a mutation that starts an Investigation, confirms Root Cause or manages Corrective/Preventive Actions.
 
 ---
 
@@ -636,7 +656,46 @@ For sentiment:
 
 ---
 
-## BR-ANA-006 — Household Count Is Conditional
+## BR-ANA-006 — Four Basic P0 Dashboards
+
+**Priority:** P0  
+**Rule:** P0 MUST provide four basic dashboards: CX Overview, Customer Journey, Service & Pain Points, and Hotspot & Root Cause.
+
+The fourth dashboard is limited in P0 to hotspot, evidence, owner/status and Candidate Cause. Investigation, confirmed Root Cause and actions remain P1.
+
+---
+
+## BR-ANA-007 — Multi-metric Breakdown Contract
+
+**Priority:** P0  
+**Rule:** Analytics breakdown by `journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel` or `affected_channel` MUST support:
+
+```text
+item_volume
+negative_rate
+active_hotspots
+trend
+```
+
+All metrics and drill-downs MUST share filter context, eligibility logic and metric-definition version.
+
+---
+
+## BR-ANA-008 — Persona Is Not a P0 Analytics Dimension
+
+**Priority:** P0  
+**Rule:** P0 API/UI MUST NOT expose Persona filter or segmentation. Product personas are authorization/user roles, not customer analytics data.
+
+---
+
+## BR-ANA-009 — Affected Channel Is Supported in P0 Analytics
+
+**Priority:** P0  
+**Rule:** `affected_channel` MUST be available as a P0 filter and breakdown dimension, distinct from `intake_channel`.
+
+---
+
+## BR-ANA-010 — Household Count Is Conditional
 
 **Priority:** P0  
 **Rule:** Distinct household count may be displayed only when a valid pseudonymous household key exists and passes its data-quality gate.
@@ -732,6 +791,8 @@ RESOLVED/DISMISSED → REOPENED → INVESTIGATING
 ```
 
 Invalid transitions MUST be rejected.
+
+`INVESTIGATING` here is a Hotspot operational status only; in P0 it MUST NOT create an Investigation/RCA entity or change cause status to `UNDER_INVESTIGATION`.
 
 ---
 

@@ -311,85 +311,11 @@ Hard-trigger catalog độc lập với Service. Mắc kẹt thang, điện gi�
 
 ---
 
-## 6. Canonical Data Model
+## 6. Canonical Vocabulary Constraints
 
-```text
-taxonomy_release
-  taxonomy_release_id
-  version
-  status
-  effective_from
-  effective_to
-  source_checksum
-  approved_by
+Tài liệu này chỉ định nghĩa conceptual model, label space, code, boundary và cardinality của taxonomy. Nó không định nghĩa bảng/cột DB, payload API hoặc implementation field.
 
-customer_lifecycle_stage
-  customer_lifecycle_stage_id
-  stage_code
-  name
-  sort_order
-
-customer_lifecycle_step
-  customer_lifecycle_step_id
-  customer_lifecycle_stage_id
-  step_code
-  name
-  definition
-
-service_request_step
-  service_request_step_id
-  step_code
-  name
-  definition
-
-service
-  service_id
-  service_code
-  name_vi
-  name_en
-  outcome_definition
-  in_scope
-  out_of_scope
-  default_severity
-
-issue
-  issue_id
-  issue_code
-  service_id
-  name_vi
-  name_en
-  definition
-  inclusion_examples
-  safety_critical
-  severity_override
-
-feedback_item
-  feedback_item_id
-  feedback_id
-  raw_text
-  normalized_text
-  symptom_detail
-  location_id
-  intake_channel
-  created_at
-
-classification_decision
-  classification_decision_id
-  feedback_item_id
-  taxonomy_release_id
-  customer_lifecycle_value_status
-  customer_lifecycle_step_id
-  service_request_value_status
-  service_request_step_id
-  primary_service_value_status
-  primary_service_id
-  issue_value_status
-  issue_id
-  operational_severity
-  decision_source
-  decided_by
-  decided_at
-```
+Nguồn duy nhất cho schema triển khai là `05_Data_Model.md`; enum nghiệp vụ và state transition được định nghĩa trong `Business_Rules.md`. Chi tiết persistence không được lặp lại tại đây.
 
 ### 6.1 Code patterns
 

@@ -2,7 +2,7 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.2
+**Version:** 1.3
 **Status:** Pilot Build Baseline / Aligned with Taxonomy 3.0.0 / Pending Named Stakeholder Decisions
 **Domain:** Real Estate / Residential CX & Operations
 **Historical journey source:** `Customer Journey(2).xlsx`
@@ -88,7 +88,7 @@ SV-07
 → Potential Hotspot
 ```
 
-Sau technical investigation:
+Sau technical investigation [P1]:
 
 ```text
 Candidate Cause
@@ -182,9 +182,9 @@ Phát hiện spike, recurring issue, location cluster và hotspot.
 
 Insight phải drill-down về feedback/ticket và có owner.
 
-### G6 — Root Cause Intelligence
+### G6 — Cause & Root Cause Intelligence
 
-Tách Candidate Cause khỏi Confirmed Root Cause; kết nối evidence và RCA.
+P0 tách Candidate Cause khỏi sự thật đã xác nhận và liên kết evidence với hotspot. P1 bổ sung Investigation, Confirmed Root Cause, Corrective Action, Preventive Action và RCA đầy đủ.
 
 ---
 
@@ -224,11 +224,11 @@ Feedback Item (một intent/vấn đề nguyên tử)
                 ├── Issue + Sentiment + Operational Severity
                 └── Candidate Cause Suggestions [0:N, chưa xác nhận]
                          ↓ N:N
-              Hotspot / Ticket / Investigation
+              Hotspot + Evidence + Owner/Status          [P0]
                          ↓
-              Confirmed Root Cause + Evidence
+              Investigation + Confirmed Root Cause       [P1]
                          ↓
-              Corrective / Preventive Action
+              Corrective / Preventive Action             [P1]
 ```
 
 `Feedback` giữ provenance của bản ghi nguồn. `Feedback Item` là đơn vị phân loại, review, analytics và hotspot. P0 mặc định tạo một item cho mỗi feedback; reviewer phải có thể tách feedback multi-intent thành nhiều item mà không sửa `content_raw`.
@@ -256,22 +256,48 @@ Possible Services:
 
 ### 7.3 Candidate Cause ≠ Root Cause
 
-AI/operator có thể suggest nhiều Candidate Cause có rank/confidence; chỉ investigation có evidence mới xác nhận Root Cause. `UNKNOWN` chỉ dùng khi không có giả thuyết cụ thể và không được tồn tại cùng một cause cụ thể trong cùng decision set.
+AI/operator có thể suggest nhiều Candidate Cause có rank/confidence trong P0; chỉ Investigation/RCA P1 có evidence và người có thẩm quyền mới xác nhận Root Cause. `UNKNOWN` chỉ dùng khi đã đánh giá nhưng chưa xác định được giả thuyết cụ thể và không được tồn tại cùng một cause cụ thể trong cùng decision set.
 
-### 7.4 Delivery Priority ≠ Operational Severity
+### 7.4 Canonical Cross-document Enums
+
+`decision_source` dùng duy nhất:
+
+```text
+MANUAL | SOURCE_TRUSTED | HUMAN_ACCEPTED_AI | HUMAN_CORRECTED_AI | POLICY_AUTO_APPLIED | SYSTEM_MIGRATION
+```
+
+`cause_determination_status` dùng duy nhất:
+
+```text
+NOT_ASSESSED | UNKNOWN | SUGGESTED | UNDER_INVESTIGATION | CONFIRMED | NOT_APPLICABLE
+```
+
+P0 chỉ ghi `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE`. `UNDER_INVESTIGATION` và `CONFIRMED` chỉ được ghi bởi workflow Investigation/RCA P1; classifier/AI không được ghi hai trạng thái này.
+
+Review action canonical:
+
+```text
+ACCEPT | CORRECT | MARK_UNKNOWN | MARK_MISSING | MARK_NOT_APPLICABLE | SPLIT_REQUIRED | SKIP
+```
+
+Năm action đầu tạo `ReviewEvent` và immutable `ClassificationDecision`; `SPLIT_REQUIRED` và `SKIP` chỉ tạo `ReviewEvent`. Việc split thực tế dùng mutation riêng và không tạo decision cho split-parent.
+
+### 7.5 Delivery Priority ≠ Operational Severity
 
 - `delivery_priority`: `P0`, `P1`, `P2`, dùng cho roadmap/build scope.
 - `operational_severity`: `SEV-1`, `SEV-2`, `SEV-3`, `SEV-4`, dùng cho mức độ ảnh hưởng của feedback item, hotspot hoặc ticket.
 
 Các cột `Default Priority P1–P4` trong taxonomy v1.0 là dữ liệu vận hành cũ và phải được map lần lượt sang `SEV-1–SEV-4` khi import. API/domain model mới không dùng cùng tên `priority` cho hai khái niệm.
 
-### 7.5 Lifecycle Independence
+### 7.6 Lifecycle Independence
 
 Customer Lifecycle và Service Request Lifecycle là hai dimension độc lập. Một feedback item có tối đa một Customer Lifecycle Step hiện hành và tối đa một Service Request Step hiện hành; một trong hai có thể `UNKNOWN`, nhưng hệ thống không được suy diễn `SRV-*` thành Customer Lifecycle Stage.
 
 ---
 
 ## 8. Personas
+
+Các Persona dưới đây là product roles, không phải analytics dimension. P0 không có Persona segmentation/filter; nếu bổ sung ở P1 phải có definition, provenance, consent và contract riêng.
 
 | Persona                | Mục tiêu chính                                       |
 | ---------------------- | ------------------------------------------------------- |
@@ -280,7 +306,7 @@ Customer Lifecycle và Service Request Lifecycle là hai dimension độc lập.
 | Building Manager / BQL | Theo dõi sự cố, SLA, hotspot, ảnh hưởng theo tòa |
 | Service Owner          | Theo dõi issue, recurrence, RCA                        |
 | Technical Owner        | Điều tra hệ thống/cause và xác nhận root cause   |
-| CX Manager             | Theo dõi CX health, journey friction, top hotspot      |
+| CX Manager             | Theo dõi experience metrics, journey friction, top hotspot |
 | Taxonomy Admin         | Quản lý Journey/Service/Issue/Cause/mapping           |
 | Data Steward           | Data quality và metric definition                      |
 | AI Reviewer / ML Team  | Review prediction và model quality                     |
@@ -300,9 +326,10 @@ CX Platform
 │   └── Saved Views        [P1]
 ├── Hotspots
 ├── Analytics
-│   ├── Pilot Overview
-│   ├── Journey            [P1 expanded]
-│   └── Services           [P1 expanded]
+│   ├── CX Overview                    [P0 basic]
+│   ├── Customer Journey               [P0 basic; P1 advanced]
+│   ├── Service & Pain Points          [P0 basic; P1 advanced]
+│   └── Hotspot & Root Cause           [P0 hotspot/candidate cause; P1 RCA]
 ├── Tickets            [P1]
 ├── RCA                [P1]
 ├── AI Review
@@ -339,7 +366,7 @@ CX Platform
 | `EPIC-05` Feedback Workspace     | `US-FB-03`    | CX Analyst         | save view                                                               | không phải cấu hình filter lặp lại                         | **P1** | Save private/shared view; owner; default view; delete/rename.                                                                                                                                                   |
 | `EPIC-05` Feedback Workspace     | `US-FB-04`    | Operator           | split item và quyết định classification thủ công                  | multi-intent và label sai được xử lý có kiểm soát       | **P0** | Raw content không đổi; mỗi correction tạo immutable decision version mới có actor, reason, timestamp và reference tới version trước; projection rebuild được; correction vào gold-set candidate. |
 | `EPIC-06` AI Classification      | `US-AI-01`    | Operator           | nhận AI suggestion cho lifecycle/service/issue/sentiment               | giảm tagging thủ công                                         | **P0** | Suggest-only; prediction tách theo item+field, có candidate value, confidence, model/prompt/taxonomy version; không tự sửa current projection.                                                             |
-| `EPIC-06` AI Classification      | `US-AI-02`    | AI Reviewer        | accept/correct/unknown AI suggestion                                    | chỉ decision được duyệt mới vào analytics                 | **P0** | Queue theo field/confidence; Accept/Correct/Unknown/Skip; review decision và audit độc lập prediction.                                                                                                      |
+| `EPIC-06` AI Classification      | `US-AI-02`    | AI Reviewer        | review AI suggestion bằng action canonical                              | chỉ decision được duyệt mới vào analytics                 | **P0** | Hỗ trợ `ACCEPT/CORRECT/MARK_UNKNOWN/MARK_MISSING/MARK_NOT_APPLICABLE/SPLIT_REQUIRED/SKIP`; năm action đầu tạo Decision+ReviewEvent, hai action cuối chỉ tạo ReviewEvent.                                  |
 | `EPIC-06` AI Classification      | `US-AI-03`    | AI/ML Team         | tạo gold set và theo dõi chất lượng theo label                    | biết model đủ điều kiện để mở rộng hay chưa           | **P0** | Gold set versioned; sampling rule; label guideline; correction/unknown/confidence distribution; offline metrics theo field.                                                                                     |
 | `EPIC-07` Ticket / Case          | `US-TKT-01`   | Operator           | chuyển feedback thành ticket hoặc attach ticket có sẵn             | chỉ vấn đề cần action mới thành case                      | **P1** | Feedback có thể remain feedback/create/attach; audit relationship.                                                                                                                                            |
 | `EPIC-07` Ticket / Case          | `US-TKT-02`   | Operator           | assign ticket tới handling unit                                        | đảm bảo có owner xử lý                                     | **P1** | Assignment history; accepted_at; reassignment reason; current accountable owner.                                                                                                                                |
@@ -350,9 +377,9 @@ CX Platform
 | `EPIC-08` Hotspot                | `US-HOT-04`   | System             | kích hoạt hard trigger với vấn đề an toàn                        | không chờ volume đủ lớn mới cảnh báo                     | **P1** | SEV-1 safety issue tạo alert tức thời; rule độc lập AI score và chỉ bật sau sign-off.                                                                                                                  |
 | `EPIC-09` RCA                    | `US-RCA-01`   | Service Owner      | mở RCA từ hotspot hoặc repeat issue                                  | tìm nguyên nhân gốc thay vì đóng triệu chứng            | **P1** | RCA liên kết hotspot/ticket; problem statement; candidate causes; evidence; asset/work-order chỉ là investigation reference ngoài taxonomy khi có.                                                        |
 | `EPIC-09` RCA                    | `US-RCA-02`   | Technical Owner    | xác nhận root cause và corrective action                             | ngăn lỗi tái diễn                                            | **P1** | Confirmed cause; corrective/preventive action; owner; due date; verification.                                                                                                                                   |
-| `EPIC-10` Pilot Analytics        | `US-ANA-01`   | CX Manager         | xem KPI pilot theo Customer Lifecycle/Service/Issue/Location            | biết friction trong phạm vi pilot                              | **P0** | Item volume, negative rate, unknown rate và breakdown; dùng accepted current projection; click drill-down đúng cùng filter context.                                                                        |
-| `EPIC-10` Journey Analytics      | `US-ANA-02`   | CX Manager         | so sánh các Journey Step theo thời gian                              | biết step nào đang xấu đi                                   | **P1** | WoW/MoM/YoY; same filter context; metric definitions versioned.                                                                                                                                                 |
-| `EPIC-11` Service Analytics      | `US-ANA-03`   | Service Owner      | xem performance mở rộng theo Service/Issue/Location                   | biết dịch vụ nào cần cải thiện                            | **P1** | Volume, negative, hotspot, top issue, top building, trend; drill-down.                                                                                                                                          |
+| `EPIC-10` Pilot Analytics        | `US-ANA-01`   | CX Manager         | xem bốn dashboard P0 cơ bản                                             | theo dõi CX từ overview tới journey, service và hotspot | **P0** | Có CX Overview, Customer Journey, Service & Pain Points, Hotspot & Root Cause; mỗi breakdown trả item volume, negative rate, active hotspots, trend và drill-down cùng filter context.                     |
+| `EPIC-10` Journey Analytics      | `US-ANA-02`   | CX Manager         | xem Journey Stage/Step ở mức cơ bản                                  | biết step nào có volume/negative/hotspot nổi bật       | **P0** | Breakdown theo stage/step có `item_volume`, `negative_rate`, `active_hotspots`, `trend`; không có Persona filter; WoW/MoM/YoY thuộc P1.                                                                    |
+| `EPIC-11` Service Analytics      | `US-ANA-03`   | Service Owner      | xem Service/Issue ở mức cơ bản                                       | biết dịch vụ/pain point nào cần chú ý                  | **P0** | Breakdown theo service/issue có `item_volume`, `negative_rate`, `active_hotspots`, `trend`; advanced comparison/recurrence thuộc P1.                                                                      |
 | `EPIC-11` Service Analytics      | `US-ANA-04`   | Service Owner      | xem recurring issue và candidate cause                                 | ưu tiên hoạt động phòng ngừa                              | **P1** | Repeat rate; RCA linkage; Journey/Location/Channel/symptom-detail concentration.                                                                                                                                |
 | `EPIC-12` Governance             | `US-GOV-01`   | Platform Admin     | quản lý basic role và quyền xem PII                                 | dữ liệu chỉ hiển thị đúng đối tượng                   | **P0** | SSO; Pilot Admin/Analyst/Reviewer/Viewer; server-side authorization; raw PII/export privilege; audit privileged actions.                                                                                        |
 | `EPIC-12` Governance             | `US-GOV-02`   | Data Steward       | theo dõi data quality thiết yếu                                      | analytics không dựa trên dữ liệu bẩn                       | **P0** | Import errors, duplicate, missing/invalid taxonomy/location, unknown rate, stale prediction và ineligible item counts.                                                                                         |
@@ -517,7 +544,7 @@ P0 là **suggest-only**: prediction không được tự ghi vào current projec
 ### FR-08 — AI Review
 
 - Queue theo field, confidence, source và age.
-- `Accept`, `Correct`, `Unknown`, `Skip` tạo review event và immutable decision version mới khi classification thay đổi.
+- Review endpoint chỉ nhận action canonical. `ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` tạo ReviewEvent và immutable decision version; `SPLIT_REQUIRED`, `SKIP` chỉ tạo ReviewEvent.
 - Decision version chứa snapshot nguyên tử, actor, reason, timestamp và prediction reference nếu có; concurrent stale write bị reject.
 - Current projection được cập nhật idempotent từ decision version mới nhất có hiệu lực.
 - Correction chỉ trở thành training/gold-set candidate sau khi Data Steward duyệt; không tự động train model production.
@@ -572,7 +599,7 @@ Feedback detail
 
 Không có chart dead-end.
 
-P0 chỉ có Pilot Overview và các breakdown nằm trong pilot scope. Journey Analytics và Service Analytics đầy đủ, so sánh WoW/MoM/YoY, recurring issue và cross-project thuộc P1.
+P0 có bốn dashboard basic trong pilot scope với multi-metric breakdown và drill-down. Advanced analytics như WoW/MoM/YoY, recurring issue, cross-project comparison và RCA metrics thuộc P1.
 
 ### FR-11 — Basic Access, PII & Audit
 
@@ -737,7 +764,7 @@ Khi `issue_value_status=KNOWN`, Issue bắt buộc thuộc đúng primary Servic
 
 ### BR-06
 
-Candidate Cause là suggestion set 0:N. Khi chưa đủ bằng chứng, set ở trạng thái `UNKNOWN`; `UNKNOWN` không được tồn tại cùng cause cụ thể. Classification write chỉ cho `NOT_ASSESSED | UNKNOWN | SUGGESTED | UNDER_INVESTIGATION`; trạng thái `CONFIRMED` chỉ được derive từ RCA có evidence và người có thẩm quyền.
+Candidate Cause là suggestion set 0:N. `UNKNOWN` không được tồn tại cùng cause cụ thể. Classification/review P0 chỉ ghi `NOT_ASSESSED | UNKNOWN | SUGGESTED | NOT_APPLICABLE`; `UNDER_INVESTIGATION | CONFIRMED` chỉ do Investigation/RCA P1 ghi. `CONFIRMED` bắt buộc có evidence và người có thẩm quyền.
 
 ### BR-07
 
@@ -915,7 +942,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - Row error download/retry
 - Batch audit/lineage
 
-### Screen 02 — Pilot Overview [P0]
+### Dashboard 01 — CX Overview [P0 basic]
 
 - Total feedback
 - Negative rate
@@ -952,34 +979,27 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 ### Screen 05 — AI Review [P0]
 
 - Low confidence queue
-- Accept/Correct/Unknown
-- Split multi-intent
+- `ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE`
+- `SPLIT_REQUIRED`, `SKIP`
+- Split multi-intent qua mutation riêng
 
-### Screen 06 — Journey Analytics [P1 expanded]
+### Dashboard 02 — Customer Journey [P0 basic; P1 advanced]
 
-- Stage/Step heatmap
-- Service breakdown
-- Issue breakdown
-- Drill-down
+- P0: Stage/Step breakdown với Feedback Volume, Negative Rate, Active Hotspots và Trend
+- P0: filter Project/Date/Channel/Affected Channel/Location; không có Persona filter
+- P1: WoW/MoM/YoY, comparison nâng cao và recurring issue
 
-### Screen 07 — Service Analytics [P1 expanded]
+### Dashboard 03 — Service & Pain Points [P0 basic; P1 advanced]
 
-- Volume
-- Negative rate
-- Issues
-- Location
-- Trend
-- Hotspot
+- P0: Service/Issue breakdown với Feedback Volume, Negative Rate, Active Hotspots và Trend
+- P0: Location/Channel/Affected Channel drill-down
+- P1: cross-project comparison, recurrence, advanced trend period
 
-### Screen 08 — Hotspot List [P0]
+### Dashboard 04 — Hotspot & Root Cause [P0 basic; P1 RCA]
 
-- Level
-- Service
-- Issue
-- Location
-- Trend
-- Affected count
-- Status
+- P0: hotspot list/detail, evidence, owner, status, Candidate Cause cơ bản
+- P0: không hiển thị Investigation, Confirmed Root Cause hoặc Corrective/Preventive Action như chức năng khả dụng
+- P1: Investigation, Confirmed Root Cause, Corrective Action, Preventive Action và RCA đầy đủ
 
 ### Screen 09 — Hotspot Detail [P0]
 
@@ -1062,6 +1082,25 @@ GET  /api/v1/ai/prediction-jobs/{id}
 POST /api/v1/ai/predictions/{id}/review
 ```
 
+Review body dùng `action` thuộc bộ canonical ở §7.4; API không nhận alias như `AI_ACCEPTED`, `HUMAN`, `Unknown` hoặc `Mark Unknown`.
+
+### Analytics [P0]
+
+```http
+GET /api/v1/analytics/summary
+GET /api/v1/analytics/breakdown?dimension={journey_stage|journey_step|service|issue|location|intake_channel|affected_channel}
+GET /api/v1/analytics/trend
+```
+
+Breakdown contract hỗ trợ multi-metric:
+
+```text
+dimension = journey_step | service | ...
+metrics = item_volume, negative_rate, active_hotspots, trend
+```
+
+Mọi endpoint dùng chung filter context gồm Project, Date, Customer Lifecycle, Service Request Step, Service, Issue, Location, Intake Channel, Affected Channel, Sentiment và Severity. Persona không thuộc P0 filter contract.
+
 ### Hotspot
 
 ```http
@@ -1134,6 +1173,8 @@ POST /api/v1/rca
 - `taxonomy_coverage(field)`: số eligible item có giá trị active/UNKNOWN hợp lệ chia tổng item cần field đó.
 - `unknown_rate(field)`: số eligible item có `UNKNOWN` chia tổng eligible item; coverage cao không được dùng để che unknown rate cao.
 - `manual_override_rate(field)`: số accepted source/AI value bị reviewer sửa chia số decision đã review.
+- `active_hotspots`: số hotspot chưa ở trạng thái `RESOLVED` hoặc `DISMISSED` trong cùng filter/dimension context.
+- `trend`: chuỗi bucket thời gian của metric được yêu cầu; P0 hỗ trợ trend cơ bản, P1 mới thêm WoW/MoM/YoY comparison.
 - Hotspot MTTD: thời gian từ feedback item đủ điều kiện thứ `N` trong rule đến `hotspot.created_at`; không tính từ feedback đầu tiên.
 - Household count chỉ tính distinct pseudonymous household key; thiếu key thì metric là `N/A`.
 - Mọi metric lưu `metric_definition_version`; chart và drill-down phải dùng cùng filter, eligibility và version.
@@ -1180,7 +1221,7 @@ P0 là production-limited pilot, không phải rollout vận hành trên toàn d
 4. Async CSV/XLSX import có validation, idempotency, row lineage, retry và error report.
 5. Feedback Workspace/Detail; manual split; manual/source classification decision.
 6. AI suggest-only theo field; review queue; gold set/calibration workflow.
-7. Pilot Overview với metric semantics và drill-down thống nhất.
+7. Bốn dashboard P0 cơ bản: CX Overview, Customer Journey, Service & Pain Points, Hotspot & Root Cause; breakdown multi-metric và drill-down thống nhất.
 8. Deterministic Hotspot rule cho vertical slice; lifecycle, owner, evidence và idempotent upsert.
 9. Essential data-quality summary và operational observability.
 
@@ -1190,7 +1231,7 @@ Các Service/Issue ngoài pilot usage scope vẫn phải có trong structured se
 
 1. Full taxonomy Admin UI, approval/rollback và Lifecycle-Service Matrix.
 2. Realtime Feedback API/connectors, saved/shared views và governed export.
-3. Journey/Service Analytics đầy đủ; WoW/MoM/YoY và recurring issue.
+3. Advanced analytics cho Journey/Service; WoW/MoM/YoY, recurring issue và cross-project comparison.
 4. Generalized hotspot/anomaly engine, hard-trigger alerts sau phê duyệt và duplicate clustering.
 5. Lightweight ticket/case hoặc integration tới system of record; assignment và SLA.
 6. Asset/work-order integration phục vụ investigation (không mở rộng taxonomy), Candidate Cause AI 0:N, RCA và action tracking.
@@ -1230,7 +1271,7 @@ F0 Scope + terminology + security/audit contract
  → F2 Async import + immutable feedback envelope
  → F3 Feedback item + decision ledger + current projection + workspace
  → F4 AI prediction ledger + review + gold set
- → F5 Metric layer + Pilot Overview/drill-down
+ → F5 Metric layer + 4 basic dashboards/drill-down
  → F6 Deterministic hotspot + owner/lifecycle
  → P1 connectors, full analytics, ticket/SLA/RCA
 ```
@@ -1335,10 +1376,10 @@ MVP được xem là hoàn thành khi:
 3. Import dataset thật chạy async, retry idempotent; 100% row có outcome/lineage và error report; không silent-drop.
 4. Hai lifecycle dictionary có đủ 6 Customer Lifecycle Stage/36 Step và 8 Service Request Step; taxonomy release có đủ canonical 10 Service/28 Issue; pilot mapping và location hierarchy dùng stable ID/version, publish được và không hard-code trong application.
 5. Feedback envelope giữ raw immutable; feedback multi-intent tách được thành item; decision ledger rebuild được current projection.
-6. User filter Customer Lifecycle/Service Request/Service/Issue/Location/Severity được trên eligible feedback item; drill-down giữ nguyên filter/metric version.
-7. AI trả prediction theo field với confidence/model/pipeline/taxonomy version nhưng không auto-apply; reviewer Accept/Correct/Unknown được và có audit.
+6. User filter Customer Lifecycle/Service Request/Service/Issue/Location/Intake Channel/Affected Channel/Severity được trên eligible feedback item; không có Persona filter; drill-down giữ nguyên filter/metric version.
+7. AI trả prediction theo field với confidence/model/pipeline/taxonomy version nhưng không auto-apply; reviewer dùng đủ 7 action canonical và Decision/ReviewEvent được tạo đúng quy tắc.
 8. `gold_set_v1` có guideline, dataset version, holdout, coverage report và baseline metrics; thiếu label coverage được báo rõ.
-9. Pilot Overview tính đúng item volume, negative rate, unknown rate theo metric semantics và khớp truy vấn kiểm chứng.
+9. Bốn dashboard P0 trả đúng `item_volume`, `negative_rate`, `active_hotspots`, `trend` theo cùng analytics contract và khớp truy vấn/drill-down kiểm chứng.
 10. Deterministic rule tạo đúng một hotspot candidate từ accepted items, gắn đúng evidence/owner/rule version; acknowledge/assign/dismiss/resolve/reopen có audit và retry không duplicate.
 11. Data quality hiển thị import error, duplicate, invalid taxonomy/location, unknown/ineligible và missing owner.
 12. Contract/unit/integration test cho authorization, import idempotency, decision projection, metric query và hotspot lifecycle pass; migration/rollback, logs, correlation ID và runbook pilot đã được kiểm tra.

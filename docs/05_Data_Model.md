@@ -2,9 +2,9 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** P0 Pilot Build Baseline  
-**Derived from:** `docs/PRD.md` v1.2, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.0, `docs/System_Design.md` v1.0  
+**Derived from:** `docs/PRD.md` v1.3, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.1, `docs/System_Design.md` v1.1  
 **Database baseline:** PostgreSQL  
 **ORM baseline:** SQLAlchemy 2.x + Alembic  
 **Scope:** P0 required tables and constraints; selected P1 extension points are marked explicitly.
@@ -171,11 +171,9 @@ erDiagram
     FEEDBACK_ITEM ||--o{ FEEDBACK_ITEM_HOTSPOT : evidence_for
     HOTSPOT ||--o{ HOTSPOT_TIMELINE_EVENT : changes
 
-    INVESTIGATION ||--o{ INVESTIGATION_EVIDENCE : contains
-    INVESTIGATION ||--o{ CONFIRMED_ROOT_CAUSE : confirms
-    CONFIRMED_ROOT_CAUSE ||--o{ CORRECTIVE_ACTION : produces
-    CONFIRMED_ROOT_CAUSE ||--o{ PREVENTIVE_ACTION : produces
 ```
+
+Investigation/RCA/CAPA entities are intentionally excluded from the P0 ERD. Their P1 extension contract is documented in §14.
 
 ---
 
@@ -231,13 +229,15 @@ SUPERSEDED
 ## 5.4 `decision_source`
 
 ```text
-SOURCE
-HUMAN
-AI_ACCEPTED
+MANUAL
+SOURCE_TRUSTED
+HUMAN_ACCEPTED_AI
+HUMAN_CORRECTED_AI
+POLICY_AUTO_APPLIED
 SYSTEM_MIGRATION
 ```
 
-AI output by itself is not a decision. `AI_ACCEPTED` means an authorized reviewer accepted a prediction and created a decision.
+AI output by itself is not a decision. `POLICY_AUTO_APPLIED` is disabled in P0 unless a specific low-risk field is separately approved.
 
 ## 5.5 `sentiment`
 
@@ -260,12 +260,15 @@ SEV-4
 ## 5.7 `cause_determination_status`
 
 ```text
+NOT_ASSESSED
 UNKNOWN
-CANDIDATE_AVAILABLE
+SUGGESTED
 UNDER_INVESTIGATION
 CONFIRMED
 NOT_APPLICABLE
 ```
+
+P0 classification/review writers may use only `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE`. `UNDER_INVESTIGATION` and `CONFIRMED` are P1-only Investigation/RCA states.
 
 ## 5.8 `analytic_eligibility`
 
@@ -958,7 +961,9 @@ Rules:
 
 - zero to many concrete causes allowed;
 - `UNKNOWN` is not a cause row;
-- a decision with `cause_determination_status = UNKNOWN` MUST NOT have candidate cause rows.
+- `cause_determination_status = SUGGESTED` MUST have at least one candidate cause row;
+- `NOT_ASSESSED`, `UNKNOWN`, and `NOT_APPLICABLE` MUST NOT have candidate cause rows;
+- P0 MUST reject `UNDER_INVESTIGATION` and `CONFIRMED` on classification-decision write paths.
 
 ---
 
@@ -998,16 +1003,19 @@ Immutable semantic review log.
 | created_at | timestamptz | No |
 | correlation_id | varchar(128) | No |
 
-Typical actions:
+Canonical actions:
 
 ```text
-OPENED
-ACCEPTED
-CORRECTED
-MARKED_UNKNOWN
+ACCEPT
+CORRECT
+MARK_UNKNOWN
+MARK_MISSING
+MARK_NOT_APPLICABLE
 SPLIT_REQUIRED
-SKIPPED
+SKIP
 ```
+
+`ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` require `classification_decision_id` and create a Decision plus ReviewEvent. `SPLIT_REQUIRED` and `SKIP` require `classification_decision_id = null` and create only a ReviewEvent.
 
 ---
 
@@ -1231,9 +1239,9 @@ correlation_id
 
 ---
 
-# 14. Investigation and Root Cause
+# 14. P1 Extension — Investigation and Root Cause
 
-The PRD requires root-cause intelligence. P0 may expose the first investigation workflow even if advanced CAPA is P1.
+This entire section is P1 and MUST NOT be included in the P0 migration/repository acceptance gate. P0 persists Hotspot, evidence Feedback Items, owner/status and basic Candidate Cause only. P1 introduces Investigation, Confirmed Root Cause, Corrective Action, Preventive Action and full RCA.
 
 ## 14.1 `investigation`
 
@@ -1430,6 +1438,7 @@ feedback_item
 + classification_current
 + taxonomy labels
 + location
++ feedback_item_affected_channel
 ```
 
 Central eligibility predicate:
@@ -1452,6 +1461,7 @@ project_id
 reported_at
 source_system
 intake_channel_id
+affected_channel_ids/codes
 location_id
 location_code
 
@@ -1471,6 +1481,8 @@ current_decision_version
 ```
 
 Do not expose `content_raw` in the default analytics view.
+
+The P0 analytics query layer must support breakdown by `journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel`, and `affected_channel`, returning `item_volume`, `negative_rate`, `active_hotspots`, and time-bucketed `trend`. Persona is not a P0 column/dimension.
 
 ---
 
@@ -1568,13 +1580,14 @@ Recommended initial migration sequence:
 009 decision ledger
 010 current projection
 011 hotspot tables
-012 investigation / RCA / CAPA
-013 audit + pilot scope
-014 async job queue
-015 analytics views
-016 indexes / constraints / triggers
-017 seed taxonomy 3.0.0
+012 audit + pilot scope
+013 async job queue
+014 analytics views
+015 indexes / constraints / triggers
+016 seed taxonomy 3.0.0
 ```
+
+P1 adds a separate migration series for `investigation`, `investigation_evidence`, `confirmed_root_cause`, `corrective_action`, and `preventive_action` after P0 is accepted.
 
 Do not seed canonical labels in application Python constants.
 
@@ -1625,6 +1638,9 @@ P0 integration/contract tests MUST cover:
 16. Audit rows are created for semantic mutations.
 17. Analytics view excludes ineligible/split-parent/unaccepted items.
 18. Published taxonomy cannot be semantically mutated.
+19. Only canonical `decision_source`, `cause_determination_status`, and review-action values are accepted.
+20. P0 rejects `UNDER_INVESTIGATION`/`CONFIRMED` classification writes and has no Investigation/RCA/CAPA tables.
+21. Affected Channel filter/breakdown returns the same eligible item set as drill-down.
 
 ---
 
@@ -1657,6 +1673,7 @@ Reserved for later production expansion:
 - building/service-level RBAC scopes;
 - metric-definition/version management UI;
 - richer investigation evidence graph;
+- Investigation, Confirmed Root Cause, Corrective Action, Preventive Action and full RCA tables/workflow;
 - SLA/OLA timers;
 - notification subscriptions;
 - action workflow / approval chains;

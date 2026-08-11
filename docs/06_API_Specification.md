@@ -2,9 +2,9 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** P0 Pilot Build Baseline  
-**Derived from:** `05_Data_Model.md`, `docs/System_Design.md`, `docs/Business_Rules.md`, `docs/service_taxonomy.md`  
+**Derived from:** `docs/PRD.md` v1.3, `05_Data_Model.md` v1.1, `docs/System_Design.md` v1.1, `docs/Business_Rules.md` v1.1, `docs/service_taxonomy.md` v3.0.0  
 **API style:** REST/JSON over HTTPS  
 **Backend:** FastAPI + Pydantic v2  
 **Base path:** `/api/v1`
@@ -156,6 +156,18 @@ A stale mutation returns:
 ```
 
 The server MUST NOT silently apply a stale review or hotspot update.
+
+---
+
+## 2.7 Canonical Cross-document Enums
+
+```text
+decision_source = MANUAL | SOURCE_TRUSTED | HUMAN_ACCEPTED_AI | HUMAN_CORRECTED_AI | POLICY_AUTO_APPLIED | SYSTEM_MIGRATION
+cause_determination_status = NOT_ASSESSED | UNKNOWN | SUGGESTED | UNDER_INVESTIGATION | CONFIRMED | NOT_APPLICABLE
+review_action = ACCEPT | CORRECT | MARK_UNKNOWN | MARK_MISSING | MARK_NOT_APPLICABLE | SPLIT_REQUIRED | SKIP
+```
+
+P0 endpoints reject `UNDER_INVESTIGATION` and `CONFIRMED`; those values are reserved for P1 Investigation/RCA endpoints. Alias values such as `SOURCE`, `HUMAN`, `AI_ACCEPTED`, `CANDIDATE_AVAILABLE`, or title-case review actions are invalid wire values.
 
 ---
 
@@ -712,6 +724,7 @@ date_to
 
 source_system
 intake_channel_code
+affected_channel_code
 location_id
 
 customer_lifecycle_stage_code
@@ -1070,7 +1083,7 @@ Request:
   "sentiment": "NEGATIVE",
   "operational_severity": "SEV-3",
 
-  "cause_determination_status": "CANDIDATE_AVAILABLE",
+  "cause_determination_status": "SUGGESTED",
   "candidate_causes": [
     {
       "cause_id": "uuid",
@@ -1082,7 +1095,7 @@ Request:
 
   "other_reason": null,
   "prediction_refs": ["prediction_event_uuid"],
-  "decision_source": "AI_ACCEPTED",
+  "decision_source": "HUMAN_CORRECTED_AI",
   "decision_reason": "Accepted service/issue; corrected lifecycle."
 }
 ```
@@ -1133,9 +1146,13 @@ Allowed actions:
 ACCEPT
 CORRECT
 MARK_UNKNOWN
+MARK_MISSING
+MARK_NOT_APPLICABLE
+SPLIT_REQUIRED
+SKIP
 ```
 
-No separate mutable "prediction review state" may become an alternative source of truth.
+`ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` create one immutable ClassificationDecision plus ReviewEvent. `SPLIT_REQUIRED` and `SKIP` create only ReviewEvent; actual split uses the separate split endpoint. No mutable "prediction review state" may become an alternative source of truth.
 
 ---
 
@@ -1202,6 +1219,7 @@ date_from
 date_to
 source_system
 intake_channel_code
+affected_channel_code
 location_id/location_scope
 customer_lifecycle_stage_code
 customer_lifecycle_step_code
@@ -1211,6 +1229,8 @@ issue_code
 sentiment
 operational_severity
 ```
+
+Persona is not accepted as a P0 filter or breakdown dimension.
 
 The same filter object MUST be reusable for drill-down to `/feedback-items`.
 
@@ -1261,7 +1281,7 @@ GET /api/v1/analytics/trend
 Query:
 
 ```text
-metric=item_volume|negative_rate|unknown_rate
+metric=item_volume|negative_rate|unknown_rate|active_hotspots
 grain=day|week|month
 <shared filters>
 ```
@@ -1277,10 +1297,33 @@ GET /api/v1/analytics/breakdown
 Query:
 
 ```text
-dimension=service|issue|location|journey_stage|journey_step|service_request_step|channel|sentiment|severity
-metric=item_volume
+dimension=service|issue|location|journey_stage|journey_step|service_request_step|intake_channel|affected_channel|sentiment|severity
+metrics=item_volume,negative_rate,active_hotspots,trend
 limit=20
 <shared filters>
+```
+
+Each bucket returns all requested metrics. `trend` is a time-bucket series under the same dimension/filter context; P0 does not calculate WoW/MoM/YoY comparison.
+
+Example for `dimension=journey_step`:
+
+```json
+{
+  "data": [
+    {
+      "dimension": {"code": "RES-03", "name_vi": "Ra vào & di chuyển"},
+      "metrics": {
+        "item_volume": 620,
+        "negative_rate": 0.41,
+        "active_hotspots": 2,
+        "trend": [
+          {"bucket": "2026-08-10", "item_volume": 88, "negative_rate": 0.43, "active_hotspots": 2}
+        ]
+      }
+    }
+  ],
+  "meta": {"metric_definition_version": "v1", "filter_context": "opaque"}
+}
 ```
 
 ---
@@ -1366,7 +1409,7 @@ first_seen/last_seen
 evidence_count
 evidence feedback items
 timeline
-investigation summary if any
+candidate causes if available
 ```
 
 ---
@@ -1415,29 +1458,7 @@ Reason is mandatory.
 
 ---
 
-## 14.6 Start Investigation
-
-Recommended explicit endpoint:
-
-```http
-POST /api/v1/hotspots/{id}/investigations
-```
-
-Request:
-
-```json
-{
-  "expected_version": 6,
-  "title": "Investigate recurrent elevator wait-time degradation",
-  "owner_user_id": "uuid"
-}
-```
-
-Hotspot transitions to `INVESTIGATING` in the same transaction when valid.
-
----
-
-## 14.7 Resolve
+## 14.6 Resolve
 
 ```http
 POST /api/v1/hotspots/{id}/resolve
@@ -1448,14 +1469,14 @@ Request:
 ```json
 {
   "expected_version": 8,
-  "reason": "Root cause confirmed and corrective action completed.",
-  "resolution_summary": "..."
+  "reason": "Observed hotspot is no longer active after operational handling.",
+  "resolution_summary": "P0 operational resolution; this does not assert a confirmed root cause."
 }
 ```
 
 ---
 
-## 14.8 Reopen
+## 14.7 Reopen
 
 ```http
 POST /api/v1/hotspots/{id}/reopen
@@ -1472,7 +1493,9 @@ Reason required.
 
 ---
 
-# 15. Investigation / Root Cause APIs
+# 15. P1 Only — Investigation / Root Cause APIs
+
+All endpoints in this section are excluded from the P0 OpenAPI document, routing table, authorization matrix and acceptance gate. P0 stops at hotspot evidence/owner/status and basic Candidate Cause.
 
 ## 15.1 Investigation Detail
 
@@ -1604,7 +1627,7 @@ Rules:
 | Create classification decision | — | — | ✓ | ✓ |
 | Split Feedback Item | — | — | ✓ | ✓ |
 | Manage hotspot | — | policy | ✓ | ✓ |
-| Confirm root cause | — | — | privilege | ✓ |
+| Confirm root cause [P1 only] | — | — | privilege | ✓ |
 | Validate/publish taxonomy | — | — | — | ✓ |
 | View audit | — | — | — | ✓ |
 
@@ -1624,7 +1647,7 @@ Rules:
 | `/current-classification` | `classification_current` |
 | `/analytics/*` | governed semantic layer |
 | `/hotspots` | `hotspot` + evidence/timeline |
-| `/investigations` | investigation/RCA tables |
+| `/investigations` [P1 only] | investigation/RCA tables |
 | `/audit-events` | `audit_event` |
 | taxonomy reads | published reference tables |
 
@@ -1732,8 +1755,7 @@ Recommended implementation sequence:
 10. split workflow
 11. privileged raw view/export
 12. taxonomy validate/publish admin endpoints
-13. investigation/root-cause workflow
-14. audit query endpoint
+13. audit query endpoint
 ```
 
 ---
@@ -1749,6 +1771,10 @@ The P0 API is build-ready when:
 - stable IDs/codes are used in filters;
 - taxonomy is not hard-coded in UI/backend handlers;
 - analytics and drill-down share one filter semantics;
+- analytics breakdown supports `item_volume`, `negative_rate`, `active_hotspots`, and `trend` for Journey/Service and supports `affected_channel` filter/dimension;
+- Persona is rejected as a P0 analytics filter/dimension;
+- all review writes use the seven canonical actions with correct Decision-versus-ReviewEvent behavior;
+- P0 exposes no Investigation/Confirmed Root Cause/Corrective/Preventive mutation;
 - raw PII boundary is explicit and audited;
 - contract tests pass;
 - UI can implement every required P0 flow without direct database assumptions.

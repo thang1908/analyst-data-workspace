@@ -2,9 +2,9 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** P0 Pilot Architecture Baseline
-**Derived from:** `docs/PRD.md` v1.2, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.0
+**Derived from:** `docs/PRD.md` v1.3, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.1
 **Repository baseline:** Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg 3, Alembic; repository already separates `apps/api`, `apps/web`, and `apps/worker`.
 
 ---
@@ -318,6 +318,16 @@ ClassificationCurrent
 ClassificationCurrentCandidateCause
 ```
 
+Canonical contracts:
+
+```text
+decision_source = MANUAL | SOURCE_TRUSTED | HUMAN_ACCEPTED_AI | HUMAN_CORRECTED_AI | POLICY_AUTO_APPLIED | SYSTEM_MIGRATION
+cause_determination_status = NOT_ASSESSED | UNKNOWN | SUGGESTED | UNDER_INVESTIGATION | CONFIRMED | NOT_APPLICABLE
+review_action = ACCEPT | CORRECT | MARK_UNKNOWN | MARK_MISSING | MARK_NOT_APPLICABLE | SPLIT_REQUIRED | SKIP
+```
+
+P0 writers may use only `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE` for cause determination. P1 Investigation/RCA owns `UNDER_INVESTIGATION` and `CONFIRMED`.
+
 ---
 
 ## 5.5 Analytics Module
@@ -340,6 +350,10 @@ P0 metrics:
 - top location;
 - active hotspots;
 - data-quality counts.
+
+P0 exposes four basic dashboard read models: CX Overview, Customer Journey, Service & Pain Points, and Hotspot & Root Cause. The fourth contains only hotspot/evidence/owner/status/Candidate Cause in P0. Each dimension breakdown (`journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel`, `affected_channel`) returns `item_volume`, `negative_rate`, `active_hotspots`, and `trend` under one filter/metric-definition context.
+
+Persona is not a P0 analytics dimension. Affected Channel is supported independently from Intake Channel.
 
 ---
 
@@ -685,13 +699,17 @@ sequenceDiagram
     participant API
     participant DB
 
-    Reviewer->>Web: Accept / Correct / Unknown
+    Reviewer->>Web: Canonical review action
     Web->>API: POST decision/review + expected version
     API->>DB: Validate current version
     API->>DB: Validate taxonomy invariants
-    API->>DB: Insert immutable decision
-    API->>DB: Update current projection
-    API->>DB: Append review + audit
+    alt ACCEPT/CORRECT/MARK_UNKNOWN/MARK_MISSING/MARK_NOT_APPLICABLE
+        API->>DB: Insert immutable decision
+        API->>DB: Update current projection
+        API->>DB: Append review + audit
+    else SPLIT_REQUIRED/SKIP
+        API->>DB: Append review + audit only
+    end
     DB-->>API: committed
     API-->>Web: new decision/projection
 ```
@@ -884,7 +902,19 @@ POST /api/v1/ai/predictions/{id}/review
 
 ---
 
-## 15.6 Hotspot
+## 15.6 Analytics
+
+```http
+GET /api/v1/analytics/summary
+GET /api/v1/analytics/breakdown
+GET /api/v1/analytics/trend
+```
+
+`breakdown` accepts one dimension plus a repeated/comma-separated metrics set containing `item_volume`, `negative_rate`, `active_hotspots`, `trend`. Filter serialization includes `affected_channel_code`; Persona is rejected as an unsupported P0 dimension.
+
+---
+
+## 15.7 Hotspot
 
 ```http
 GET  /api/v1/hotspots
@@ -1468,6 +1498,7 @@ Do not prematurely introduce:
 - native CRM replacement;
 - full ticket/SLA engine;
 - autonomous root-cause confirmation;
+- Investigation, Confirmed Root Cause, Corrective Action, Preventive Action or full RCA workflow;
 - AI auto-apply;
 - dynamic taxonomy row editor;
 - enterprise-wide fine-grained authorization;
