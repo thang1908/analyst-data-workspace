@@ -40,7 +40,7 @@ Feedback Item / Atomic Observation
 ### 1.2 Quy tắc bắt buộc
 
 1. Một feedback_item chỉ chứa một customer intent hoặc một observable failure; multi-intent phải split.
-2. Khi Service là KNOWN, item có đúng một Primary Service và một Issue thuộc Service đó.
+2. KhiKhi `Primary Service` và `Issue` đều có `value_status = KNOWN`, item phải có đúng một Primary Service và Issue bắt buộc thuộc Primary Service đó trong cùng taxonomy release. `Primary Service` có thể là `KNOWN` trong khi `Issue` là `UNKNOWN` nếu chưa đủ thông tin để xác định Issue cụ thể.
 3. Không tạo Service/Issue mới chỉ vì khác location, channel, source system, vendor hoặc resolver.
 4. Không gộp purchase ledger với resident ledger chỉ vì đều là thanh toán.
 5. SV-10/IS-10-01 chỉ dùng khi nội dung đã rõ nhưng không thuộc SV-01..SV-09; bắt buộc có other_reason và review.
@@ -323,15 +323,21 @@ taxonomy_release
   source_checksum
   approved_by
 
-journey_stage
-  journey_stage_id
+customer_lifecycle_stage
+  customer_lifecycle_stage_id
   stage_code
   name
   sort_order
 
-journey_step
-  journey_step_id
-  journey_stage_id
+customer_lifecycle_step
+  customer_lifecycle_step_id
+  customer_lifecycle_stage_id
+  step_code
+  name
+  definition
+
+service_request_step
+  service_request_step_id
   step_code
   name
   definition
@@ -454,7 +460,6 @@ Release gates:
 - structured seed có checksum và validator;
 - API/UI không hard-code label;
 - safety trigger test độc lập với classifier.
-
 - mỗi Service có definition và inclusion scope rõ ràng;
 
 ---

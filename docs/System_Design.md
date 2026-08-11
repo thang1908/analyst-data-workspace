@@ -2,9 +2,9 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.0  
-**Status:** P0 Pilot Architecture Baseline  
-**Derived from:** `docs/PRD.md` v1.2, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.0  
+**Version:** 1.0
+**Status:** P0 Pilot Architecture Baseline
+**Derived from:** `docs/PRD.md` v1.2, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.0
 **Repository baseline:** Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg 3, Alembic; repository already separates `apps/api`, `apps/web`, and `apps/worker`.
 
 ---
@@ -63,6 +63,7 @@ PostgreSQL
 ## SD-ADR-002 — PostgreSQL Is the P0 System of Record
 
 PostgreSQL SHOULD store:
+
 - reference/taxonomy data;
 - import-job metadata;
 - Feedback/Feedback Item;
@@ -219,6 +220,7 @@ Rule: routers/controllers should remain thin. Business invariants belong in doma
 ## 5.1 Taxonomy Module
 
 Responsibilities:
+
 - read lifecycle/service/issue/cause dictionaries;
 - validate taxonomy release shape;
 - validate lifecycle-service mappings;
@@ -227,6 +229,7 @@ Responsibilities:
 - expose published reference data to UI/API.
 
 P0:
+
 - read/validate/publish;
 - no arbitrary row-level CRUD.
 
@@ -249,6 +252,7 @@ ServiceOwnerConfig
 ## 5.2 Import Module
 
 Responsibilities:
+
 - upload metadata;
 - mapping profile;
 - preview;
@@ -273,6 +277,7 @@ ImportRowError
 ## 5.3 Feedback Module
 
 Responsibilities:
+
 - immutable Feedback envelope;
 - Feedback Item creation/split;
 - masked text;
@@ -292,6 +297,7 @@ FeedbackItemAffectedChannel
 ## 5.4 Classification Module
 
 Responsibilities:
+
 - AI prediction ledger;
 - human/source decision ledger;
 - review actions;
@@ -317,6 +323,7 @@ ClassificationCurrentCandidateCause
 ## 5.5 Analytics Module
 
 Responsibilities:
+
 - central eligibility predicate;
 - metric definitions;
 - KPI query functions/views;
@@ -324,6 +331,7 @@ Responsibilities:
 - drill-down consistency.
 
 P0 metrics:
+
 - item volume;
 - negative rate;
 - unknown rate;
@@ -338,6 +346,7 @@ P0 metrics:
 ## 5.6 Hotspot Module
 
 Responsibilities:
+
 - deterministic rule configuration;
 - eligible item selection;
 - rolling-window evaluation;
@@ -361,6 +370,7 @@ HotspotTimelineEvent
 ## 5.7 Security & Audit Module
 
 Responsibilities:
+
 - authenticated principal;
 - pilot scope;
 - role/privilege checks;
@@ -417,6 +427,7 @@ metric_definition
 ```
 
 Important constraints:
+
 - codes unique per canonical namespace;
 - Issue belongs to exactly one Service;
 - published release immutable except retirement metadata;
@@ -779,6 +790,7 @@ Base prefix:
 ## 15.1 Conventions
 
 Every request should have:
+
 - authenticated principal;
 - correlation ID;
 - pilot-scope enforcement.
@@ -821,6 +833,7 @@ POST /api/v1/import-jobs/{id}/execute
 POST /api/v1/import-jobs/{id}/retry
 GET  /api/v1/import-jobs/{id}
 GET  /api/v1/import-jobs/{id}/errors
+POST /api/v1/import-jobs/{id}/cancel
 ```
 
 ---
@@ -926,6 +939,7 @@ item_text_masked → AI inference default
 ```
 
 Rules:
+
 - do not log raw PII in standard application logs;
 - do not put raw PII in correlation/error messages;
 - AI receives masked text unless approved use case requires otherwise;
@@ -939,6 +953,7 @@ Rules:
 Audit should be application-generated for semantic operations rather than relying only on DB logs.
 
 Minimum audited actions:
+
 - taxonomy publish;
 - import execute/retry;
 - Feedback Item split;
@@ -997,6 +1012,7 @@ Async external calls (AI/object storage) should not be held inside long DB trans
 ## Classification
 
 Use optimistic concurrency:
+
 - `projection_version`;
 - or `expected_current_decision_id`.
 
@@ -1057,6 +1073,7 @@ Composite indexes should be validated against actual pilot query plans before pr
 # 22. Object Storage
 
 Use object storage for:
+
 - original uploaded file;
 - generated error file;
 - optional import preview artifact;
@@ -1105,6 +1122,7 @@ Never log raw PII by default.
 ## Metrics
 
 P0 platform metrics:
+
 - API latency/error rate;
 - import job duration/rows/sec;
 - import failed-row rate;
@@ -1132,6 +1150,7 @@ Standard dashboard p95 < 5s
 ```
 
 These targets are valid only after pilot sizing is agreed:
+
 - historical row count;
 - daily ingest;
 - concurrent users;
@@ -1145,6 +1164,7 @@ The system design should not claim enterprise-scale production SLO before those 
 # 25. Reliability
 
 Required P0 properties:
+
 - resumable/retryable import;
 - idempotent ingestion;
 - rebuildable classification projection;
@@ -1244,6 +1264,7 @@ production-limited
 ```
 
 Each environment must have:
+
 - separate database;
 - separate object namespace/bucket;
 - explicit taxonomy seed/version;
@@ -1255,6 +1276,7 @@ Each environment must have:
 # 29. Configuration & Feature Flags
 
 Versioned domain configuration:
+
 - taxonomy release;
 - lifecycle-service mappings;
 - location hierarchy;
@@ -1263,6 +1285,7 @@ Versioned domain configuration:
 - hotspot rule.
 
 Environment feature flags:
+
 - AI auto-apply: OFF in P0;
 - safety hard trigger: OFF in P0 until sign-off;
 - realtime connector mutation: OFF in P0;
@@ -1294,6 +1317,7 @@ Configuration must not be buried in source-code constants when it affects busine
 ## Unit
 
 Test domain invariants:
+
 - value-status rules;
 - issue/service consistency;
 - allowed hotspot transitions;
@@ -1303,6 +1327,7 @@ Test domain invariants:
 ## Integration
 
 Test:
+
 - PostgreSQL constraints;
 - migrations;
 - decision transaction;
@@ -1363,6 +1388,7 @@ format/lint
 ```
 
 Taxonomy CI must verify:
+
 - 10 Services / 28 Issues;
 - Issue ownership;
 - 6 stages / 36 customer steps;
@@ -1378,6 +1404,7 @@ Taxonomy CI must verify:
 Use Alembic.
 
 Rules:
+
 - schema changes are versioned;
 - destructive migrations require explicit data migration/retention plan;
 - never drop historical taxonomy/decision data just because UI no longer uses it;
@@ -1433,6 +1460,7 @@ Concrete engineering order:
 # 35. What Not to Build in P0
 
 Do not prematurely introduce:
+
 - distributed microservices;
 - event streaming platform solely for pilot;
 - BMS/IoT ingestion;
@@ -1451,18 +1479,18 @@ Do not prematurely introduce:
 
 These must be resolved before production-limited sign-off:
 
-| Decision | Impact | Safe P0 default |
-|---|---|---|
-| Pilot sizing | DB indexes, worker concurrency, file limit, SLO | Do not claim enterprise SLO |
-| Hosting platform | deployment/HA/backup | containerized API+worker + managed PostgreSQL preferred |
-| Object storage | import/error artifact retention | S3-compatible private bucket |
-| SSO provider | auth integration | adapter behind auth module |
-| Job queue technology | async throughput/recovery | PostgreSQL-backed queue |
-| AI provider/model | latency/cost/data boundary | adapter + masked text, suggest-only |
-| PII retention | storage/deletion/export | deny raw/export by default |
-| Hotspot schedule | detection delay/cost | periodic worker job |
-| Location hierarchy | hotspot key/query | missing location makes item ineligible for location hotspot |
-| Service owner config | hotspot routing | unassigned queue if missing |
+| Decision             | Impact                                          | Safe P0 default                                             |
+| -------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
+| Pilot sizing         | DB indexes, worker concurrency, file limit, SLO | Do not claim enterprise SLO                                 |
+| Hosting platform     | deployment/HA/backup                            | containerized API+worker + managed PostgreSQL preferred     |
+| Object storage       | import/error artifact retention                 | S3-compatible private bucket                                |
+| SSO provider         | auth integration                                | adapter behind auth module                                  |
+| Job queue technology | async throughput/recovery                       | PostgreSQL-backed queue                                     |
+| AI provider/model    | latency/cost/data boundary                      | adapter + masked text, suggest-only                         |
+| PII retention        | storage/deletion/export                         | deny raw/export by default                                  |
+| Hotspot schedule     | detection delay/cost                            | periodic worker job                                         |
+| Location hierarchy   | hotspot key/query                               | missing location makes item ineligible for location hotspot |
+| Service owner config | hotspot routing                                 | unassigned queue if missing                                 |
 
 ---
 
@@ -1522,5 +1550,5 @@ This design is based on:
 - current repository dependency baseline in `pyproject.toml`
 - current application separation under `apps/api`, `apps/web`, and `apps/worker`
 
-If a design choice changes a business invariant, update `Business_Rules.md`/PRD first.  
+If a design choice changes a business invariant, update `Business_Rules.md`/PRD first.
 If a design choice changes only implementation technology while preserving contracts, record it as an ADR and update this document.

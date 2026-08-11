@@ -491,7 +491,6 @@ Export raw content/PII là privileged action và luôn có audit. UI đọc curr
 P0 outputs theo từng `feedback_item_id`:
 
 ```text
-customer_lifecycle_stage
 customer_lifecycle_step
 service_request_step [optional]
 primary_service
