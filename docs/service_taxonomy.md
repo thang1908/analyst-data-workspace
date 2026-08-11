@@ -4,10 +4,10 @@
 - **Document revision:** 3.0.0
 - **Domain scope:** Chủ đầu tư nhà ở + giao dịch + bàn giao + cư trú + quản lý vận hành chung cư/khu dân cư
 - **Canonical size:** 10 Service / 28 representative Issue
-- **Journey:** 6 Customer Lifecycle Stage / 62 Customer Journey Step / 8 Service Request Step
+- **Journey:** 6 Customer Lifecycle Stage / 36 Customer Journey Step / 8 Service Request Step
 - **Purpose:** Một label space ngắn, dễ phân loại, đủ dùng cho dashboard, ownership và phân tích nguyên nhân
 
-> Taxonomy hỗ trợ phân loại và điều phối. Nó không tự xác lập trách nhiệm pháp lý, nghĩa vụ bảo hành, phần sở hữu chung–riêng hoặc nguồn kinh phí.
+> Taxonomy hỗ trợ phân loại và điều phối. Nó không tự xác lập trách nhiệm pháp lý, nghĩa vụ bảo hành, phần sở hữu chung–riêng  hoặc nguồn kinh phí.
 
 ## 1. Classification Model
 
@@ -21,7 +21,6 @@ Feedback Item / Atomic Observation
   ├── Service Request Step            0:1
   ├── Primary Service                 0:1
   ├── Canonical Issue                 0:1; thuộc Primary Service
-  ├── Asset / System                  0:N
   ├── Location                        0:1
   ├── Affected Channel                0:N
   └── symptom_detail + evidence
@@ -42,7 +41,7 @@ Feedback Item / Atomic Observation
 
 1. Một feedback_item chỉ chứa một customer intent hoặc một observable failure; multi-intent phải split.
 2. Khi Service là KNOWN, item có đúng một Primary Service và một Issue thuộc Service đó.
-3. Không tạo Service/Issue mới chỉ vì khác asset, location, channel, source system, vendor hoặc resolver.
+3. Không tạo Service/Issue mới chỉ vì khác location, channel, source system, vendor hoặc resolver.
 4. Không gộp purchase ledger với resident ledger chỉ vì đều là thanh toán.
 5. SV-10/IS-10-01 chỉ dùng khi nội dung đã rõ nhưng không thuộc SV-01..SV-09; bắt buộc có other_reason và review.
 6. Hard trigger không chờ classifier hoàn tất.
@@ -355,9 +354,18 @@ issue
   name_en
   definition
   inclusion_examples
-  exclusion_examples
   safety_critical
   severity_override
+
+feedback_item
+  feedback_item_id
+  feedback_id
+  raw_text
+  normalized_text
+  symptom_detail
+  location_id
+  intake_channel
+  created_at
 
 classification_decision
   classification_decision_id
@@ -395,7 +403,7 @@ classification_decision
 - Issue thuộc đúng một Service.
 - Khi Service/Issue là KNOWN, Issue phải thuộc Primary Service trong cùng release.
 - Một feedback item có tối đa một Customer Lifecycle Step và một Service Request Step.
-- Reporting mặc định ở Service + Issue; Asset/System/Location/Channel dùng drill-down.
+- Reporting mặc định ở Service + Issue; Location/Channel dùng drill-down.
 - Không cộng UNKNOWN hoặc SV-10 vào coverage đạt chuẩn.
 
 ---
@@ -420,7 +428,8 @@ Hotspot baseline:
 Service + Issue + Location + Time window
 ```
 
-Asset/System, Journey, recurrence và SLA risk là drill-down; không tạo thêm Issue chỉ để phục vụ chart.
+Journey, Location, Channel, symptom_detail,recurrence và SLA risk là các chiều drill-down;
+không tạo thêm Issue chỉ để phục vụ chart.
 
 ---
 
@@ -440,12 +449,13 @@ Release gates:
 
 - đúng 10 Service và 28 Issue;
 - SV-01..SV-09 có đúng 3 Issue; SV-10 có đúng 1 Issue;
-- đủ 6 Customer Lifecycle Stage, 62 Customer Journey Step và 8 Service Request Step;
-- mỗi Service có include/exclude và accountable owner;
+- đủ 6 Customer Lifecycle Stage, 36 Customer Journey Step và 8 Service Request Step;
 - SV-10 có review queue và other-rate monitoring;
 - structured seed có checksum và validator;
 - API/UI không hard-code label;
 - safety trigger test độc lập với classifier.
+
+- mỗi Service có definition và inclusion scope rõ ràng;
 
 ---
 
@@ -488,12 +498,12 @@ Legal/Operations owner đối chiếu theo project, hợp đồng, nội quy, h�
 
 ### Semantics
 
-- Service có outcome, inclusion, exclusion, owner và confusion test;
-- Issue không chỉ khác nhau bởi asset/location/channel/vendor;
+- Issue không chỉ khác nhau bởi location, channel, source system hoặc vendor.
 - UNKNOWN không phải Service, Issue hoặc Cause;
 - SV-10 không nhận record missing/ambiguous;
 - split multi-intent trước classification;
 - Issue trong decision thuộc Primary Service của cùng release.
+- Service có outcome/definition và inclusion scope rõ ràng;
 
 ### Safety and evidence
 

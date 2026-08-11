@@ -57,7 +57,6 @@ Một slice không bắt buộc phải có mọi màn hình hoặc mọi integra
 
 ### 3.3 Ví dụ đúng
 
-
 ### 3.4 Ví dụ không được coi là vertical slice
 
 - “Tạo tất cả database tables”.
@@ -88,17 +87,17 @@ Không tạo microservice chỉ để phản ánh sơ đồ domain. Module bound
 
 ### 4.2 Bounded modules
 
-| Module | Sở hữu | Không được sở hữu |
-| --- | --- | --- |
-| Identity & Governance | user, role, scope, privileged audit policy | taxonomy và feedback business rule |
-| Taxonomy & Location | journey, service, issue, cause group, mapping, version, location | prediction/review |
-| Feedback Intake | source, batch/job, raw record, validation, dedupe, canonicalization | accepted classification logic |
-| Classification & Review | feedback item, prediction, decision, current projection, correction | root-cause confirmation |
-| Feedback Exploration | query/read model, search/filter/detail/export | authoritative write model |
-| Analytics | metric definition, aggregate/read projection, drill-down keys | sửa feedback/classification |
-| Hotspot Intelligence | rule, evaluation, hotspot candidate, membership | ticket/SLA/RCA |
-| Case Operations — P1 | ticket, assignment, SLA, escalation | taxonomy ownership |
-| Investigation & RCA — P1 | investigation, evidence, confirmed cause, action | AI auto-confirmation |
+| Module                    | Sở hữu                                                            | Không được sở hữu             |
+| ------------------------- | ------------------------------------------------------------------- | ----------------------------------- |
+| Identity & Governance     | user, role, scope, privileged audit policy                          | taxonomy và feedback business rule |
+| Taxonomy & Location       | journey, service, issue, cause group, mapping, version, location    | prediction/review                   |
+| Feedback Intake           | source, batch/job, raw record, validation, dedupe, canonicalization | accepted classification logic       |
+| Classification & Review   | feedback item, prediction, decision, current projection, correction | root-cause confirmation             |
+| Feedback Exploration      | query/read model, search/filter/detail/export                       | authoritative write model           |
+| Analytics                 | metric definition, aggregate/read projection, drill-down keys       | sửa feedback/classification        |
+| Hotspot Intelligence      | rule, evaluation, hotspot candidate, membership                     | ticket/SLA/RCA                      |
+| Case Operations — P1     | ticket, assignment, SLA, escalation                                 | taxonomy ownership                  |
+| Investigation & RCA — P1 | investigation, evidence, confirmed cause, action                    | AI auto-confirmation                |
 
 ### 4.3 Boundary rules
 
@@ -274,17 +273,17 @@ value_status = KNOWN | UNKNOWN | MISSING | NOT_APPLICABLE
 
 ### 10.1 Test bắt buộc theo risk
 
-| Loại test | Mục tiêu tối thiểu |
-| --- | --- |
-| Unit/domain | Invariant, state transition, priority/rule calculation, time boundary |
-| Database/integration | Constraint, transaction, migration, retry, idempotency, concurrency |
-| Contract | OpenAPI request/response/error; event schema compatibility |
-| End-to-end | Critical user flow từ source/UI tới persistence/query/audit |
-| Authorization | Allowed/denied theo role và project/building/service scope |
-| Data quality | Missing, invalid mapping, duplicate, unknown location, malformed encoding |
-| Resilience | Worker retry, partial failure, timeout, duplicate/out-of-order event |
-| Performance | Data volume/query mix đã chốt trong feature DoR |
-| AI evaluation | Frozen gold set, per-label metric, abstain/fallback, invalid output |
+| Loại test           | Mục tiêu tối thiểu                                                    |
+| -------------------- | ------------------------------------------------------------------------- |
+| Unit/domain          | Invariant, state transition, priority/rule calculation, time boundary     |
+| Database/integration | Constraint, transaction, migration, retry, idempotency, concurrency       |
+| Contract             | OpenAPI request/response/error; event schema compatibility                |
+| End-to-end           | Critical user flow từ source/UI tới persistence/query/audit             |
+| Authorization        | Allowed/denied theo role và project/building/service scope               |
+| Data quality         | Missing, invalid mapping, duplicate, unknown location, malformed encoding |
+| Resilience           | Worker retry, partial failure, timeout, duplicate/out-of-order event      |
+| Performance          | Data volume/query mix đã chốt trong feature DoR                        |
+| AI evaluation        | Frozen gold set, per-label metric, abstain/fallback, invalid output       |
 
 ### 10.2 Test data
 

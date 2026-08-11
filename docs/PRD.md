@@ -1,14 +1,12 @@
-à
-
 # 01 — Product Requirements Document
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.1
-**Status:** Pilot Build Baseline / Pending Named Stakeholder Decisions
+**Version:** 1.2
+**Status:** Pilot Build Baseline / Aligned with Taxonomy 3.0.0 / Pending Named Stakeholder Decisions
 **Domain:** Real Estate / Residential CX & Operations
-**Source Journey:** `Customer Journey(2).xlsx`
-**Related taxonomy:** `service_taxonomy.md`
+**Historical journey source:** `Customer Journey(2).xlsx`
+**Authoritative taxonomy:** `service_taxonomy.md` revision 3.0.0
 
 ---
 
@@ -17,11 +15,14 @@
 CX Platform là nền tảng hợp nhất feedback và dữ liệu trải nghiệm khách hàng, sau đó chuẩn hóa chúng theo:
 
 ```text
-Journey
-+ Service
+Customer Lifecycle
++ Service Request Lifecycle
++ Primary Service
 + Issue
 + Location
-+ Cause
++ Affected Channel
++ symptom_detail
++ Candidate/Confirmed Cause
 ```
 
 Nền tảng không chỉ trả lời:
@@ -65,11 +66,13 @@ Feedback:
 "Thang máy S2 sáng nào cũng phải chờ rất lâu."
 
 Journey:
-Cư trú → Di chuyển trong tòa
+Cư trú → RES-03 Ra vào & di chuyển
 
 Operational classification:
-Service = Elevator
-Issue = Long Waiting Time
+Customer Lifecycle Step = RES-03 Ra vào & di chuyển
+Service = SV-07 Kỹ thuật, tiện ích & tài sản chung
+Issue = IS-07-01 Hệ thống ngừng hoặc suy giảm
+Symptom Detail = Chờ thang máy lâu vào buổi sáng
 Location = S2
 Cause Determination Status = UNKNOWN
 Candidate Cause Suggestions = []
@@ -78,8 +81,8 @@ Candidate Cause Suggestions = []
 Nếu nhiều feedback tương tự xuất hiện:
 
 ```text
-Elevator
-+ Waiting Time
+SV-07
++ IS-07-01
 + S2
 + same time window
 → Potential Hotspot
@@ -99,21 +102,22 @@ Candidate Cause
 
 ## 3. Lifecycle Baseline
 
-Workbook chứa hai loại lifecycle khác nhau. Platform **không** coi “Dịch vụ” là Stage thứ sáu của Customer Lifecycle.
+Taxonomy 3.0.0 định nghĩa hai chiều lifecycle độc lập: Customer Lifecycle có 6 stage/36 step, bao gồm `Vận hành`, và Service Request Lifecycle có 8 step. `Vận hành` là stage thứ sáu của Customer Lifecycle; Service Request Lifecycle không phải Customer Lifecycle Stage.
 
 ### 3.1 Customer Lifecycle
 
 Customer Lifecycle trả lời: **khách hàng đang ở đâu trong quan hệ với chủ đầu tư/đơn vị vận hành?**
 
-| Stage       | Số Step/Touchpoint | Code examples                            |
-| ----------- | ------------------: | ---------------------------------------- |
-| Nhận thức |                   6 | A1, A2, A3, A4, A5…                     |
-| Xem xét    |                  14 | C1, C2, C3, C4, C5…                     |
-| Giao dịch  |                  10 | TR-01, TR-02, TR-03, TR-04, TR-05…      |
-| Nhận nhà  |                   8 | HO-01, HO-02, HO-03, HO-04, HO-05…      |
-| Cư trú    |                  16 | RES-01, RES-02, RES-03, RES-04, RES-05… |
+| Stage       | Số Step | Code examples                         |
+| ----------- | -------: | ------------------------------------- |
+| Nhận thức |        3 | A1, A2, A3                            |
+| Xem xét    |        6 | C1, C2, C3, C4, C5, C6               |
+| Giao dịch  |        6 | TR-01…TR-06                          |
+| Nhận nhà  |        5 | HO-01…HO-05                          |
+| Cư trú    |        8 | RES-01…RES-08                        |
+| Vận hành  |        8 | OPS-01…OPS-08                        |
 
-Hai sheet Cư trú và Dịch vụ chưa có ID ổn định trong workbook; platform bổ sung mã `RES-*` và `SRV-*` nhưng giữ nguyên wording được duyệt.
+Mã và wording canonical của toàn bộ 36 step được quản lý trong `service_taxonomy.md`. Stage `Vận hành` mô tả hoạt động quản lý tài sản và dịch vụ sau bàn giao; stage `Cư trú` mô tả trải nghiệm/touchpoint trực tiếp của cư dân.
 
 ### 3.2 Service Request Lifecycle
 
@@ -130,7 +134,7 @@ Service Request Lifecycle trả lời: **một yêu cầu dịch vụ đang ở 
 | `SRV-07` | Hoàn tất             |
 | `SRV-08` | Đánh giá            |
 
-Ví dụ, một cư dân có thể đồng thời ở `Customer Lifecycle = Cư trú / RES-06` và `Service Request Lifecycle = SRV-02`.
+Ví dụ, một cư dân phản ánh lỗi thanh toán có thể đồng thời ở `Customer Lifecycle = Cư trú / RES-06` và `Service Request Lifecycle = SRV-02`.
 
 > Wording chi tiết và mapping đầy đủ nằm trong `service_taxonomy.md`. Khi seed dữ liệu, các `SRV-*` phải được nạp vào dictionary riêng, không nạp như Customer Journey Stage.
 
@@ -164,11 +168,11 @@ LEARN
 
 ### G2 — Standardized Taxonomy
 
-Chuẩn hóa dữ liệu bằng `Customer Lifecycle + Service Request Lifecycle + Service + Issue + Location`; Candidate Cause là giả thuyết riêng, không phải nhãn sự thật.
+Chuẩn hóa dữ liệu bằng `Customer Lifecycle + Service Request Lifecycle + Primary Service + Issue + Location + Affected Channel + symptom_detail`; Candidate Cause là giả thuyết riêng, không phải nhãn sự thật.
 
 ### G3 — AI-assisted Classification
 
-Gợi ý Customer Lifecycle, Service Request Lifecycle, Service, Issue, Sentiment và confidence theo từng field. Trong P0, AI chỉ gợi ý; con người hoặc nhãn nguồn được duyệt mới tạo current classification dùng cho analytics.
+Gợi ý Customer Lifecycle Step, Service Request Step, Primary Service, Issue, Sentiment và confidence theo từng field; Customer Lifecycle Stage được derive từ Step. Trong P0, AI chỉ gợi ý; con người hoặc nhãn nguồn được duyệt mới tạo current classification dùng cho analytics.
 
 ### G4 — Detect Emerging Problems
 
@@ -210,14 +214,14 @@ Customer / Interaction reference
 Feedback (source envelope, immutable raw content)
         ↓ 1:N
 Feedback Item (một intent/vấn đề nguyên tử)
+        ├── Location [0:1] + Affected Channel [0:N] + symptom_detail
         ├── AI Prediction Event(s), theo field và model version
         ├── Human/Source Decision Version(s), immutable snapshot theo actor
         └── Current Classification Projection
                 ├── Customer Lifecycle Stage/Step
                 ├── Service Request Step [optional]
-                ├── Primary Service + Secondary Services
+                ├── Primary Service
                 ├── Issue + Sentiment + Operational Severity
-                ├── Location
                 └── Candidate Cause Suggestions [0:N, chưa xác nhận]
                          ↓ N:N
               Hotspot / Ticket / Investigation
@@ -238,13 +242,12 @@ Feedback Item (một intent/vấn đề nguyên tử)
 Ví dụ:
 
 ```text
-Journey Step = Di chuyển trong tòa
+Journey Step = RES-03 Ra vào & di chuyển
 
 Possible Services:
-- Elevator
-- Access Control
-- Security
-- Electrical & Lighting
+- SV-05 Ra vào, khách, bãi xe & di chuyển
+- SV-07 Kỹ thuật, tiện ích & tài sản chung
+- SV-08 An ninh, PCCC & khẩn cấp
 ```
 
 ### 7.2 Issue ≠ Cause
@@ -276,7 +279,7 @@ Customer Lifecycle và Service Request Lifecycle là hai dimension độc lập.
 | Operator / CSKH        | Triage, review classification, tạo/điều phối ticket |
 | Building Manager / BQL | Theo dõi sự cố, SLA, hotspot, ảnh hưởng theo tòa |
 | Service Owner          | Theo dõi issue, recurrence, RCA                        |
-| Technical Owner        | Điều tra asset/cause và xác nhận root cause        |
+| Technical Owner        | Điều tra hệ thống/cause và xác nhận root cause     |
 | CX Manager             | Theo dõi CX health, journey friction, top hotspot      |
 | Taxonomy Admin         | Quản lý Journey/Service/Issue/Cause/mapping           |
 | Data Steward           | Data quality và metric definition                      |
@@ -321,17 +324,17 @@ CX Platform
 
 | Epic                               | User Story      | Persona            | I want                                                                  | So that                                                          | Priority     | Acceptance Criteria                                                                                                                                                                                             |
 | ---------------------------------- | --------------- | ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-01`   | Taxonomy Admin     | publish 5 Customer Lifecycle Stage và 8 Service Request Step           | CX data được phân loại đúng hai lifecycle độc lập      | **P0** | Code duy nhất; dictionary riêng; import seed đã validate; draft/approved/published/retired; effective date; không hard-delete.                                                                             |
-| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-02`   | Taxonomy Admin     | xem dictionary theo đúng workbook đã chốt                          | team dùng cùng một định nghĩa lifecycle                    | **P0** | Giữ wording approved; hiển thị code/type/stage/step/version; mọi publish/retire tạo audit.                                                                                                                 |
-| `EPIC-02` Service Catalog        | `US-SVC-01`   | Taxonomy Admin     | publish Service Catalog trong pilot scope                               | feedback được gắn đúng đơn vị/năng lực vận hành     | **P0** | Service có code, group, owner, default operational severity, active/version; ngoài pilot có thể seed nhưng không là release gate.                                                                        |
+| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-01`   | Taxonomy Admin     | publish 6 Customer Lifecycle Stage/36 Step và 8 Service Request Step   | CX data được phân loại đúng hai lifecycle độc lập      | **P0** | Đủ A/C/TR/HO/RES/OPS theo taxonomy 3.0.0; code duy nhất; dictionary riêng; import seed đã validate; draft/approved/published/retired; effective date; không hard-delete.                                     |
+| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-02`   | Taxonomy Admin     | xem dictionary theo taxonomy canonical                               | team dùng cùng một định nghĩa lifecycle                    | **P0** | Giữ wording approved trong `service_taxonomy.md`; hiển thị code/type/stage/step/version; mọi publish/retire tạo audit.                                                                                     |
+| `EPIC-02` Service Catalog        | `US-SVC-01`   | Taxonomy Admin     | publish Canonical Service/Issue Catalog                                  | feedback được gắn đúng outcome/năng lực vận hành   | **P0** | Release có đúng 10 Service/28 Issue; Service có code, tên VI/EN, outcome definition, in/out scope và default severity; SV-10 có review queue và other-rate monitoring.                                  |
 | `EPIC-02` Service Catalog        | `US-SVC-02`   | Taxonomy Admin     | map Lifecycle Step với nhiều Service                                  | system biết service nào có thể tác động tới từng bước | **P0** | N:N mapping; bật/tắt; lịch sử hiệu lực; API đọc mapping; Customer và Service Request mapping không trộn type.                                                                                        |
-| `EPIC-03` Issue & Cause Taxonomy | `US-ISS-01`   | Service Owner      | quản lý Issue thuộc Service                                          | complaint được chuẩn hóa theo triệu chứng                 | **P0** | Issue phải thuộc Service; unique code; synonym; default operational severity; active/version.                                                                                                                 |
+| `EPIC-03` Issue & Cause Taxonomy | `US-ISS-01`   | Service Owner      | quản lý Issue thuộc Service                                          | complaint được chuẩn hóa theo triệu chứng                 | **P0** | Issue thuộc đúng một Service; code unique; có tên VI/EN, definition, inclusion examples, safety flag và severity override; SV-01..SV-09 có 3 Issue, SV-10 có 1 Issue.                                     |
 | `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-01` | Technical Owner    | quản lý Candidate Cause theo Issue                                    | investigation có checklist nguyên nhân nhất quán            | **P1** | Issue↔Cause N:N; suggestion set hỗ trợ nhiều cause có rank/confidence;`UNKNOWN` không đi cùng cause cụ thể.                                                                                         |
 | `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-02` | Technical Owner    | xác nhận Root Cause sau điều tra                                    | giả thuyết không bị coi là sự thật                        | **P1** | Root cause CONFIRMED bắt buộc evidence + confirmed_by + confirmed_at; AI không được confirm.                                                                                                              |
 | `EPIC-04` Feedback Intake        | `US-INT-01`   | CX Analyst         | import feedback từ CSV/XLSX                                            | dữ liệu lịch sử có thể vào platform                       | **P0** | Async job; preview; reusable column mapping; validate; idempotency; error file; partial/failed status; retry; row lineage; batch audit.                                                                         |
 | `EPIC-04` Feedback Intake        | `US-INT-02`   | Integration System | gửi feedback qua API                                                   | feedback mới đi vào platform tự động                       | **P1** | Idempotency key; source/channel; timestamp; content; response trả feedback_id.                                                                                                                                 |
 | `EPIC-04` Feedback Intake        | `US-INT-03`   | CX Analyst         | nhìn thấy nguồn và raw content nguyên bản                         | có thể audit classification                                    | **P0** | Raw content immutable; source URL/ref; ingested_at; original payload reference.                                                                                                                                 |
-| `EPIC-05` Feedback Workspace     | `US-FB-01`    | CX Analyst         | xem feedback và các feedback item                                     | điều tra từng vấn đề nguyên tử trên một workspace      | **P0** | Table có event date, channel, project, location, lifecycle, primary/secondary service, issue, sentiment, operational severity và review status.                                                               |
+| `EPIC-05` Feedback Workspace     | `US-FB-01`    | CX Analyst         | xem feedback và các feedback item                                     | điều tra từng vấn đề nguyên tử trên một workspace      | **P0** | Table có event date, channel, project, location, lifecycle, primary service, issue, symptom detail, sentiment, operational severity và review status.                                                         |
 | `EPIC-05` Feedback Workspace     | `US-FB-02`    | CX Analyst         | filter feedback item theo các dimension CX                             | thu hẹp chính xác phạm vi điều tra                         | **P0** | Filter date/project/location/customer lifecycle/service-request step/service/issue/sentiment/severity/channel/status.                                                                                           |
 | `EPIC-05` Feedback Workspace     | `US-FB-03`    | CX Analyst         | save view                                                               | không phải cấu hình filter lặp lại                         | **P1** | Save private/shared view; owner; default view; delete/rename.                                                                                                                                                   |
 | `EPIC-05` Feedback Workspace     | `US-FB-04`    | Operator           | split item và quyết định classification thủ công                  | multi-intent và label sai được xử lý có kiểm soát       | **P0** | Raw content không đổi; mỗi correction tạo immutable decision version mới có actor, reason, timestamp và reference tới version trước; projection rebuild được; correction vào gold-set candidate. |
@@ -345,12 +348,12 @@ CX Platform
 | `EPIC-08` Hotspot                | `US-HOT-02`   | CX Manager         | drill-down hotspot về feedback item                                    | hiểu dữ liệu nào tạo ra cảnh báo                          | **P0** | Hotspot detail có trend, evidence items, locations, sentiment và operational severity.                                                                                                                        |
 | `EPIC-08` Hotspot                | `US-HOT-03`   | Building Manager   | acknowledge/assign hotspot                                              | candidate P0 có accountable owner                               | **P0** | Owner mặc định từ Service; acknowledge/assign/dismiss/resolve có actor, timestamp, reason và timeline.                                                                                                    |
 | `EPIC-08` Hotspot                | `US-HOT-04`   | System             | kích hoạt hard trigger với vấn đề an toàn                        | không chờ volume đủ lớn mới cảnh báo                     | **P1** | SEV-1 safety issue tạo alert tức thời; rule độc lập AI score và chỉ bật sau sign-off.                                                                                                                  |
-| `EPIC-09` RCA                    | `US-RCA-01`   | Service Owner      | mở RCA từ hotspot hoặc repeat issue                                  | tìm nguyên nhân gốc thay vì đóng triệu chứng            | **P1** | RCA liên kết hotspot/ticket/asset; problem statement; candidate causes; evidence.                                                                                                                             |
+| `EPIC-09` RCA                    | `US-RCA-01`   | Service Owner      | mở RCA từ hotspot hoặc repeat issue                                  | tìm nguyên nhân gốc thay vì đóng triệu chứng            | **P1** | RCA liên kết hotspot/ticket; problem statement; candidate causes; evidence; asset/work-order chỉ là investigation reference ngoài taxonomy khi có.                                                          |
 | `EPIC-09` RCA                    | `US-RCA-02`   | Technical Owner    | xác nhận root cause và corrective action                             | ngăn lỗi tái diễn                                            | **P1** | Confirmed cause; corrective/preventive action; owner; due date; verification.                                                                                                                                   |
 | `EPIC-10` Pilot Analytics        | `US-ANA-01`   | CX Manager         | xem KPI pilot theo Customer Lifecycle/Service/Issue/Location            | biết friction trong phạm vi pilot                              | **P0** | Item volume, negative rate, unknown rate và breakdown; dùng accepted current projection; click drill-down đúng cùng filter context.                                                                        |
 | `EPIC-10` Journey Analytics      | `US-ANA-02`   | CX Manager         | so sánh các Journey Step theo thời gian                              | biết step nào đang xấu đi                                   | **P1** | WoW/MoM/YoY; same filter context; metric definitions versioned.                                                                                                                                                 |
 | `EPIC-11` Service Analytics      | `US-ANA-03`   | Service Owner      | xem performance mở rộng theo Service/Issue/Location                   | biết dịch vụ nào cần cải thiện                            | **P1** | Volume, negative, hotspot, top issue, top building, trend; drill-down.                                                                                                                                          |
-| `EPIC-11` Service Analytics      | `US-ANA-04`   | Service Owner      | xem recurring issue và candidate cause                                 | ưu tiên hoạt động phòng ngừa                              | **P1** | Repeat rate; RCA linkage; asset/location concentration.                                                                                                                                                         |
+| `EPIC-11` Service Analytics      | `US-ANA-04`   | Service Owner      | xem recurring issue và candidate cause                                 | ưu tiên hoạt động phòng ngừa                              | **P1** | Repeat rate; RCA linkage; Journey/Location/Channel/symptom-detail concentration.                                                                                                                               |
 | `EPIC-12` Governance             | `US-GOV-01`   | Platform Admin     | quản lý basic role và quyền xem PII                                 | dữ liệu chỉ hiển thị đúng đối tượng                   | **P0** | SSO; Pilot Admin/Analyst/Reviewer/Viewer; server-side authorization; raw PII/export privilege; audit privileged actions.                                                                                        |
 | `EPIC-12` Governance             | `US-GOV-02`   | Data Steward       | theo dõi data quality thiết yếu                                      | analytics không dựa trên dữ liệu bẩn                       | **P0** | Import errors, duplicate, missing/invalid taxonomy/location, unknown rate, stale prediction và ineligible item counts.                                                                                         |
 | `EPIC-13` Location               | `US-LOC-01`   | Taxonomy Admin     | quản lý location hierarchy trong pilot                                | filter và hotspot dùng cùng stable location ID                | **P0** | Project→site/building→floor/zone→space/point; code unique trong parent; timezone; active/effective date; không hard-delete.                                                                                 |
@@ -361,9 +364,10 @@ CX Platform
 
 ### FR-01 — Lifecycle Taxonomy
 
-- Giữ 5 Customer Lifecycle Stage đã approved và 8 Service Request Step trong hai dictionary riêng.
+- Giữ đúng 6 Customer Lifecycle Stage/36 Customer Journey Step và 8 Service Request Step trong hai dictionary riêng theo taxonomy 3.0.0.
 - Stage/Step có stable ID, `lifecycle_type`, version và effective date.
 - Version state gồm `DRAFT`, `APPROVED`, `PUBLISHED`, `RETIRED`; chỉ `PUBLISHED` được dùng cho decision mới.
+- Structured seed có checksum/validator và phải kiểm tra đủ A/C/TR/HO/RES/OPS trước khi publish.
 - Không hard-delete historical taxonomy; feedback item cũ giữ reference tới taxonomy version đã dùng.
 
 ### FR-02 — Service Catalog
@@ -373,15 +377,15 @@ Mỗi Service có:
 ```text
 service_id
 service_code
-service_name
-owner_unit_id
-default_operational_severity
-criticality
-active
-version
-active_from
-active_to
+name_vi
+name_en
+outcome_definition
+in_scope
+out_of_scope
+default_severity
 ```
+
+Thông tin accountable owner dùng cho assignment/hotspot là operational configuration versioned theo Service, không phải một nhãn hay boundary của taxonomy. `SV-10` không có default owner và luôn vào manual triage queue.
 
 ### FR-03 — Issue Taxonomy
 
@@ -391,13 +395,15 @@ Mỗi Issue có:
 issue_id
 issue_code
 service_id
-issue_name
-synonyms
-default_operational_severity
+name_vi
+name_en
+definition
+inclusion_examples
 safety_critical
-active
-version
+severity_override
 ```
+
+Release phải có đúng 10 Service/28 Issue: `SV-01..SV-09` có đúng 3 Issue/Service và `SV-10` có `IS-10-01`. Khi dùng `SV-10/IS-10-01`, decision bắt buộc có `other_reason` và human review; record thiếu hoặc mơ hồ phải dùng value status phù hợp, không được gán `SV-10`.
 
 ### FR-04 — Cause Taxonomy
 
@@ -433,9 +439,15 @@ Floor / Zone
 Space / Point
 ```
 
-Mỗi location có `location_id`, `location_type`, `parent_location_id`, `location_code`, `location_name`, `timezone`, `active_from`, `active_to`. P0 không yêu cầu asset registry, nhưng `asset_id` có thể được bổ sung ở P1. Hotspot rule phải khai báo location level dùng để group.
+Mỗi location có `location_id`, `location_type`, `parent_location_id`, `location_code`, `location_name`, `timezone`, `active_from`, `active_to`. Location là chiều 0:1 trên Feedback Item. Asset/System không phải classification dimension; asset/work-order reference chỉ có thể được bổ sung trong investigation ở P1. Hotspot rule phải khai báo location level dùng để group.
 
-### FR-05B — Async Feedback Import
+### FR-05B — Interaction Channel
+
+- Dictionary canonical gồm `CH-APP`, `CH-WEB`, `CH-HOTLINE`, `CH-EMAIL`, `CH-FRONTDESK`, `CH-SOCIAL`, `CH-INPERSON`, `CH-SYSTEM`.
+- Intake Channel mô tả kênh tiếp nhận; Affected Channel là quan hệ 0:N trên Feedback Item.
+- CRM, ERP, BMS, CMMS, contact-center platform và sensor feed là `source_system`, không phải Channel.
+
+### FR-05C — Async Feedback Import
 
 Import CSV/XLSX là job bất đồng bộ với lifecycle:
 
@@ -501,7 +513,7 @@ taxonomy_release_id
 created_at
 ```
 
-P0 là **suggest-only**: prediction không được tự ghi vào current projection bất kể confidence. Secondary Service và 0:N Candidate Cause Suggestions có schema ngay từ P0; AI sinh hai loại suggestion này từ P1.
+P0 là **suggest-only**: prediction không được tự ghi vào current projection bất kể confidence. Mỗi item chỉ có một Primary Service. 0:N Candidate Cause Suggestions có schema từ P0 và AI chỉ sinh loại suggestion này từ P1.
 
 ### FR-08 — AI Review
 
@@ -580,8 +592,8 @@ P0 chỉ có Pilot Overview và các breakdown nằm trong pilot scope. Journey 
 ```text
 feedback_id
 interaction_id
-source
-channel
+source_system
+intake_channel
 source_reference
 source_record_key
 import_job_id
@@ -609,13 +621,20 @@ feedback_id
 item_index
 item_text_start [nullable]
 item_text_end [nullable]
+raw_text
+normalized_text
 item_text_masked
+symptom_detail [nullable]
+location_id [nullable]
+intake_channel
 split_source
 status
 analytic_eligibility
 created_at
 updated_at
 ```
+
+Affected Channel là quan hệ 0:N qua `feedback_item_affected_channel`; `source_system` mô tả hệ thống nguồn, còn Intake/Affected Channel dùng code `CH-*` trong taxonomy. Location là 0:1 và `symptom_detail` là mô tả tự do, không phải master label mới.
 
 ### 12.3 Prediction event
 
@@ -633,7 +652,7 @@ taxonomy_release_id
 created_at
 ```
 
-Một run có thể sinh nhiều candidate cho cùng field. `secondary_service` và `candidate_cause` được biểu diễn bằng nhiều prediction row, không bằng cột JSON không version.
+Một run có thể sinh nhiều candidate cho cùng field. `candidate_cause` được biểu diễn bằng nhiều prediction row, không bằng cột JSON không version.
 
 ### 12.4 Classification decision
 
@@ -651,9 +670,8 @@ issue_value_status
 issue_id [nullable]
 sentiment
 operational_severity
-location_value_status
-location_id [nullable]
 cause_determination_status
+other_reason [nullable; required for IS-10-01]
 decision_source        # MANUAL | SOURCE_TRUSTED | HUMAN_ACCEPTED_AI | HUMAN_CORRECTED_AI | POLICY_AUTO_APPLIED | SYSTEM_MIGRATION
 taxonomy_release_id
 reason
@@ -662,7 +680,7 @@ decided_at
 supersedes_decision_id [nullable]
 ```
 
-Mỗi decision là một snapshot nguyên tử, append-only. Field nhiều giá trị dùng child relation `classification_decision_secondary_service` và `classification_decision_candidate_cause`; prediction được accept/correct được nối qua `classification_decision_prediction_ref`. Sửa sai bằng decision version mới có `supersedes_decision_id`, không cập nhật snapshot cũ. Review action chi tiết được lưu trong `review_event`.
+Mỗi decision là một snapshot nguyên tử, append-only. Candidate Cause dùng child relation `classification_decision_candidate_cause`; prediction được accept/correct được nối qua `classification_decision_prediction_ref`. Sửa sai bằng decision version mới có `supersedes_decision_id`, không cập nhật snapshot cũ. Review action chi tiết được lưu trong `review_event`.
 
 ### 12.5 Current classification projection
 
@@ -680,16 +698,15 @@ issue_value_status
 issue_id [nullable]
 sentiment
 operational_severity
-location_value_status
-location_id [nullable]
 cause_determination_status
+other_reason [nullable]
 classification_state
 taxonomy_release_id
 last_decision_at
 projection_version
 ```
 
-Mọi `*_value_status` dùng enum `KNOWN | UNKNOWN | MISSING | NOT_APPLICABLE`: `KNOWN` yêu cầu ID hợp lệ, các trạng thái còn lại yêu cầu ID null. Quan hệ nhiều giá trị dùng read projection `classification_current_secondary_service` và `classification_current_candidate_cause`, được rebuild từ decision snapshot hiện hành. Projection không chứa prediction chưa được quyết định.
+Mọi `*_value_status` dùng enum `KNOWN | UNKNOWN | MISSING | NOT_APPLICABLE`: `KNOWN` yêu cầu ID hợp lệ, các trạng thái còn lại yêu cầu ID null. Candidate Cause dùng read projection `classification_current_candidate_cause`, được rebuild từ decision snapshot hiện hành. Location/Channel/symptom detail được đọc từ Feedback Item; projection không chứa prediction chưa được quyết định.
 
 ### 12.6 Action relationships
 
@@ -709,11 +726,11 @@ Một Service có thể xuất hiện tại nhiều Lifecycle Step ở một ho�
 
 ### BR-03
 
-Một Feedback có 1:N Feedback Item. Mỗi Feedback Item có tối đa một `primary_service`; feedback multi-intent phải được tách item trước khi có nhiều primary issue.
+Một Feedback có 1:N Feedback Item. Mỗi Feedback Item có tối đa một `primary_service` và không có Secondary Service; feedback multi-intent phải được tách item trước khi có nhiều primary issue.
 
 ### BR-04
 
-Feedback Item có thể có nhiều `secondary_service`; mỗi secondary service là quan hệ versioned và không thay thế primary service.
+Mỗi Feedback Item có tối đa một Location và 0:N Affected Channel. `symptom_detail` là mô tả tự do; không tạo Service/Issue mới chỉ vì khác Location, Channel, source system, vendor hoặc resolver.
 
 ### BR-05
 
@@ -743,7 +760,7 @@ Safety hard trigger không phụ thuộc sentiment.
 
 ### BR-10
 
-Technical feedback nên có Location; Asset có thể bổ sung sau investigation.
+Technical feedback nên có Location và symptom detail. Asset/System không phải taxonomy dimension; investigation có thể liên kết asset/work-order reference riêng khi cần.
 
 ### BR-11
 
@@ -793,12 +810,13 @@ P0 vận hành ở chế độ **suggest-only** cho mọi confidence. Confidence
 
 ### P0
 
-- Customer Lifecycle Stage
 - Customer Lifecycle Step
 - Service Request Step [khi có tín hiệu]
-- Service
+- Primary Service
 - Issue
 - Sentiment
+
+Customer Lifecycle Stage không phải prediction field riêng; hệ thống derive Stage từ Customer Lifecycle Step trong cùng taxonomy release.
 
 ### Gold set và calibration — P0
 
@@ -844,7 +862,7 @@ thì upsert một Hotspot CANDIDATE cho detection key đó.
 ```
 
 - `W`, `N`, location level, in-scope Service/Issue và owner mặc định là cấu hình versioned.
-- Baseline đề xuất để test vertical slice: `W=2 giờ`, `N=3`, Service=`SVC-17`, Issue=`ELV-01`, location level=`Building/Zone`. Đây là pilot default, không phải ngưỡng production toàn hệ thống.
+- Baseline đề xuất để test vertical slice: `W=2 giờ`, `N=3`, Service=`SV-07`, Issue=`IS-07-01`, location level=`Building/Zone`. Đây là pilot default, không phải ngưỡng production toàn hệ thống.
 - Chỉ accepted/source-trusted current projection được tính. Prediction chưa review, item excluded, duplicate và record thiếu detection dimension không được tính.
 - Cùng `dimension_key + rule_version + active window` phải idempotent upsert, không tạo hotspot trùng.
 - Mỗi candidate lưu danh sách evidence item để drill-down và tái tính.
@@ -926,7 +944,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - Source
 - Customer/location context
 - Customer Lifecycle/Service Request Lifecycle
-- Primary/secondary Service và Issue
+- Primary Service, Issue và symptom detail
 - AI predictions theo field
 - Decision/current projection history
 - Related feedback
@@ -1155,11 +1173,11 @@ Kết quả phải kèm sample size, label coverage, per-label precision/recall,
 
 ### P0 — Pilot Build Baseline
 
-P0 là production-limited pilot, không phải rollout toàn bộ taxonomy/doanh nghiệp. Trước Sprint 1 phải có `pilot_scope_manifest` ghi rõ project/building, 1–3 Service, Issue tương ứng, date range, source, user cohort và volume target. Vertical slice `SVC-17 Elevator / ELV-01 Long Waiting Time` là scope tối thiểu.
+P0 là production-limited pilot, không phải rollout vận hành trên toàn doanh nghiệp. Taxonomy release vẫn phải publish đủ canonical 10 Service/28 Issue và 6 Customer Lifecycle Stage/36 Step; `pilot_scope_manifest` giới hạn dữ liệu và tính năng vận hành vào 1–3 Service, Issue tương ứng, project/building, date range, source, user cohort và volume target. Vertical slice `SV-07 / IS-07-01` với symptom detail “chờ thang máy lâu” là scope tối thiểu.
 
 1. Domain schema/migration cho Feedback → Feedback Item → Prediction/Decision → Current Projection.
 2. Basic SSO/RBAC, raw PII privilege và immutable audit.
-3. Hai lifecycle dictionary riêng; pilot Service/Issue mapping; location hierarchy; version/publish workflow tối thiểu.
+3. Hai lifecycle dictionary riêng; canonical 10 Service/28 Issue; pilot Lifecycle-Service mapping; location hierarchy; version/publish workflow tối thiểu.
 4. Async CSV/XLSX import có validation, idempotency, row lineage, retry và error report.
 5. Feedback Workspace/Detail; manual split; manual/source classification decision.
 6. AI suggest-only theo field; review queue; gold set/calibration workflow.
@@ -1167,7 +1185,7 @@ P0 là production-limited pilot, không phải rollout toàn bộ taxonomy/doanh
 8. Deterministic Hotspot rule cho vertical slice; lifecycle, owner, evidence và idempotent upsert.
 9. Essential data-quality summary và operational observability.
 
-Ngoài pilot scope có thể seed để thử nghiệm nhưng không được tính là P0 release gate.
+Các Service/Issue ngoài pilot usage scope vẫn phải có trong structured seed và vượt taxonomy release gate; chúng không bắt buộc có dữ liệu vận hành trong P0.
 
 ### P1 — Operational Expansion
 
@@ -1176,7 +1194,7 @@ Ngoài pilot scope có thể seed để thử nghiệm nhưng không được t�
 3. Journey/Service Analytics đầy đủ; WoW/MoM/YoY và recurring issue.
 4. Generalized hotspot/anomaly engine, hard-trigger alerts sau phê duyệt và duplicate clustering.
 5. Lightweight ticket/case hoặc integration tới system of record; assignment và SLA.
-6. Asset registry/integration, Candidate Cause AI 0:N, investigation, RCA và action tracking.
+6. Asset/work-order integration phục vụ investigation (không mở rộng taxonomy), Candidate Cause AI 0:N, RCA và action tracking.
 7. Fine-grained RBAC theo project/building/service.
 8. Auto-apply label low-risk chỉ sau gold-set calibration, risk sign-off và feature flag.
 
@@ -1229,7 +1247,7 @@ Không build AI, chart hoặc hotspot trực tiếp trên raw import table. Tấ
 5. **Idempotent async jobs:** import, AI và hotspot retry không tạo duplicate; mọi job có state, correlation ID và observable error.
 6. **Metric consistency:** chart, KPI, export và drill-down dùng cùng semantic layer, eligibility rule, event time và definition version.
 7. **Traceability:** mỗi story map tới acceptance test, API/schema change, audit event và metric/alert liên quan.
-8. **Vertical slice before breadth:** hoàn tất `SVC-17/ELV-01/S2` end-to-end trước khi mở service, source hoặc dashboard mới.
+8. **Vertical slice before breadth:** hoàn tất `SV-07/IS-07-01/S2` end-to-end trước khi mở service, source hoặc dashboard mới.
 9. **Feature flags:** AI auto-apply, hard trigger và connector mutation mặc định off cho tới khi có sign-off.
 10. **No silent fallback:** missing taxonomy/location/time/owner phải thành UNKNOWN hoặc data-quality error có thể quan sát, không tự đoán âm thầm.
 
@@ -1253,18 +1271,19 @@ Async Import Job + row lineage
 Feedback envelope (immutable raw/masked)
 ↓
 Feedback Item #1
+  Location = S2 normalized location ID
+  Intake Channel = channel code canonical
+  Symptom Detail = Chờ thang máy lâu vào buổi sáng
 ↓
 Manual Classification Decision v1
 ↓
 Current Projection:
   Customer Lifecycle Stage = Cư trú
-  Customer Lifecycle Step = RES-06 Di chuyển trong tòa
+  Customer Lifecycle Step = RES-03 Ra vào & di chuyển
   Service Request Value Status = NOT_APPLICABLE
   Service Request Step = null
-  Primary Service = SVC-17 Elevator
-  Secondary Services = []
-  Issue = ELV-01 Long Waiting Time
-  Location = S2 normalized location ID
+  Primary Service = SV-07 Kỹ thuật, tiện ích & tài sản chung
+  Issue = IS-07-01 Hệ thống ngừng hoặc suy giảm
   Cause Determination Status = UNKNOWN
   Candidate Cause Suggestions = []
   Operational Severity = reviewer/source decision
@@ -1277,8 +1296,8 @@ Pilot Analytics + eligible-item drill-down
 Sau khi `FEAT-001` hoàn tất, slice `F6` mở rộng cùng contract khi nhiều feedback tương tự xuất hiện:
 
 ```text
-SVC-17
-+ ELV-01
+SV-07
++ IS-07-01
 + normalized S2 location ID
 + rolling 2h
 + at least 3 accepted, deduplicated feedback items
@@ -1315,7 +1334,7 @@ MVP được xem là hoàn thành khi:
 1. `pilot_scope_manifest` được named Product Owner, Data Owner, Service Owner và Security/Privacy Owner ký duyệt.
 2. SSO/basic RBAC hoạt động; raw PII view/export và mọi privileged action được enforce server-side và audit.
 3. Import dataset thật chạy async, retry idempotent; 100% row có outcome/lineage và error report; không silent-drop.
-4. Hai lifecycle dictionary, pilot Service/Issue/mapping và location hierarchy dùng stable ID/version, publish được và không hard-code trong application.
+4. Hai lifecycle dictionary có đủ 6 Customer Lifecycle Stage/36 Step và 8 Service Request Step; taxonomy release có đủ canonical 10 Service/28 Issue; pilot mapping và location hierarchy dùng stable ID/version, publish được và không hard-code trong application.
 5. Feedback envelope giữ raw immutable; feedback multi-intent tách được thành item; decision ledger rebuild được current projection.
 6. User filter Customer Lifecycle/Service Request/Service/Issue/Location/Severity được trên eligible feedback item; drill-down giữ nguyên filter/metric version.
 7. AI trả prediction theo field với confidence/model/pipeline/taxonomy version nhưng không auto-apply; reviewer Accept/Correct/Unknown được và có audit.
@@ -1346,7 +1365,7 @@ Mỗi decision phải có một người chịu trách nhiệm theo vai trò, de
 | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------- |
 | Pilot project/building, 1–3 Service, source, date range, volume và user cohort                                  | **Blocks P0**                                             | Product Owner               | Không bắt đầu Sprint 1                                                |
 | Data sample quyền sử dụng, language/encoding, required columns và source trust rule                           | **Blocks P0**                                             | Data Owner                  | Chỉ synthetic fixture; không production data                            |
-| Authoritative`Customer Journey(2).xlsx` revision, checksum, approval owner và nơi lưu được team truy cập | **Blocks P0 taxonomy publish**                            | Product + Data Owner        | Không tuyên bố wording/mapping đã được freeze                     |
+| Authoritative `service_taxonomy.md` revision 3.0.0, structured-seed checksum, approval owner và nơi lưu được team truy cập | **Blocks P0 taxonomy publish**                | Product + Data Owner        | Không publish taxonomy release                                      |
 | Multi-intent split guideline và field nào bắt buộc/cho phép UNKNOWN                                          | **Blocks P0**                                             | CX/Data Steward             | Manual split; prediction không auto-apply                                |
 | Location hierarchy, normalized S2 ID, grouping level và timezone                                                 | **Blocks P0**                                             | BQL + Data Owner            | Record thiếu location bị ineligible cho hotspot                         |
 | Pilot Service/Issue owner và mapping; mapping legacy Priority P1–P4 sang SEV-1–SEV-4                           | **Blocks P0**                                             | Service Owner               | Không publish taxonomy version                                           |
@@ -1361,5 +1380,5 @@ Mỗi decision phải có một người chịu trách nhiệm theo vai trò, de
 | SLA từng Service/Issue, assignment/escalation và contractor/vendor ownership                                    | P1                                                              | Operations + Service Owner  | Không hiển thị SLA giả định                                         |
 | Hard trigger chính thức, SEV-1 rule và safety/legal playbook                                                   | P1; không bật tự động ở P0                                | Safety/Legal + BQL          | Feature flag off; manual escalation                                       |
 | Required evidence và thẩm quyền confirm Root Cause                                                             | P1                                                              | Technical Owner + Legal     | Không có trạng thái CONFIRMED                                         |
-| Asset hierarchy/BMS/CMMS naming và work-order integration                                                        | P1/P2                                                           | Technical/Integration Owner | `asset_id` nullable                                                     |
+| Asset hierarchy/BMS/CMMS naming và work-order integration cho investigation (không phải taxonomy dimension)       | P1/P2                                                           | Technical/Integration Owner | Không gắn asset vào classification; investigation reference nullable   |
 | Survey policy CSAT/CES/NPS                                                                                        | P2                                                              | CX Owner                    | Ngoài pilot                                                              |
