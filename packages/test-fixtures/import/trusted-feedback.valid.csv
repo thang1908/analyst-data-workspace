@@ -1,6 +1,0 @@
-source_reference,reported_at,project_code,location_code,service_code,issue_code,sentiment,operational_severity,content_masked
-ELV-S2-0001,2026-08-10T08:00:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-01,NEGATIVE,SEV-2,"Buổi sáng thời gian chờ thang máy tại S2 kéo dài."
-ELV-S2-0002,2026-08-10T09:15:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-02,NEGATIVE,SEV-2,"Một thang tại S2 tạm ngừng hoạt động."
-ELV-S2-0003,2026-08-11T10:30:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-06,NEGATIVE,SEV-2,"Cabin có tiếng rung bất thường trong quá trình di chuyển."
-ELV-S2-0004,2026-08-11T15:45:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-01,NEUTRAL,SEV-3,"Thời gian chờ thang máy đã cải thiện so với buổi sáng."
-ELV-S2-0005,2026-08-12T07:50:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-01,NEGATIVE,SEV-3,"Giờ cao điểm thời gian chờ thang máy tăng đáng kể."

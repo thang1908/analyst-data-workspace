@@ -1,6 +1,0 @@
-source_reference,reported_at,project_code,location_code,service_code,issue_code,sentiment,operational_severity,content_masked
-MIX-S2-0001,2026-08-12T08:00:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-01,NEGATIVE,SEV-2,"Thời gian chờ thang máy kéo dài."
-MIX-S2-0001,2026-08-12T08:00:00+07:00,PILOT_PROJECT,S2,SVC-17,ELV-01,NEGATIVE,SEV-2,"Dòng lặp phải được đánh dấu duplicate."
-MIX-S2-0002,not-a-timestamp,PILOT_PROJECT,S2,SVC-17,ELV-01,NEGATIVE,SEV-2,"Dòng có thời gian không hợp lệ."
-MIX-S2-0003,2026-08-12T09:00:00+07:00,PILOT_PROJECT,S2,SVC-17,PKG-01,NEGATIVE,SEV-2,"Issue không thuộc service phải bị từ chối."
-MIX-S2-0004,2026-08-12T10:00:00+07:00,PILOT_PROJECT,UNKNOWN_LOCATION,SVC-17,ELV-01,NEGATIVE,SEV-2,"Location không tồn tại phải bị từ chối."
