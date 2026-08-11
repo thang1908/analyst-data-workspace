@@ -1,3 +1,4 @@
+
 # FEAT-04 — Pilot Web UI: Import to Dashboard
 
 - **Status:** Ready for refinement — build với contract mock đã duyệt
@@ -145,13 +146,13 @@ cursor
 
 ### KPI cards
 
-| Card | Giá trị từ API | Hiển thị |
-| --- | --- | --- |
-| Tổng feedback | `item_volume` | số nguyên, không suy ra từ chart |
-| Feedback tiêu cực | `negative_feedback_count` | count và link drill-down sentiment `NEGATIVE` |
-| Tỷ lệ tiêu cực | `negative_rate` | phần trăm; hiển thị “Chưa đủ dữ liệu” khi `null` |
-| Sentiment chưa xác định | `sentiment_unknown_rate` | phần trăm và link drill-down `UNKNOWN`; không gộp vào denominator tỷ lệ tiêu cực |
-| Mức độ cao | `high_severity_count` | count của `SEV-1/SEV-2`, click drill-down với hai filter values |
+| Card                        | Giá trị từ API           | Hiển thị                                                                                  |
+| --------------------------- | --------------------------- | ------------------------------------------------------------------------------------------- |
+| Tổng feedback              | `item_volume`             | số nguyên, không suy ra từ chart                                                        |
+| Feedback tiêu cực         | `negative_feedback_count` | count và link drill-down sentiment`NEGATIVE`                                             |
+| Tỷ lệ tiêu cực          | `negative_rate`           | phần trăm; hiển thị “Chưa đủ dữ liệu” khi`null`                                |
+| Sentiment chưa xác định | `sentiment_unknown_rate`  | phần trăm và link drill-down`UNKNOWN`; không gộp vào denominator tỷ lệ tiêu cực |
+| Mức độ cao               | `high_severity_count`     | count của`SEV-1/SEV-2`, click drill-down với hai filter values                          |
 
 UI không tự đổi denominator, cộng buckets hoặc suy diễn count khi endpoint lỗi.
 
@@ -189,19 +190,19 @@ Detail hiển thị masked content, source reference an toàn, trusted classific
 
 ## 9. Async và failure states
 
-| State | Hành vi bắt buộc |
-| --- | --- |
-| Initial loading | skeleton giữ layout, `aria-busy=true`, status text cho screen reader |
-| Filter refresh | giữ dữ liệu cũ nhưng đánh dấu stale/đang cập nhật; disable submit trùng; cancel request cũ |
-| Empty | `200` và total 0: giải thích không có dữ liệu, cho xóa filter; không render chart giả |
-| Widget error | widget có safe message/retry riêng; phần còn lại vẫn dùng được |
-| Fatal error | summary/filter bootstrap lỗi: page error với correlation ID và Retry |
-| `401` | chuyển qua auth flow chuẩn, không loop |
-| `403` | full no-permission state, không render count/charts cũ |
-| `404` detail | generic not-found-within-scope và link quay lại list |
-| `409` | job version conflict: refresh job; snapshot invalid/expired: lấy context mới và refresh toàn dashboard |
-| `422` | map `field_errors` về filter, focus field đầu tiên |
-| Offline/timeout | giữ URL/filter, nêu kết nối lỗi và cho retry |
+| State           | Hành vi bắt buộc                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------------------- |
+| Initial loading | skeleton giữ layout,`aria-busy=true`, status text cho screen reader                                     |
+| Filter refresh  | giữ dữ liệu cũ nhưng đánh dấu stale/đang cập nhật; disable submit trùng; cancel request cũ    |
+| Empty           | `200` và total 0: giải thích không có dữ liệu, cho xóa filter; không render chart giả          |
+| Widget error    | widget có safe message/retry riêng; phần còn lại vẫn dùng được                                   |
+| Fatal error     | summary/filter bootstrap lỗi: page error với correlation ID và Retry                                    |
+| `401`         | chuyển qua auth flow chuẩn, không loop                                                                  |
+| `403`         | full no-permission state, không render count/charts cũ                                                   |
+| `404` detail  | generic not-found-within-scope và link quay lại list                                                     |
+| `409`         | job version conflict: refresh job; snapshot invalid/expired: lấy context mới và refresh toàn dashboard |
+| `422`         | map`field_errors` về filter, focus field đầu tiên                                                    |
+| Offline/timeout | giữ URL/filter, nêu kết nối lỗi và cho retry                                                         |
 
 Response cũ không được overwrite response mới. Query key gồm normalized URL filters; request abort khi filters đổi/unmount. Error UI không hiển thị stack trace hoặc raw response body.
 
@@ -220,33 +221,33 @@ Response cũ không được overwrite response mới. Query key gồm normalize
 
 ## 11. Acceptance criteria
 
-| AC | Given / When / Then |
-| --- | --- |
-| AC-01 Render | **Given** valid summary/trend/breakdown fixtures; **When** mở dashboard; **Then** KPI/chart hiển thị nguyên giá trị, labels và timezone từ contract. |
-| AC-02 URL filter | **Given** user chọn nhiều filter; **When** Apply, refresh hoặc share URL; **Then** state/request được khôi phục giống nhau và cursor được reset đúng. |
-| AC-03 Drill-down | **Given** bucket count `N` và import mới sau snapshot; **When** activate bằng click/keyboard; **Then** list mở với nguyên filter, cùng snapshot cộng bucket key và vẫn reconcile đúng `N`. |
-| AC-04 Back | **Given** dashboard → list → detail; **When** Back hai lần; **Then** filter, scroll/context và route hợp lý được giữ. |
-| AC-05 Empty | **Given** API trả zero/empty; **When** render; **Then** có empty guidance, không chart giả, không coi là lỗi. |
-| AC-06 Partial error | **Given** một breakdown lỗi; **When** endpoint khác thành công; **Then** widget lỗi retry độc lập và KPI/chart khác vẫn dùng được. |
-| AC-07 Permission | **Given** `403`; **When** response đến sau dữ liệu cũ; **Then** dữ liệu cũ bị xóa và chỉ no-permission state xuất hiện. |
-| AC-08 Privacy | **Given** list/detail fixture; **When** render và telemetry chạy; **Then** không có raw content/PII/token trong DOM, URL, event hoặc console. |
-| AC-09 A11y | **Given** keyboard và screen reader; **When** filter, đọc chart, drill-down, retry; **Then** mọi outcome thực hiện được không cần chuột/màu. |
-| AC-10 Responsive | **Given** viewport 360/768/1280; **When** dashboard/list/detail render; **Then** nội dung không che khuất và không có page-level horizontal overflow. |
-| AC-11 Import flow | **Given** authorized Analyst và CSV mixed fixture; **When** upload → validate → xác nhận → execute; **Then** UI hiển thị đúng counts/state/error download, không double-submit và mở dashboard sau terminal job. |
+| AC                     | Given / When / Then                                                                                                                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-01 Render           | **Given** valid summary/trend/breakdown fixtures; **When** mở dashboard; **Then** KPI/chart hiển thị nguyên giá trị, labels và timezone từ contract.                                                                           |
+| AC-02 URL filter       | **Given** user chọn nhiều filter; **When** Apply, refresh hoặc share URL; **Then** state/request được khôi phục giống nhau và cursor được reset đúng.                                                                   |
+| AC-03 Drill-down       | **Given** bucket count `N` và import mới sau snapshot; **When** activate bằng click/keyboard; **Then** list mở với nguyên filter, cùng snapshot cộng bucket key và vẫn reconcile đúng `N`.                             |
+| AC-04 Back             | **Given** dashboard → list → detail; **When** Back hai lần; **Then** filter, scroll/context và route hợp lý được giữ.                                                                                                        |
+| AC-05 Empty            | **Given** API trả zero/empty; **When** render; **Then** có empty guidance, không chart giả, không coi là lỗi.                                                                                                                   |
+| AC-06 Partial error    | **Given** một breakdown lỗi; **When** endpoint khác thành công; **Then** widget lỗi retry độc lập và KPI/chart khác vẫn dùng được.                                                                                     |
+| AC-07 Permission       | **Given** `403`; **When** response đến sau dữ liệu cũ; **Then** dữ liệu cũ bị xóa và chỉ no-permission state xuất hiện.                                                                                                |
+| AC-08 Privacy          | **Given** list/detail fixture; **When** render và telemetry chạy; **Then** không có raw content/PII/token trong DOM, URL, event hoặc console.                                                                                     |
+| AC-09 A11y             | **Given** keyboard và screen reader; **When** filter, đọc chart, drill-down, retry; **Then** mọi outcome thực hiện được không cần chuột/màu.                                                                              |
+| AC-10 Responsive       | **Given** viewport 360/768/1280; **When** dashboard/list/detail render; **Then** nội dung không che khuất và không có page-level horizontal overflow.                                                                            |
+| AC-11 Import flow      | **Given** authorized Analyst và CSV mixed fixture; **When** upload → validate → xác nhận → execute; **Then** UI hiển thị đúng counts/state/error download, không double-submit và mở dashboard sau terminal job.          |
 | AC-12 Context/snapshot | **Given** context có options/token và token hết hạn sau đó; **When** load/refresh dashboard; **Then** mọi widget dùng cùng token, options đúng mapping và expiry làm refresh toàn bộ thay vì trộn dữ liệu cũ/mới. |
 
 ## 12. Test strategy
 
-| Loại | Cases bắt buộc |
-| --- | --- |
-| Unit | import command enablement/version; polling stop/backoff; context/snapshot lifecycle; URL parse/serialize; filter draft/apply/reset; formatter timezone/percent/null; query keys |
-| Component | upload/job states; KPI/chart/table; masked list/detail; loading/empty/error/permission; stale response |
-| Contract mock | mọi fixture validate FEAT-02/030 schema; success và `401/403/404/409/422/500` |
-| Integration | generated client + MSW; upload/validate/execute/poll; abort/race; repeated query params; cursor transition |
-| E2E | upload → validate → execute → dashboard; filter → chart/KPI drill-down → detail → back; refresh/share URL |
-| Accessibility | axe không có critical/serious issue; keyboard order; name/role/value; table alternative |
-| Visual/responsive | screenshots ở 360, 768, 1280 cho normal, empty, error, permission |
-| Privacy | DOM/URL/console/telemetry scan không có `content_raw`, PII hoặc auth token |
+| Loại             | Cases bắt buộc                                                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit              | import command enablement/version; polling stop/backoff; context/snapshot lifecycle; URL parse/serialize; filter draft/apply/reset; formatter timezone/percent/null; query keys |
+| Component         | upload/job states; KPI/chart/table; masked list/detail; loading/empty/error/permission; stale response                                                                          |
+| Contract mock     | mọi fixture validate FEAT-02/030 schema; success và`401/403/404/409/422/500`                                                                                                |
+| Integration       | generated client + MSW; upload/validate/execute/poll; abort/race; repeated query params; cursor transition                                                                      |
+| E2E               | upload → validate → execute → dashboard; filter → chart/KPI drill-down → detail → back; refresh/share URL                                                                 |
+| Accessibility     | axe không có critical/serious issue; keyboard order; name/role/value; table alternative                                                                                       |
+| Visual/responsive | screenshots ở 360, 768, 1280 cho normal, empty, error, permission                                                                                                              |
+| Privacy           | DOM/URL/console/telemetry scan không có`content_raw`, PII hoặc auth token                                                                                                  |
 
 Test dùng CSV fixture FEAT-02 và frozen response fixture FEAT-03 gồm valid/mixed import, zero data, all-negative, null rate, long Vietnamese labels, `other_count`, multi-page list, mixed scope và midnight boundary.
 

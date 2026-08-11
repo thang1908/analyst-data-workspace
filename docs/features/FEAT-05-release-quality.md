@@ -1,3 +1,6 @@
+
+
+
 # FEAT-05 — Release Quality, Staging và Rollback
 
 - **Status:** Ready for refinement — build sau khi release dependencies có contract
@@ -262,18 +265,18 @@ Rollback drill trên staging là required gate, không chỉ là tài liệu.
 
 ## 14. Acceptance criteria
 
-| AC | Given / When / Then |
-| --- | --- |
-| AC-01 Frozen build | **Given** clean runner; **When** install/build cùng SHA; **Then** frozen lockfile pass và artifacts có cùng release metadata. |
-| AC-02 Migration | **Given** clean và supported-old DB; **When** migrate/seed/verify; **Then** cả hai đạt expected schema/checksum, không destructive reset. |
-| AC-03 Critical flow | **Given** masked fixture và allowed user; **When** chạy E2E intake-to-dashboard; **Then** flow hoàn tất và masked detail đúng. |
-| AC-04 Authorization | **Given** out-of-scope user; **When** query dashboard/list/detail; **Then** không lộ data/count và audit/error an toàn. |
-| AC-05 Reconciliation | **Given** frozen fixture; **When** chạy checker; **Then** mọi source/canonical/aggregate/drill-down invariant mismatch bằng 0. |
-| AC-06 Idempotency | **Given** successful import; **When** retry cùng key/file; **Then** canonical và dashboard counts không tăng. |
-| AC-07 Privacy | **Given** canary raw/secret patterns; **When** chạy CI/E2E; **Then** scan fail nếu pattern xuất hiện trong log/report/DOM/trace. |
-| AC-08 Performance | **Given** representative 100k dataset; **When** chạy release profile; **Then** budgets FEAT-02/030/040 đạt và evidence reproducible. |
-| AC-09 Flags | **Given** flags off/on theo thứ tự; **When** smoke test; **Then** behavior thay đổi đúng, auth không bypass và change được audit. |
-| AC-10 Rollback | **Given** staging release đang chạy; **When** thực hiện drill; **Then** artifact trước hoạt động với schema hiện tại, data giữ nguyên và reconciliation pass. |
+| AC                   | Given / When / Then                                                                                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC-01 Frozen build   | **Given** clean runner; **When** install/build cùng SHA; **Then** frozen lockfile pass và artifacts có cùng release metadata.                                            |
+| AC-02 Migration      | **Given** clean và supported-old DB; **When** migrate/seed/verify; **Then** cả hai đạt expected schema/checksum, không destructive reset.                               |
+| AC-03 Critical flow  | **Given** masked fixture và allowed user; **When** chạy E2E intake-to-dashboard; **Then** flow hoàn tất và masked detail đúng.                                        |
+| AC-04 Authorization  | **Given** out-of-scope user; **When** query dashboard/list/detail; **Then** không lộ data/count và audit/error an toàn.                                                  |
+| AC-05 Reconciliation | **Given** frozen fixture; **When** chạy checker; **Then** mọi source/canonical/aggregate/drill-down invariant mismatch bằng 0.                                            |
+| AC-06 Idempotency    | **Given** successful import; **When** retry cùng key/file; **Then** canonical và dashboard counts không tăng.                                                            |
+| AC-07 Privacy        | **Given** canary raw/secret patterns; **When** chạy CI/E2E; **Then** scan fail nếu pattern xuất hiện trong log/report/DOM/trace.                                         |
+| AC-08 Performance    | **Given** representative 100k dataset; **When** chạy release profile; **Then** budgets FEAT-02/030/040 đạt và evidence reproducible.                                     |
+| AC-09 Flags          | **Given** flags off/on theo thứ tự; **When** smoke test; **Then** behavior thay đổi đúng, auth không bypass và change được audit.                                 |
+| AC-10 Rollback       | **Given** staging release đang chạy; **When** thực hiện drill; **Then** artifact trước hoạt động với schema hiện tại, data giữ nguyên và reconciliation pass. |
 
 ## 15. DoR và feature-specific DoD
 
