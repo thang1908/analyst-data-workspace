@@ -16,6 +16,7 @@ Issue: #2  Branch: feature/m0-002-taxonomy-migrations
 from __future__ import annotations
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision: str = "004"
@@ -284,7 +285,7 @@ def upgrade() -> None:
             "lifecycle_step_id",
             sa.UUID(as_uuid=True),
             nullable=False,
-            comment="FK resolved by lifecycle_type: customer_lifecycle_step or service_request_step",
+            comment="FK resolved by lifecycle_type",
         ),
         sa.Column(
             "service_id",
