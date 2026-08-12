@@ -33,6 +33,16 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 
+[tool.hatch.build.targets.wheel]
+packages = ["packages", "apps"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
