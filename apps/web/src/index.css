@@ -2,28 +2,28 @@
 
 /* ─── Design Tokens ─────────────────────────────────────── */
 :root {
-  /* Colors */
-  --bg-base:        #0a0d14;
-  --bg-surface:     #111827;
-  --bg-elevated:    #1a2236;
-  --bg-card:        #1e2a3d;
-  --bg-hover:       #243350;
+  /* Colors — Light mode / White & Red */
+  --bg-base:        #f4f5f9;
+  --bg-surface:     #ffffff;
+  --bg-elevated:    #f8f9fc;
+  --bg-card:        #ffffff;
+  --bg-hover:       #fff5f5;
 
-  --border-subtle:  rgba(255,255,255,0.06);
-  --border-default: rgba(255,255,255,0.10);
-  --border-active:  rgba(99,179,255,0.40);
+  --border-subtle:  rgba(0,0,0,0.07);
+  --border-default: rgba(0,0,0,0.12);
+  --border-active:  rgba(220,38,38,0.45);
 
-  --text-primary:   #f0f4ff;
-  --text-secondary: #8b9cc8;
-  --text-muted:     #4b5a7a;
-  --text-accent:    #63b3ff;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+  --text-accent:    #dc2626;
 
   /* Semantic colors */
-  --color-negative: #f87171;
-  --color-positive: #34d399;
-  --color-warning:  #fbbf24;
-  --color-neutral:  #94a3b8;
-  --color-info:     #60a5fa;
+  --color-negative: #dc2626;
+  --color-positive: #16a34a;
+  --color-warning:  #d97706;
+  --color-neutral:  #64748b;
+  --color-info:     #2563eb;
 
   /* Severity */
   --sev1: #ef4444;
@@ -42,9 +42,9 @@
   --radius-xl: 20px;
 
   /* Shadows */
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.25);
-  --shadow-glow-negative: 0 0 20px rgba(248,113,113,0.15);
-  --shadow-glow-positive: 0 0 20px rgba(52,211,153,0.15);
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-glow-negative: 0 0 20px rgba(220,38,38,0.12);
+  --shadow-glow-positive: 0 0 20px rgba(22,163,74,0.12);
 }
 
 /* ─── Reset ─────────────────────────────────────────────── */
@@ -65,8 +65,8 @@ html, body {
 /* ─── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
 /* ─── App Shell ──────────────────────────────────────────── */
 .app-shell {
@@ -97,11 +97,12 @@ html, body {
 
 .sidebar-logo-icon {
   width: 32px; height: 32px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
   border-radius: var(--radius-md);
   display: flex; align-items: center; justify-content: center;
   font-size: 15px;
   flex-shrink: 0;
+  color: #fff;
 }
 
 .sidebar-logo-text {
@@ -156,7 +157,7 @@ html, body {
 
 .sidebar-link.active {
   color: var(--text-accent);
-  background: rgba(99,179,255,0.08);
+  background: rgba(220,38,38,0.06);
 }
 
 .sidebar-link.active::before {
@@ -172,7 +173,7 @@ html, body {
 
 .sidebar-badge {
   margin-left: auto;
-  background: rgba(248,113,113,0.15);
+  background: rgba(220,38,38,0.10);
   color: var(--color-negative);
   font-size: 10px;
   font-weight: 700;
@@ -241,7 +242,7 @@ html, body {
 
 .topbar-avatar {
   width: 30px; height: 30px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; color: white;
@@ -299,7 +300,7 @@ html, body {
 }
 
 .filter-chip:hover { border-color: var(--border-active); color: var(--text-primary); }
-.filter-chip.active { border-color: var(--border-active); color: var(--text-accent); background: rgba(99,179,255,0.08); }
+.filter-chip.active { border-color: var(--border-active); color: var(--text-accent); background: rgba(220,38,38,0.06); }
 
 /* ─── KPI Grid ───────────────────────────────────────────── */
 .kpi-grid {
@@ -334,10 +335,10 @@ html, body {
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.kpi-card.negative::before { background: linear-gradient(90deg, #f87171, #ef4444); }
-.kpi-card.volume::before   { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
-.kpi-card.hotspot::before  { background: linear-gradient(90deg, #f97316, #ea580c); }
-.kpi-card.unknown::before  { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+.kpi-card.negative::before { background: linear-gradient(90deg, #dc2626, #b91c1c); }
+.kpi-card.volume::before   { background: linear-gradient(90deg, #2563eb, #1d4ed8); }
+.kpi-card.hotspot::before  { background: linear-gradient(90deg, #ea580c, #c2410c); }
+.kpi-card.unknown::before  { background: linear-gradient(90deg, #7c3aed, #6d28d9); }
 
 .kpi-label {
   font-size: 10px;
@@ -368,9 +369,9 @@ html, body {
   border-radius: 99px;
 }
 
-.kpi-delta.good { background: rgba(52,211,153,0.12); color: var(--color-positive); }
-.kpi-delta.bad  { background: rgba(248,113,113,0.12); color: var(--color-negative); }
-.kpi-delta.neutral { background: rgba(148,163,184,0.12); color: var(--color-neutral); }
+.kpi-delta.good { background: rgba(22,163,74,0.10); color: var(--color-positive); }
+.kpi-delta.bad  { background: rgba(220,38,38,0.10); color: var(--color-negative); }
+.kpi-delta.neutral { background: rgba(100,116,139,0.10); color: var(--color-neutral); }
 
 .kpi-subtitle {
   font-size: 11px;
@@ -431,7 +432,7 @@ html, body {
 
 .journey-stage-item:hover { background: var(--bg-hover); }
 
-.journey-stage-item.active { background: rgba(99,179,255,0.06); }
+.journey-stage-item.active { background: rgba(220,38,38,0.04); }
 .journey-stage-item.active::after {
   content: '';
   position: absolute;
@@ -520,7 +521,7 @@ html, body {
 }
 
 .toggle-btn.active {
-  background: rgba(99,179,255,0.12);
+  background: rgba(220,38,38,0.08);
   border-color: var(--border-active);
   color: var(--text-accent);
 }
@@ -666,7 +667,7 @@ html, body {
 /* ─── Negative Rate Bar ──────────────────────────────────── */
 .neg-bar-bg {
   height: 4px;
-  background: var(--bg-elevated);
+  background: #e5e7eb;
   border-radius: 99px;
   margin-top: 6px;
   overflow: hidden;
