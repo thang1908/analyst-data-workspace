@@ -68,7 +68,6 @@ const OverviewPage: React.FC = () => {
                 navigate('/customer-journey');
               }}
             >
-              <div className="journey-stage-code">{stage.code}</div>
               <div className="journey-stage-name">{stage.name}</div>
               <div
                 className="journey-stage-neg"

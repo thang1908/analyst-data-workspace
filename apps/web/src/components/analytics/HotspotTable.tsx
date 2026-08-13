@@ -6,6 +6,25 @@ interface HotspotTableProps {
   onRowClick?: (row: HotspotRow) => void;
 }
 
+// Map serviceCode → tên đầy đủ
+const SERVICE_NAME: Record<string, string> = {
+  'SV-01': 'Hạ tầng kỹ thuật',
+  'SV-02': 'App & Hệ thống số',
+  'SV-03': 'Giao tiếp & CSKH',
+  'SV-04': 'Môi trường sống',
+  'SV-05': 'Tiếp cận & Di chuyển',
+  'SV-06': 'Thanh toán & Phí',
+  'SV-07': 'Kỹ thuật & Tài sản',
+  'SV-08': 'An ninh',
+};
+
+const SEV_LABEL: Record<string, string> = {
+  'SEV-1': 'Nghiêm trọng',
+  'SEV-2': 'Cao',
+  'SEV-3': 'Trung bình',
+  'SEV-4': 'Thấp',
+};
+
 const SEV_COLOR: Record<string, string> = {
   'SEV-1': 'sev-1',
   'SEV-2': 'sev-2',
@@ -22,8 +41,8 @@ const STATUS_CLASS: Record<string, string> = {
 
 const STATUS_LABEL: Record<string, string> = {
   INVESTIGATING: 'Đang điều tra',
-  CANDIDATE:     'Ứng viên',
-  CONFIRMED:     'Xác nhận',
+  CANDIDATE:     'Nghi vấn',
+  CONFIRMED:     'Đã xác nhận',
   RESOLVED:      'Đã giải quyết',
 };
 
@@ -33,8 +52,8 @@ const HotspotTable: React.FC<HotspotTableProps> = ({ data, onRowClick }) => {
       <thead>
         <tr>
           <th>Mức độ</th>
-          <th>Vấn đề khách hàng</th>
-          <th>Dịch vụ / Sự cố</th>
+          <th>Vấn đề khách hàng gặp phải</th>
+          <th>Dịch vụ liên quan</th>
           <th>Vị trí</th>
           <th style={{ textAlign: 'right' }}>Bằng chứng</th>
           <th style={{ textAlign: 'right' }}>Xu hướng</th>
@@ -47,18 +66,14 @@ const HotspotTable: React.FC<HotspotTableProps> = ({ data, onRowClick }) => {
           <tr key={row.id} onClick={() => onRowClick?.(row)}>
             <td>
               <span className={`sev-badge ${SEV_COLOR[row.severity]}`}>
-                ● {row.severity}
+                ● {SEV_LABEL[row.severity]}
               </span>
             </td>
-            <td style={{ color: 'var(--text-primary)', fontWeight: 500, maxWidth: 200 }}>
+            <td style={{ color: 'var(--text-primary)', fontWeight: 500, maxWidth: 220 }}>
               {row.customerPain}
             </td>
-            <td>
-              <span style={{ color: 'var(--text-accent)', fontSize: 11, fontWeight: 600 }}>
-                {row.serviceCode}
-              </span>
-              {' / '}
-              <span style={{ fontSize: 11 }}>{row.issueCode}</span>
+            <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+              {SERVICE_NAME[row.serviceCode] ?? row.serviceCode}
             </td>
             <td>{row.location}</td>
             <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--text-primary)' }}>

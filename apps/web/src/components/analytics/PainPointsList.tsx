@@ -21,19 +21,12 @@ const PainPointsList: React.FC<PainPointsListProps> = ({ data, onItemClick }) =>
 
           <div className="pain-info">
             <div className="pain-name">{item.issueName}</div>
-            <div className="pain-service">
-              <span style={{ color: 'var(--text-accent)', fontWeight: 600, fontSize: 10 }}>
-                {item.serviceCode}
-              </span>
-              {' '}· {item.serviceName}
-            </div>
+            <div className="pain-service">{item.serviceName}</div>
           </div>
 
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <div className="pain-count">{item.count.toLocaleString()}</div>
-            <div
-              className={`pain-trend ${item.trend > 0 ? 'up' : 'down'}`}
-            >
+            <div className={`pain-trend ${item.trend > 0 ? 'up' : 'down'}`}>
               {item.trend > 0 ? '↑' : '↓'} {Math.abs(item.trend)}%
             </div>
           </div>
