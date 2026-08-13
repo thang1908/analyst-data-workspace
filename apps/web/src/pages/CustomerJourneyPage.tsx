@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/layout/TopBar';
 import {
   mockJourneyStages,
-  mockResidenceSteps,
+  mockStageSteps,
   JourneyStage,
   JourneyStep,
 } from '../mock/analyticsData';
@@ -17,7 +17,15 @@ const negColor = (rate: number) => {
 const CustomerJourneyPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedStage, setSelectedStage] = useState<JourneyStage>(mockJourneyStages[4]);
-  const [selectedStep, setSelectedStep] = useState<JourneyStep | null>(mockResidenceSteps[2]);
+  
+  const currentSteps = mockStageSteps[selectedStage.code] || [];
+  const [selectedStep, setSelectedStep] = useState<JourneyStep | null>(currentSteps[0] || null);
+
+  const handleStageSelect = (stage: JourneyStage) => {
+    setSelectedStage(stage);
+    const steps = mockStageSteps[stage.code] || [];
+    setSelectedStep(steps[0] || null);
+  };
 
   return (
     <>
@@ -42,7 +50,7 @@ const CustomerJourneyPage: React.FC = () => {
             <div
               key={stage.code}
               className={`journey-stage-item${selectedStage.code === stage.code ? ' active' : ''}`}
-              onClick={() => setSelectedStage(stage)}
+              onClick={() => handleStageSelect(stage)}
             >
               <div className="journey-stage-name">{stage.name}</div>
               <div className="journey-stage-neg" style={{ color: negColor(stage.negativeRate) }}>
@@ -76,7 +84,7 @@ const CustomerJourneyPage: React.FC = () => {
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 12,
           }}>
-            {mockResidenceSteps.map((step) => (
+            {currentSteps.map((step) => (
               <div
                 key={step.code}
                 onClick={() => setSelectedStep(step)}

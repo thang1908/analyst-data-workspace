@@ -110,14 +110,37 @@ export const mockHotspots: HotspotRow[] = [
   { id: 'HS-004', severity: 'SEV-4', customerPain: 'Thẻ từ hầm xe bị lỗi', serviceCode: 'SV-05', issueCode: 'IS-05-04', location: 'Hầm B1', evidenceCount: 12, trendPercent: 15, status: 'CONFIRMED', owner: 'Bảo vệ' },
 ];
 
-// ─── JOURNEY STEPS (Stage Cư trú) ───────────────────────
-export const mockResidenceSteps: JourneyStep[] = [
-  { code: 'RES-01', name: 'Hồ sơ cư dân', feedbackCount: 640, negativeRate: 18 },
-  { code: 'RES-02', name: 'App & hệ thống', feedbackCount: 1210, negativeRate: 44 },
-  { code: 'RES-03', name: 'Ra vào & di chuyển', feedbackCount: 2140, negativeRate: 51 },
-  { code: 'RES-04', name: 'Tiếp khách', feedbackCount: 520, negativeRate: 20 },
-  { code: 'RES-05', name: 'Tiện ích', feedbackCount: 980, negativeRate: 34 },
-  { code: 'RES-06', name: 'Thanh toán', feedbackCount: 910, negativeRate: 47 },
-  { code: 'RES-07', name: 'Gửi phản ánh', feedbackCount: 780, negativeRate: 39 },
-  { code: 'RES-08', name: 'Thay đổi căn hộ', feedbackCount: 240, negativeRate: 15 },
-];
+// ─── JOURNEY STEPS BY STAGE ─────────────────────────────
+export const mockStageSteps: Record<string, JourneyStep[]> = {
+  'STG-01': [ // Nhận thức
+    { code: 'AWR-01', name: 'Tìm hiểu dự án & quảng cáo', feedbackCount: 450, negativeRate: 10 },
+    { code: 'AWR-02', name: 'Tư vấn thông tin bán hàng', feedbackCount: 750, negativeRate: 14 },
+  ],
+  'STG-02': [ // Xem xét
+    { code: 'CSD-01', name: 'Tham quan nhà mẫu', feedbackCount: 1100, negativeRate: 15 },
+    { code: 'CSD-02', name: 'Thương lượng giá & chính sách', feedbackCount: 1000, negativeRate: 21 },
+  ],
+  'STG-03': [ // Giao dịch
+    { code: 'TRN-01', name: 'Đặt cọc & ký hợp đồng', feedbackCount: 1800, negativeRate: 25 },
+    { code: 'TRN-02', name: 'Thanh toán tiến độ', feedbackCount: 1600, negativeRate: 29 },
+  ],
+  'STG-04': [ // Nhận nhà
+    { code: 'HOV-01', name: 'Nghiệm thu căn hộ', feedbackCount: 1400, negativeRate: 35 },
+    { code: 'HOV-02', name: 'Bàn giao chìa khóa & hồ sơ', feedbackCount: 1200, negativeRate: 26 },
+  ],
+  'STG-05': [ // Cư trú
+    { code: 'RES-01', name: 'Hồ sơ cư dân', feedbackCount: 640, negativeRate: 18 },
+    { code: 'RES-02', name: 'App & hệ thống', feedbackCount: 1210, negativeRate: 44 },
+    { code: 'RES-03', name: 'Ra vào & di chuyển', feedbackCount: 2140, negativeRate: 51 },
+    { code: 'RES-04', name: 'Tiếp khách', feedbackCount: 520, negativeRate: 20 },
+    { code: 'RES-05', name: 'Tiện ích', feedbackCount: 980, negativeRate: 34 },
+    { code: 'RES-06', name: 'Thanh toán', feedbackCount: 910, negativeRate: 47 },
+    { code: 'RES-07', name: 'Gửi phản ánh', feedbackCount: 780, negativeRate: 39 },
+    { code: 'RES-08', name: 'Thay đổi căn hộ', feedbackCount: 240, negativeRate: 15 },
+  ],
+  'STG-06': [ // Vận hành
+    { code: 'OPS-01', name: 'Bảo trì tòa nhà định kỳ', feedbackCount: 950, negativeRate: 32 },
+    { code: 'OPS-02', name: 'Hội nghị cư dân & BQT', feedbackCount: 896, negativeRate: 38 },
+  ],
+};
+
