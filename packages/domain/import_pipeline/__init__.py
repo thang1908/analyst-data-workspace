@@ -6,6 +6,7 @@ from packages.domain.import_pipeline.exceptions import (
     InvalidImportTransitionError,
 )
 from packages.domain.import_pipeline.state_machine import transition_import_job
+from packages.domain.import_pipeline.validation import canonicalize_mapping
 
 __all__ = [
     "ImportJob",
@@ -13,5 +14,6 @@ __all__ = [
     "ImportRowError",
     "ImportSchemaError",
     "InvalidImportTransitionError",
+    "canonicalize_mapping",
     "transition_import_job",
 ]

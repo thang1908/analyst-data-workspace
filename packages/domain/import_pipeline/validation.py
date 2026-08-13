@@ -15,21 +15,36 @@ _SUPPORTED_CANONICAL_FIELDS = frozenset({
 })
 
 
-def validate_mapping(mapping: Mapping[str, str]) -> None:
-    """Reject blocking schema errors before a worker validates any row."""
+def canonicalize_mapping(mapping: Mapping[str, str]) -> dict[str, str]:
+    """Accept API ``source_column → canonical_field`` and internal inverse mappings."""
     if not mapping:
         raise ImportSchemaError("A column mapping is required before validation.")
-    unsupported = sorted(set(mapping) - _SUPPORTED_CANONICAL_FIELDS)
+    keys = set(mapping)
+    values = set(mapping.values())
+    if keys <= _SUPPORTED_CANONICAL_FIELDS:
+        canonical_mapping = dict(mapping)
+    elif values <= _SUPPORTED_CANONICAL_FIELDS:
+        canonical_mapping = {canonical: source for source, canonical in mapping.items()}
+    else:
+        unsupported = sorted(keys - _SUPPORTED_CANONICAL_FIELDS)
+        raise ImportSchemaError("Mapping contains unsupported canonical fields.", {"fields": unsupported})
+    unsupported = sorted(set(canonical_mapping) - _SUPPORTED_CANONICAL_FIELDS)
     if unsupported:
         raise ImportSchemaError("Mapping contains unsupported canonical fields.", {"fields": unsupported})
-    missing = sorted(_REQUIRED_CANONICAL_FIELDS - set(mapping))
+    missing = sorted(_REQUIRED_CANONICAL_FIELDS - set(canonical_mapping))
     if missing:
         raise ImportSchemaError("Mapping is missing required fields.", {"fields": missing})
-    source_columns = list(mapping.values())
+    source_columns = list(canonical_mapping.values())
     if any(not column.strip() for column in source_columns):
         raise ImportSchemaError("Mapping cannot reference an empty source column.")
     if len(source_columns) != len(set(source_columns)):
         raise ImportSchemaError("Each source column can map to one canonical field only.")
+    return canonical_mapping
+
+
+def validate_mapping(mapping: Mapping[str, str]) -> None:
+    """Reject blocking schema errors before a worker validates any row."""
+    canonicalize_mapping(mapping)
 
 
 def idempotency_key(source_system: str, normalized_row: Mapping[str, Any]) -> str:
@@ -47,7 +62,7 @@ def validate_rows(
     existing_source_record_keys: frozenset[str] = frozenset(),
 ) -> list[ImportRow]:
     """Validate every supplied row and retain an explicit outcome for each one."""
-    validate_mapping(mapping)
+    mapping = canonicalize_mapping(mapping)
     seen_idempotency_keys: set[str] = set()
     validated_rows: list[ImportRow] = []
 

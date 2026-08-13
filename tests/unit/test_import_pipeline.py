@@ -108,3 +108,14 @@ def test_mapping_rejects_ambiguous_or_missing_required_columns() -> None:
         validate_mapping({"reported_at": "date"})
     with pytest.raises(Exception, match="one canonical"):
         validate_mapping({"content": "text", "source_record_key": "text"})
+
+
+def test_mapping_accepts_the_source_to_canonical_api_contract() -> None:
+    rows = validate_rows(
+        source_system="resident-app",
+        mapping={"ticket_id": "source_record_key", "message": "content"},
+        raw_rows=[{"ticket_id": "ticket-1", "message": "Valid"}],
+    )
+
+    assert rows[0].source_record_key == "ticket-1"
+    assert rows[0].is_valid
