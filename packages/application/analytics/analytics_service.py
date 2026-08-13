@@ -22,7 +22,7 @@ class AnalyticsFilters:
     intake_channel_code: str | None = None
     affected_channel_code: str | None = None
     location_id: UUID | None = None
-    location_scope: str | None = None
+    location_scope: UUID | None = None
     customer_lifecycle_stage_code: str | None = None
     customer_lifecycle_step_code: str | None = None
     service_request_step_code: str | None = None

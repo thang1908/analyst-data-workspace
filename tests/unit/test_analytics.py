@@ -169,7 +169,7 @@ def test_analytics_filters_implement_the_complete_shared_p0_contract() -> None:
         intake_channel_code="APP",
         affected_channel_code="ELEVATOR",
         location_id=location_id,
-        location_scope="building:S2",
+    location_scope=location_id,
         customer_lifecycle_stage_code="RES",
         customer_lifecycle_step_code="RES-03",
         service_request_step_code="SRV-05",
