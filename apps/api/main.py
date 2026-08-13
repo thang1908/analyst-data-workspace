@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from apps.api.routers.import_pipeline import router as import_pipeline_router
+from apps.api.routers.analytics import router as analytics_router
 from packages.infrastructure.logging import setup_logging
 
 setup_logging()
@@ -24,6 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(import_pipeline_router)
+app.include_router(analytics_router)
 app.include_router(import_pipeline_router)
 
 

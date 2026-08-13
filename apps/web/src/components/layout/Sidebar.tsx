@@ -68,7 +68,7 @@ const Sidebar: React.FC = () => {
                 <button
                   key={item.path}
                   className={`sidebar-link${isActive ? ' active' : ''}`}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => navigate(`${item.path}${location.search}`)}
                 >
                   <span className="sidebar-link-icon">{item.icon}</span>
                   <span>{item.label}</span>

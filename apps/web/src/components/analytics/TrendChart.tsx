@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { TrendPoint } from '../../mock/analyticsData';
 
 interface TrendChartProps {
-  data: TrendPoint[];
+  data: { bucket: string; itemVolume: number; negativeRate: number; unknownRate: number; activeHotspots: number }[];
 }
 
-type Metric = 'negativeRate' | 'feedbackVolume' | 'hotspotCount';
+type Metric = 'itemVolume' | 'negativeRate' | 'unknownRate' | 'activeHotspots';
 
-const METRICS: { key: Metric; label: string; color: string; unit: string }[] = [
-  { key: 'negativeRate',   label: 'Negative Rate',    color: '#f87171', unit: '%' },
-  { key: 'feedbackVolume', label: 'Feedback Volume',  color: '#60a5fa', unit: '' },
-  { key: 'hotspotCount',  label: 'Hotspot Count',    color: '#f97316', unit: '' },
+const METRICS: { key: Metric; label: string; color: string; percentage?: boolean }[] = [
+  { key: 'itemVolume', label: 'Lượng phản hồi', color: '#2563eb' },
+  { key: 'negativeRate', label: 'Tỷ lệ tiêu cực', color: '#dc2626', percentage: true },
+  { key: 'unknownRate', label: 'Chưa xác định', color: '#7c3aed', percentage: true },
+  { key: 'activeHotspots', label: 'Hotspot', color: '#ea580c' },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -34,8 +34,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
           <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{p.name}</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginLeft: 'auto' }}>
-            {typeof p.value === 'number' ? p.value.toFixed(p.dataKey === 'negativeRate' ? 1 : 0) : p.value}
-            {p.dataKey === 'negativeRate' ? '%' : ''}
+            {typeof p.value === 'number'
+              ? METRICS.find((metric) => metric.key === p.dataKey)?.percentage
+                ? `${(p.value * 100).toFixed(1)}%`
+                : p.value.toLocaleString()
+              : p.value}
           </span>
         </div>
       ))}
@@ -44,24 +47,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
-  const [activeMetrics, setActiveMetrics] = useState<Set<Metric>>(new Set(['negativeRate']));
-
-  const toggleMetric = (metric: Metric) => {
-    setActiveMetrics(prev => {
-      const next = new Set(prev);
-      if (next.has(metric)) {
-        if (next.size > 1) next.delete(metric);
-      } else {
-        next.add(metric);
-      }
-      return next;
-    });
-  };
-
-  // Format date label (show only day/month)
+  const [activeMetric, setActiveMetric] = useState<Metric>('itemVolume');
   const formatted = data.map(d => ({
     ...d,
-    label: d.date.slice(5), // "08-14"
+    label: new Date(d.bucket).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
   }));
 
   // Show every 5th label to avoid clutter
@@ -71,15 +60,13 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   return (
     <div>
       <div className="chart-toggles">
-        {METRICS.map(m => (
+        {METRICS.map((metric) => (
           <button
-            key={m.key}
-            className={`toggle-btn${activeMetrics.has(m.key) ? ' active' : ''}`}
-            onClick={() => toggleMetric(m.key)}
-            style={activeMetrics.has(m.key) ? { borderColor: m.color, color: m.color, background: `${m.color}18` } : {}}
-          >
-            {m.label}
-          </button>
+            key={metric.key}
+            className={`toggle-btn${activeMetric === metric.key ? ' active' : ''}`}
+            style={activeMetric === metric.key ? { borderColor: metric.color, color: metric.color } : undefined}
+            onClick={() => setActiveMetric(metric.key)}
+          >{metric.label}</button>
         ))}
       </div>
 
@@ -100,18 +87,15 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
           />
           <Tooltip content={<CustomTooltip />} />
 
-          {METRICS.filter(m => activeMetrics.has(m.key)).map(m => (
-            <Line
-              key={m.key}
-              type="monotone"
-              dataKey={m.key}
-              name={m.label}
-              stroke={m.color}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: m.color, stroke: 'var(--bg-base)', strokeWidth: 2 }}
-            />
-          ))}
+          <Line
+            type="monotone"
+            dataKey={activeMetric}
+            name={METRICS.find((metric) => metric.key === activeMetric)?.label}
+            stroke={METRICS.find((metric) => metric.key === activeMetric)?.color}
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4, fill: METRICS.find((metric) => metric.key === activeMetric)?.color, stroke: 'var(--bg-base)', strokeWidth: 2 }}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

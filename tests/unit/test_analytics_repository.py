@@ -50,7 +50,7 @@ async def test_summary_uses_governed_view_distinct_item_counts_and_known_sentime
     )
     statement = session.execute.await_args.args[0].text
     assert "analytics_feedback_item_v1" in statement
-    assert "COUNT(DISTINCT feedback_item_id)" in statement
+    assert "COUNT(DISTINCT item.feedback_item_id)" in statement
     assert "sentiment IN ('POSITIVE', 'NEUTRAL', 'NEGATIVE')" in statement
 
 
@@ -91,7 +91,7 @@ async def test_summary_binds_supported_filter_context() -> None:
     assert "reported_at < (:date_to + INTERVAL '1 day')" in statement.text
     assert "customer_lifecycle_stage_code = :customer_lifecycle_stage_code" in statement.text
     assert "intake_channel_code = :intake_channel_code" in statement.text
-    assert ":affected_channel_code = ANY(affected_channel_codes)" in statement.text
+    assert ":affected_channel_code = ANY(item.affected_channel_codes)" in statement.text
     assert "WITH RECURSIVE location_scope_tree" in statement.text
     assert params["sentiment"] == "NEGATIVE"
     assert params["operational_severity"] == "SEV-2"
@@ -109,7 +109,7 @@ async def test_trend_groups_by_requested_postgres_grain() -> None:
     assert trend[0].time_bucket == bucket
     assert trend[0].volume == 12
     statement, params = session.execute.await_args.args
-    assert "DATE_TRUNC(:grain, reported_at)" in statement.text
+    assert "DATE_TRUNC(:grain, item.reported_at)" in statement.text
     assert params["grain"] == "week"
 
 
@@ -136,8 +136,10 @@ async def test_breakdown_uses_a_whitelisted_dimension_column(
 
     assert breakdown[0].percentage == 0.75
     statement = session.execute.await_args.args[0].text
-    assert f"COALESCE({expected_column}, 'UNKNOWN')" in statement
-    assert "COUNT(DISTINCT feedback_item_id)" in statement
+    assert f"COALESCE(item.{expected_column}, 'UNKNOWN')" in statement
+    assert "negative_rate" in statement
+    assert "active_hotspots" in statement
+    assert "COUNT(DISTINCT item.feedback_item_id)" in statement
 
 
 @pytest.mark.asyncio
@@ -167,7 +169,7 @@ async def test_affected_channel_breakdown_unnests_codes_from_the_semantic_view()
     assert breakdown[0].dimension_key == "CH-HOTLINE"
     statement, params = session.execute.await_args.args
     assert "UNNEST(item.affected_channel_codes)" in statement.text
-    assert ":affected_channel_code = ANY(affected_channel_codes)" in statement.text
+    assert ":affected_channel_code = ANY(item.affected_channel_codes)" in statement.text
     assert params["affected_channel_code"] == "CH-HOTLINE"
 
 
