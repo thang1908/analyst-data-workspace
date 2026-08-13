@@ -125,7 +125,10 @@ const ServicePainPointsPage: React.FC = () => {
                   dataKey="count"
                   radius={[0, 4, 4, 0]}
                   cursor="pointer"
-                  onClick={(d) => setSelectedService(d.code === selectedService ? null : d.code)}
+                  onClick={(_, index) => {
+                    const service = SERVICE_DATA[index];
+                    if (service) setSelectedService(service.code === selectedService ? null : service.code);
+                  }}
                 >
                   {SERVICE_DATA.map((d, idx) => (
                     <Cell

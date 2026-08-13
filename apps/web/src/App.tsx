@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import OverviewPage from './pages/OverviewPage';
 import CustomerJourneyPage from './pages/CustomerJourneyPage';
 import ServicePainPointsPage from './pages/ServicePainPointsPage';
+import ImportWizardPage from './pages/import/ImportWizardPage';
 
 // Placeholder page for routes not yet built
 const ComingSoon: React.FC<{ title: string }> = ({ title }) => (
@@ -32,7 +33,8 @@ const App: React.FC = () => {
             <Route path="/hotspot" element={<ComingSoon title="Hotspot & Root Cause" />} />
             <Route path="/feedback" element={<ComingSoon title="Feedback Explorer" />} />
             <Route path="/review" element={<ComingSoon title="Review Queue" />} />
-            <Route path="/imports" element={<ComingSoon title="Imports" />} />
+            <Route path="/import" element={<ImportWizardPage />} />
+            <Route path="/imports" element={<Navigate to="/import" replace />} />
             <Route path="/data-quality" element={<ComingSoon title="Data Quality" />} />
             <Route path="/admin/taxonomy" element={<ComingSoon title="Taxonomy Admin" />} />
             <Route path="/audit" element={<ComingSoon title="Audit Log" />} />
