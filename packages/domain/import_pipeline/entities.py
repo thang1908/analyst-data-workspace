@@ -29,6 +29,7 @@ class ImportJob:
     valid_rows: int | None = None
     invalid_rows: int | None = None
     committed_rows: int | None = None
+    error_object_key: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     started_at: datetime | None = None
     completed_at: datetime | None = None

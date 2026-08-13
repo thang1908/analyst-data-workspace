@@ -58,6 +58,114 @@ class ImportJobRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def create_job(self, job: ImportJob) -> ImportJob:
+        await self._session.execute(
+            text("""
+                INSERT INTO import_job (
+                    import_job_id, project_id, source_system, original_filename, object_key,
+                    file_checksum, file_size_bytes, content_type, status, requested_by,
+                    correlation_id, version
+                ) VALUES (
+                    :import_job_id, :project_id, :source_system, :original_filename, :object_key,
+                    :file_checksum, :file_size_bytes, :content_type, 'UPLOADED', :requested_by,
+                    :correlation_id, 1
+                )
+            """),
+            _job_parameters(job),
+        )
+        return job
+
+    async def get_job(self, import_job_id: UUID) -> ImportJob | None:
+        result = await self._session.execute(
+            text("SELECT * FROM import_job WHERE import_job_id = :import_job_id"),
+            {"import_job_id": import_job_id},
+        )
+        row = result.mappings().one_or_none()
+        return _as_domain_job(row) if row else None
+
+    async def save_mapping(
+        self,
+        import_job_id: UUID,
+        *,
+        mapping: Mapping[str, str],
+        actor_id: UUID,
+        expected_version: int,
+    ) -> ImportJob | None:
+        """Persist an immutable-for-job mapping profile and move UPLOADED → MAPPED."""
+        profile_id_result = await self._session.execute(
+            text("""
+                INSERT INTO import_mapping_profile (
+                    project_id, name, source_system, mapping_json, created_by
+                )
+                SELECT project_id, :name, source_system, CAST(:mapping_json AS jsonb), :actor_id
+                FROM import_job
+                WHERE import_job_id = :import_job_id
+                RETURNING import_mapping_profile_id
+            """),
+            {
+                "import_job_id": import_job_id,
+                "name": f"Import {import_job_id}",
+                "mapping_json": json.dumps(mapping),
+                "actor_id": actor_id,
+            },
+        )
+        profile_id = profile_id_result.scalar_one_or_none()
+        if profile_id is None:
+            return None
+        result = await self._session.execute(
+            text("""
+                UPDATE import_job
+                SET mapping_profile_id = :profile_id, status = 'MAPPED', version = version + 1
+                WHERE import_job_id = :import_job_id
+                  AND status IN ('UPLOADED', 'MAPPED')
+                  AND version = :expected_version
+                RETURNING *
+            """),
+            {
+                "import_job_id": import_job_id,
+                "profile_id": profile_id,
+                "expected_version": expected_version,
+            },
+        )
+        row = result.mappings().one_or_none()
+        if row is None:
+            await self._session.execute(
+                text("DELETE FROM import_mapping_profile WHERE import_mapping_profile_id = :profile_id"),
+                {"profile_id": profile_id},
+            )
+            return None
+        return _as_domain_job(row)
+
+    async def queue_validation(self, import_job_id: UUID) -> ImportJob | None:
+        result = await self._session.execute(
+            text("""
+                UPDATE import_job
+                SET status = 'VALIDATING', completed_at = NULL, version = version + 1
+                WHERE import_job_id = :import_job_id AND status = 'MAPPED'
+                RETURNING *
+            """),
+            {"import_job_id": import_job_id},
+        )
+        row = result.mappings().one_or_none()
+        return _as_domain_job(row) if row else None
+
+    async def queue_execution(
+        self, import_job_id: UUID, *, expected_version: int
+    ) -> ImportJob | None:
+        result = await self._session.execute(
+            text("""
+                UPDATE import_job
+                SET status = 'QUEUED', completed_at = NULL, version = version + 1
+                WHERE import_job_id = :import_job_id
+                  AND status IN ('VALIDATED', 'PARTIAL', 'FAILED')
+                  AND version = :expected_version
+                RETURNING *
+            """),
+            {"import_job_id": import_job_id, "expected_version": expected_version},
+        )
+        row = result.mappings().one_or_none()
+        return _as_domain_job(row) if row else None
+
     async def get_context(self, import_job_id: UUID) -> ImportExecutionContext:
         result = await self._session.execute(
             text("""
@@ -317,9 +425,24 @@ def _as_domain_job(row: Mapping[str, Any]) -> ImportJob:
         requested_by=row["requested_by"], correlation_id=row["correlation_id"],
         status=ImportJobStatus(row["status"]), version=int(row["version"]),
         total_rows=row["total_rows"], valid_rows=row["valid_rows"], invalid_rows=row["invalid_rows"],
-        committed_rows=row["committed_rows"], created_at=row["created_at"],
+        committed_rows=row["committed_rows"], error_object_key=row["error_object_key"], created_at=row["created_at"],
         started_at=row["started_at"], completed_at=row["completed_at"],
     )
+
+
+def _job_parameters(job: ImportJob) -> dict[str, Any]:
+    return {
+        "import_job_id": job.import_job_id,
+        "project_id": job.project_id,
+        "source_system": job.source_system,
+        "original_filename": job.original_filename,
+        "object_key": job.object_key,
+        "file_checksum": job.file_checksum,
+        "file_size_bytes": job.file_size_bytes,
+        "content_type": job.content_type,
+        "requested_by": job.requested_by,
+        "correlation_id": job.correlation_id,
+    }
 
 
 def _row_parameters(import_job_id: UUID, row: ImportRow) -> dict[str, Any]:

@@ -36,6 +36,33 @@ class AsyncJobQueue:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def enqueue_import_job(
+        self,
+        *,
+        job_type: str,
+        import_job_id: uuid.UUID,
+        correlation_id: str,
+    ) -> uuid.UUID:
+        """Enqueue a durable validation/execution request for one import job."""
+        if job_type not in {"IMPORT_VALIDATE", "IMPORT_EXECUTE"}:
+            raise ValueError("job_type must be IMPORT_VALIDATE or IMPORT_EXECUTE")
+        result = await self.session.execute(
+            text("""
+                INSERT INTO async_job (
+                    job_type, resource_type, resource_id, payload_json, correlation_id
+                ) VALUES (
+                    :job_type, 'IMPORT_JOB', :import_job_id, '{}'::jsonb, :correlation_id
+                )
+                RETURNING async_job_id
+            """),
+            {
+                "job_type": job_type,
+                "import_job_id": import_job_id,
+                "correlation_id": correlation_id,
+            },
+        )
+        return result.scalar_one()
+
     async def claim_next_import_job(self, worker_id: str) -> JobClaim | None:
         """
         Lấy và khóa Job import tiếp theo đang chờ xử lý.

@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from apps.api.routers.import_pipeline import router as import_pipeline_router
 from packages.infrastructure.logging import setup_logging
 
 setup_logging()
@@ -22,6 +23,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(import_pipeline_router)
 
 
 @app.get("/health", tags=["Health"])
