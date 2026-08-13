@@ -1,19 +1,19 @@
-# 06 — API Specification
+# 06 — Đặc tả API
 
-# CX Journey, Service & Root Cause Intelligence Platform
+# Nền tảng Phân tích Hành trình CX, Dịch vụ & Nguyên nhân gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
-**Version:** 1.1  
-**Status:** P0 Pilot Build Baseline  
-**Derived from:** `docs/PRD.md` v1.3, `05_Data_Model.md` v1.1, `docs/System_Design.md` v1.1, `docs/Business_Rules.md` v1.1, `docs/service_taxonomy.md` v3.0.0  
-**API style:** REST/JSON over HTTPS  
+**Phiên bản:** 1.1  
+**Trạng thái:** Baseline Xây dựng Pilot P0  
+**Nguồn gốc (Derived from):** `docs/PRD.md` v1.3, `05_Data_Model.md` v1.1, `docs/System_Design.md` v1.1, `docs/Business_Rules.md` v1.1, `docs/service_taxonomy.md` v3.0.0  
+**Phong cách API (API style):** REST/JSON over HTTPS  
 **Backend:** FastAPI + Pydantic v2  
-**Base path:** `/api/v1`
+**Đường dẫn cơ sở (Base path):** `/api/v1`
 
 ---
 
-## 1. Purpose
+## 1. Mục đích
 
-This document defines the P0 HTTP contract used by:
+Tài liệu này xác định hợp đồng HTTP P0 được sử dụng bởi:
 
 ```text
 apps/web
@@ -21,30 +21,30 @@ workers / internal clients
 future approved connectors
 ```
 
-The API MUST preserve domain invariants rather than exposing database CRUD directly.
+API BẮT BUỘC phải bảo toàn các bất biến miền (domain invariants) thay vì công khai trực tiếp các thao tác CRUD cơ sở dữ liệu.
 
-Key rules:
+Các quy tắc chính:
 
-- clients select stable taxonomy IDs/codes, not localized labels;
-- taxonomy row CRUD is not exposed in P0;
-- raw Feedback is immutable;
-- Feedback Item is the unit of review and analytics;
-- prediction does not change current classification;
-- accepted classification writes create immutable Decision versions;
-- mutation endpoints enforce authorization, audit and optimistic concurrency;
-- KPI/chart/drill-down endpoints use one analytics eligibility definition.
+- các client chọn các ID/mã phân loại (taxonomy IDs/codes) ổn định, không dùng nhãn đã bản địa hóa;
+- CRUD cho các dòng phân loại (taxonomy row CRUD) không được công khai trong P0;
+- Phản hồi thô (raw Feedback) là bất biến (immutable);
+- Mục phản hồi (Feedback Item) là đơn vị xem xét (review) và phân tích (analytics);
+- dự đoán (prediction) không thay đổi phân loại hiện tại (current classification);
+- các thao tác ghi phân loại được chấp nhận sẽ tạo ra các phiên bản Quyết định (Decision) bất biến;
+- các endpoint thay đổi dữ liệu (mutation endpoints) bắt buộc thực thi phân quyền (authorization), kiểm toán (audit) và kiểm soát truy cập đồng thời lạc quan (optimistic concurrency);
+- các endpoint KPI/biểu đồ/đi sâu (drill-down) sử dụng một định nghĩa điều kiện hợp lệ phân tích (analytics eligibility definition) duy nhất.
 
 ---
 
-# 2. Common Conventions
+# 2. Các quy ước chung
 
-## 2.1 Base URL
+## 2.1 URL cơ sở (Base URL)
 
 ```text
 /api/v1
 ```
 
-Example:
+Ví dụ:
 
 ```http
 GET /api/v1/feedback-items
@@ -52,22 +52,22 @@ GET /api/v1/feedback-items
 
 ---
 
-## 2.2 Content Type
+## 2.2 Loại nội dung (Content Type)
 
 ```http
 Content-Type: application/json
 Accept: application/json
 ```
 
-File upload endpoints use `multipart/form-data`.
+Các endpoint tải lên tệp sử dụng `multipart/form-data`.
 
 ---
 
-## 2.3 Authentication
+## 2.3 Xác thực (Authentication)
 
-P0 uses SSO-backed authentication.
+P0 sử dụng xác thực dựa trên SSO.
 
-API receives/derives principal context:
+API nhận/rút ra ngữ cảnh chủ thể (principal context):
 
 ```json
 {
@@ -83,7 +83,7 @@ API receives/derives principal context:
 }
 ```
 
-Minimum application roles:
+Các vai trò ứng dụng tối thiểu:
 
 ```text
 PILOT_ADMIN
@@ -92,46 +92,46 @@ REVIEWER
 VIEWER
 ```
 
-Authorization MUST be enforced server-side.
+Việc phân quyền BẮT BUỘC phải được thực thi ở phía máy chủ (server-side).
 
 ---
 
-## 2.4 Correlation ID
+## 2.4 ID liên kết (Correlation ID)
 
-Clients MAY send:
+Client CÓ THỂ gửi:
 
 ```http
 X-Correlation-ID: <uuid-or-client-id>
 ```
 
-If absent, API creates one.
+Nếu vắng mặt, API sẽ tạo một ID mới.
 
-Every response SHOULD return:
+Mỗi phản hồi NÊN trả về:
 
 ```http
 X-Correlation-ID: ...
 ```
 
-and include `request_id` in response metadata/errors.
+và bao gồm `request_id` trong metadata/lỗi của phản hồi.
 
 ---
 
-## 2.5 Idempotency
+## 2.5 Tính idempotent (Idempotency)
 
-Retryable mutation endpoints SHOULD accept:
+Các endpoint thay đổi dữ liệu có thể thử lại NÊN chấp nhận:
 
 ```http
 Idempotency-Key: <client-generated-key>
 ```
 
-Typical use:
+Trường hợp sử dụng điển hình:
 
-- create import job;
-- execute/retry import;
-- create prediction job;
-- mutation where duplicate submission would be harmful.
+- tạo công việc nhập dữ liệu (import job);
+- thực thi/thử lại việc nhập dữ liệu;
+- tạo công việc dự đoán (prediction job);
+- các thao tác thay đổi dữ liệu mà việc gửi trùng lặp có thể gây hại.
 
-Conflicting reuse:
+Tái sử dụng bị xung đột:
 
 ```text
 409 IDEMPOTENCY_CONFLICT
@@ -139,9 +139,9 @@ Conflicting reuse:
 
 ---
 
-## 2.6 Optimistic Concurrency
+## 2.6 Kiểm soát truy cập đồng thời lạc quan (Optimistic Concurrency)
 
-Mutable operational resources use one of:
+Các tài nguyên vận hành có thể thay đổi sử dụng một trong các trường:
 
 ```text
 expected_version
@@ -149,17 +149,17 @@ expected_current_decision_id
 expected_projection_version
 ```
 
-A stale mutation returns:
+Một thao tác thay đổi dữ liệu bị lỗi thời sẽ trả về:
 
 ```text
 409 VERSION_CONFLICT
 ```
 
-The server MUST NOT silently apply a stale review or hotspot update.
+Máy chủ BẮT BUỘC KHÔNG ĐƯỢC âm thầm áp dụng một bản cập nhật đánh giá (review) hoặc điểm nóng (hotspot) đã bị lỗi thời.
 
 ---
 
-## 2.7 Canonical Cross-document Enums
+## 2.7 Các Enum chuẩn dùng chung giữa các tài liệu (Canonical Cross-document Enums)
 
 ```text
 decision_source = MANUAL | SOURCE_TRUSTED | HUMAN_ACCEPTED_AI | HUMAN_CORRECTED_AI | POLICY_AUTO_APPLIED | SYSTEM_MIGRATION
@@ -167,13 +167,13 @@ cause_determination_status = NOT_ASSESSED | UNKNOWN | SUGGESTED | UNDER_INVESTIG
 review_action = ACCEPT | CORRECT | MARK_UNKNOWN | MARK_MISSING | MARK_NOT_APPLICABLE | SPLIT_REQUIRED | SKIP
 ```
 
-P0 endpoints reject `UNDER_INVESTIGATION` and `CONFIRMED`; those values are reserved for P1 Investigation/RCA endpoints. Alias values such as `SOURCE`, `HUMAN`, `AI_ACCEPTED`, `CANDIDATE_AVAILABLE`, or title-case review actions are invalid wire values.
+Các endpoint P0 từ chối `UNDER_INVESTIGATION` và `CONFIRMED`; các giá trị đó được dành riêng cho các endpoint Điều tra/RCA của P1. Các giá trị bí danh (alias) như `SOURCE`, `HUMAN`, `AI_ACCEPTED`, `CANDIDATE_AVAILABLE`, hoặc các hành động đánh giá viết kiểu Title Case là các giá trị truyền tải (wire values) không hợp lệ.
 
 ---
 
-# 3. Standard Response Envelope
+# 3. Bao bì phản hồi chuẩn (Standard Response Envelope)
 
-Resource endpoints MAY return the resource directly. Collection/operation endpoints SHOULD use:
+Các endpoint tài nguyên CÓ THỂ trả về tài nguyên trực tiếp. Các endpoint bộ sưu tập/thao tác NÊN sử dụng:
 
 ```json
 {
@@ -185,7 +185,7 @@ Resource endpoints MAY return the resource directly. Collection/operation endpoi
 }
 ```
 
-Collections:
+Bộ sưu tập:
 
 ```json
 {
@@ -201,11 +201,11 @@ Collections:
 }
 ```
 
-`total` MAY be omitted for expensive cursor queries.
+`total` CÓ THỂ được bỏ qua đối với các truy vấn con trỏ (cursor) tốn kém chi phí.
 
 ---
 
-# 4. Standard Error Contract
+# 4. Hợp đồng lỗi chuẩn (Standard Error Contract)
 
 ```json
 {
@@ -225,35 +225,35 @@ Collections:
 }
 ```
 
-Standard HTTP mapping:
+Ánh xạ HTTP chuẩn:
 
-| HTTP | Code | Meaning |
+| HTTP | Mã (Code) | Ý nghĩa (Meaning) |
 |---:|---|---|
-| 400 | VALIDATION_ERROR | malformed/basic request validation |
-| 401 | UNAUTHENTICATED | no valid identity |
-| 403 | FORBIDDEN | privilege/project scope denied |
-| 404 | NOT_FOUND | resource not found/in scope |
-| 409 | VERSION_CONFLICT | optimistic concurrency |
-| 409 | IDEMPOTENCY_CONFLICT | reused key with different payload |
-| 422 | DOMAIN_RULE_VIOLATION | valid JSON but violates domain invariant |
-| 429 | RATE_LIMITED | throttled |
-| 500 | INTERNAL_ERROR | unexpected server failure |
+| 400 | VALIDATION_ERROR | yêu cầu bị sai định dạng / xác thực yêu cầu cơ bản thất bại |
+| 401 | UNAUTHENTICATED | không có danh tính hợp lệ |
+| 403 | FORBIDDEN | bị từ chối quyền / phạm vi dự án |
+| 404 | NOT_FOUND | không tìm thấy tài nguyên / tài nguyên không nằm trong phạm vi |
+| 409 | VERSION_CONFLICT | xung đột truy cập đồng thời lạc quan |
+| 409 | IDEMPOTENCY_CONFLICT | tái sử dụng key với payload khác |
+| 422 | DOMAIN_RULE_VIOLATION | JSON hợp lệ nhưng vi phạm bất biến miền |
+| 429 | RATE_LIMITED | bị giới hạn tần suất yêu cầu (throttled) |
+| 500 | INTERNAL_ERROR | lỗi máy chủ không mong muốn |
 
-Raw PII MUST NOT be echoed in error payloads.
+PII thô BẮT BUỘC KHÔNG ĐƯỢC phản hồi trong payload lỗi.
 
 ---
 
-# 5. Pagination, Sorting and Filtering
+# 5. Phân trang, Sắp xếp và Lọc (Pagination, Sorting and Filtering)
 
-## 5.1 Cursor Pagination
+## 5.1 Phân trang bằng Con trỏ (Cursor Pagination)
 
-Preferred for large Feedback Item lists:
+Được ưu tiên cho danh sách Feedback Item lớn:
 
 ```http
 GET /feedback-items?limit=50&cursor=<opaque>
 ```
 
-Default:
+Mặc định:
 
 ```text
 limit = 50
@@ -262,22 +262,22 @@ max   = 200
 
 ---
 
-## 5.2 Sorting
+## 5.2 Sắp xếp (Sorting)
 
-Allowlisted syntax:
+Cú pháp trong danh sách cho phép (allowlist):
 
 ```http
 ?sort=-reported_at
 ?sort=operational_severity,-reported_at
 ```
 
-Clients MUST NOT pass arbitrary SQL column names.
+Client BẮT BUỘC KHÔNG ĐƯỢC truyền tên cột SQL tùy ý.
 
 ---
 
-## 5.3 Stable Filter Values
+## 5.3 Các giá trị lọc ổn định (Stable Filter Values)
 
-Use IDs/codes:
+Sử dụng ID/mã:
 
 ```http
 ?service_code=SV-07
@@ -286,28 +286,28 @@ Use IDs/codes:
 ?service_request_step_code=SRV-02
 ```
 
-Do not filter by translated label text.
+Không lọc theo văn bản nhãn đã được dịch.
 
 ---
 
-# 6. Reference / Taxonomy APIs
+# 6. Các API Tham chiếu / Phân loại (Reference / Taxonomy APIs)
 
-All normal read endpoints return published values unless `taxonomy_release_id` is explicitly supplied and caller has permission.
+Tất cả các endpoint đọc thông thường đều trả về các giá trị đã xuất bản (published) trừ khi `taxonomy_release_id` được cung cấp một cách rõ ràng và bên gọi có quyền.
 
-## 6.1 Customer Lifecycle Stages
+## 6.1 Các giai đoạn Vòng đời khách hàng (Customer Lifecycle Stages)
 
 ```http
 GET /api/v1/customer-lifecycle/stages
 ```
 
-Query:
+Truy vấn:
 
 ```text
 taxonomy_release_id?
 active=true
 ```
 
-Response item:
+Mục phản hồi:
 
 ```json
 {
@@ -321,13 +321,13 @@ Response item:
 
 ---
 
-## 6.2 Customer Lifecycle Steps
+## 6.2 Các bước Vòng đời khách hàng (Customer Lifecycle Steps)
 
 ```http
 GET /api/v1/customer-lifecycle/steps
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 stage_code
@@ -335,7 +335,7 @@ taxonomy_release_id
 active
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -352,7 +352,7 @@ Response:
 
 ---
 
-## 6.3 Service Request Steps
+## 6.3 Các bước Vòng đời yêu cầu dịch vụ (Service Request Steps)
 
 ```http
 GET /api/v1/service-request-lifecycle/steps
@@ -360,14 +360,14 @@ GET /api/v1/service-request-lifecycle/steps
 
 ---
 
-## 6.4 Services
+## 6.4 Dịch vụ (Services)
 
 ```http
 GET /api/v1/services
 GET /api/v1/services/{service_id}
 ```
 
-Response item:
+Mục phản hồi:
 
 ```json
 {
@@ -381,19 +381,19 @@ Response item:
 
 ---
 
-## 6.5 Issues by Service
+## 6.5 Vấn đề theo Dịch vụ (Issues by Service)
 
 ```http
 GET /api/v1/services/{service_id}/issues
 ```
 
-Alternative filter:
+Bộ lọc thay thế:
 
 ```http
 GET /api/v1/issues?service_code=SV-07
 ```
 
-Response item:
+Mục phản hồi:
 
 ```json
 {
@@ -408,13 +408,13 @@ Response item:
 
 ---
 
-## 6.6 Candidate Causes
+## 6.6 Nguyên nhân ứng viên (Candidate Causes)
 
 ```http
 GET /api/v1/issues/{issue_id}/candidate-causes
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -430,17 +430,17 @@ Response:
 }
 ```
 
-This endpoint returns possible hypotheses only.
+Endpoint này chỉ trả về các giả thuyết có thể xảy ra.
 
 ---
 
-## 6.7 Lifecycle-Service Mappings
+## 6.7 Ánh xạ Vòng đời - Dịch vụ (Lifecycle-Service Mappings)
 
 ```http
 GET /api/v1/lifecycle-service-mappings
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 lifecycle_type
@@ -451,16 +451,16 @@ taxonomy_release_id
 
 ---
 
-## 6.8 Locations
+## 6.8 Vị trí (Locations)
 
 ```http
 GET /api/v1/locations
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
-project_id   # required unless principal has exactly one project
+project_id   # bắt buộc trừ khi chủ thể có đúng một dự án
 parent_id
 location_type
 q
@@ -469,15 +469,15 @@ active
 
 ---
 
-## 6.9 Taxonomy Release Validation
+## 6.9 Xác thực phiên bản phát hành Phân loại (Taxonomy Release Validation)
 
-Admin only:
+Chỉ dành cho Admin:
 
 ```http
 POST /api/v1/taxonomy-versions/{taxonomy_release_id}/validate
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -494,15 +494,15 @@ Response:
 
 ---
 
-## 6.10 Publish Taxonomy
+## 6.10 Xuất bản Phân loại (Publish Taxonomy)
 
-Admin only:
+Chỉ dành cho Admin:
 
 ```http
 POST /api/v1/taxonomy-versions/{taxonomy_release_id}/publish
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -512,17 +512,17 @@ Request:
 }
 ```
 
-Rules:
+Quy tắc:
 
-- validation must pass;
-- state transition must be valid;
-- audit mandatory.
+- xác thực phải vượt qua;
+- chuyển đổi trạng thái phải hợp lệ;
+- kiểm toán là bắt buộc.
 
 ---
 
-# 7. Import APIs
+# 7. Các API Nhập dữ liệu (Import APIs)
 
-## 7.1 Create Import Job
+## 7.1 Tạo công việc nhập dữ liệu (Create Import Job)
 
 ```http
 POST /api/v1/import-jobs
@@ -530,7 +530,7 @@ Content-Type: multipart/form-data
 Idempotency-Key: ...
 ```
 
-Fields:
+Các trường:
 
 ```text
 file
@@ -539,7 +539,7 @@ source_system
 mapping_profile_id? 
 ```
 
-Response `202 Accepted`:
+Phản hồi `202 Accepted`:
 
 ```json
 {
@@ -555,13 +555,13 @@ Response `202 Accepted`:
 
 ---
 
-## 7.2 Save/Update Mapping
+## 7.2 Lưu/Cập nhật Ánh xạ (Save/Update Mapping)
 
 ```http
 PUT /api/v1/import-jobs/{id}/mapping
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -576,17 +576,17 @@ Request:
 }
 ```
 
-Response sets job to `MAPPED`.
+Phản hồi chuyển công việc sang trạng thái `MAPPED`.
 
 ---
 
-## 7.3 Preview Import
+## 7.3 Xem trước Nhập dữ liệu (Preview Import)
 
 ```http
 POST /api/v1/import-jobs/{id}/preview
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -594,18 +594,18 @@ Request:
 }
 ```
 
-Response shows normalized preview without committing Feedback.
+Phản hồi hiển thị bản xem trước đã chuẩn hóa mà không commit Feedback.
 
 ---
 
-## 7.4 Validate Import
+## 7.4 Xác thực Nhập dữ liệu (Validate Import)
 
 ```http
 POST /api/v1/import-jobs/{id}/validate
 Idempotency-Key: ...
 ```
 
-Response:
+Phản hồi:
 
 ```text
 202 Accepted
@@ -622,13 +622,13 @@ Response:
 
 ---
 
-## 7.5 Get Import Job
+## 7.5 Lấy thông tin công việc Nhập dữ liệu (Get Import Job)
 
 ```http
 GET /api/v1/import-jobs/{id}
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -646,13 +646,13 @@ Response:
 
 ---
 
-## 7.6 Import Errors
+## 7.6 Lỗi Nhập dữ liệu (Import Errors)
 
 ```http
 GET /api/v1/import-jobs/{id}/errors
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 field_name
@@ -663,14 +663,14 @@ cursor
 
 ---
 
-## 7.7 Execute Import
+## 7.7 Thực thi Nhập dữ liệu (Execute Import)
 
 ```http
 POST /api/v1/import-jobs/{id}/execute
 Idempotency-Key: ...
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -679,7 +679,7 @@ Request:
 }
 ```
 
-Response:
+Phản hồi:
 
 ```text
 202 Accepted
@@ -687,35 +687,35 @@ Response:
 
 ---
 
-## 7.8 Retry Import
+## 7.8 Thử lại Nhập dữ liệu (Retry Import)
 
 ```http
 POST /api/v1/import-jobs/{id}/retry
 ```
 
-Retry only failed/uncommitted work according to idempotency rules.
+Chỉ thử lại các công việc bị lỗi/chưa commit theo các quy tắc idempotency.
 
 ---
 
-## 7.9 Cancel Import
+## 7.9 Hủy Nhập dữ liệu (Cancel Import)
 
 ```http
 POST /api/v1/import-jobs/{id}/cancel
 ```
 
-Queued/processing job transitions to `CANCELLING` then `CANCELLED` when safely stopped.
+Công việc đang trong hàng chờ/đang xử lý sẽ chuyển sang `CANCELLING` sau đó là `CANCELLED` khi dừng an toàn.
 
 ---
 
-# 8. Feedback Workspace APIs
+# 8. Các API Không gian làm việc Phản hồi (Feedback Workspace APIs)
 
-## 8.1 List Feedback Items
+## 8.1 Liệt kê các Mục phản hồi (List Feedback Items)
 
 ```http
 GET /api/v1/feedback-items
 ```
 
-Main filters:
+Các bộ lọc chính:
 
 ```text
 project_id
@@ -749,7 +749,7 @@ limit
 cursor
 ```
 
-Default item response:
+Phản hồi mục mặc định:
 
 ```json
 {
@@ -778,51 +778,51 @@ Default item response:
 }
 ```
 
-Raw content is never returned by this collection endpoint.
+Nội dung thô không bao giờ được trả về bởi endpoint bộ sưu tập này.
 
 ---
 
-## 8.2 Get Feedback Envelope
+## 8.2 Lấy Vỏ bọc Phản hồi (Get Feedback Envelope)
 
 ```http
 GET /api/v1/feedback/{feedback_id}
 ```
 
-Default response returns masked content and provenance.
+Phản hồi mặc định trả về nội dung đã được che (masked content) và nguồn gốc dữ liệu (provenance).
 
-Raw content requires explicit endpoint/privilege; see §8.5.
+Nội dung thô yêu cầu endpoint/quyền hạn rõ ràng; xem §8.5.
 
 ---
 
-## 8.3 Get Feedback Item Detail
+## 8.3 Lấy chi tiết Mục phản hồi (Get Feedback Item Detail)
 
 ```http
 GET /api/v1/feedback-items/{feedback_item_id}
 ```
 
-Includes:
+Bao gồm:
 
 ```text
-masked text
-source provenance
-location
-affected channels
-current classification
-latest predictions summary
-decision/review summary
-hotspot links
-split lineage
+văn bản đã che
+nguồn gốc dữ liệu
+vị trí
+các kênh bị ảnh hưởng
+phân loại hiện tại
+tóm tắt các dự đoán mới nhất
+tóm tắt quyết định/xem xét
+liên kết điểm nóng
+dòng dõi chia tách (split lineage)
 ```
 
 ---
 
-## 8.4 Affected Channels
+## 8.4 Các kênh bị ảnh hưởng (Affected Channels)
 
 ```http
 PUT /api/v1/feedback-items/{id}/affected-channels
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -831,17 +831,17 @@ Request:
 }
 ```
 
-This is operational context; taxonomy labels are not created here.
+Đây là ngữ cảnh vận hành; các nhãn phân loại không được tạo tại đây.
 
 ---
 
-## 8.5 Privileged Raw View
+## 8.5 Xem nội dung thô có đặc quyền (Privileged Raw View)
 
 ```http
 POST /api/v1/feedback/{feedback_id}/raw-view
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -849,15 +849,15 @@ Request:
 }
 ```
 
-Requirements:
+Yêu cầu:
 
 ```text
 raw_pii_allowed = true
-reason required
-audit mandatory
+yêu cầu lý do (reason required)
+bắt buộc kiểm toán (audit mandatory)
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -869,17 +869,17 @@ Response:
 }
 ```
 
-Do not expose raw content through generic GET endpoints.
+Không công khai nội dung thô thông qua các endpoint GET dùng chung.
 
 ---
 
-# 9. Feedback Item Split API
+# 9. API Chia tách Mục phản hồi (Feedback Item Split API)
 
 ```http
 POST /api/v1/feedback/{feedback_id}/items/split
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -901,7 +901,7 @@ Request:
 }
 ```
 
-Response `201 Created`:
+Phản hồi `201 Created`:
 
 ```json
 {
@@ -918,24 +918,24 @@ Response `201 Created`:
 }
 ```
 
-Rules:
+Quy tắc:
 
-- original `content_raw` unchanged;
-- source item historical decisions remain;
-- audit mandatory.
+- `content_raw` gốc không đổi;
+- các quyết định lịch sử của mục nguồn vẫn được giữ nguyên;
+- kiểm toán là bắt buộc.
 
 ---
 
-# 10. Prediction APIs
+# 10. Các API Dự đoán (Prediction APIs)
 
-## 10.1 Create Prediction Job
+## 10.1 Tạo công việc dự đoán (Create Prediction Job)
 
 ```http
 POST /api/v1/ai/prediction-jobs
 Idempotency-Key: ...
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -955,7 +955,7 @@ Request:
 }
 ```
 
-Response:
+Phản hồi:
 
 ```text
 202 Accepted
@@ -963,7 +963,7 @@ Response:
 
 ---
 
-## 10.2 Prediction Job Status
+## 10.2 Trạng thái công việc dự đoán (Prediction Job Status)
 
 ```http
 GET /api/v1/ai/prediction-jobs/{job_id}
@@ -971,13 +971,13 @@ GET /api/v1/ai/prediction-jobs/{job_id}
 
 ---
 
-## 10.3 Feedback Item Predictions
+## 10.3 Các dự đoán của Mục phản hồi (Feedback Item Predictions)
 
 ```http
 GET /api/v1/feedback-items/{id}/predictions
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 field_name
@@ -985,29 +985,29 @@ prediction_run_id
 latest_only
 ```
 
-Response groups candidates by field and retains model/taxonomy version.
+Phản hồi nhóm các ứng viên theo trường và giữ nguyên phiên bản mô hình/phân loại.
 
 ---
 
-# 11. Classification Decision APIs
+# 11. Các API Quyết định Phân loại (Classification Decision APIs)
 
-## 11.1 Decision History
+## 11.1 Lịch sử Quyết định (Decision History)
 
 ```http
 GET /api/v1/feedback-items/{id}/decisions
 ```
 
-Returns immutable versions newest first.
+Trả về các phiên bản bất biến, phiên bản mới nhất xếp trước.
 
 ---
 
-## 11.2 Current Classification
+## 11.2 Phân loại hiện tại (Current Classification)
 
 ```http
 GET /api/v1/feedback-items/{id}/current-classification
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -1044,15 +1044,15 @@ Response:
 
 ---
 
-## 11.3 Create Classification Decision
+## 11.3 Tạo Quyết định Phân loại (Create Classification Decision)
 
-Canonical review write:
+Ghi đánh giá chuẩn hóa (canonical review write):
 
 ```http
 POST /api/v1/feedback-items/{id}/decisions
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -1100,36 +1100,36 @@ Request:
 }
 ```
 
-Server behavior:
+Hành vi phía máy chủ:
 
 ```text
-validate expected version
-validate taxonomy release
-derive lifecycle stage from step
-validate issue belongs to service
-validate value_status/FK pairs
-validate SV-10 rule
-insert immutable decision
-update current projection
-write review + audit
+xác thực phiên bản kỳ vọng (expected version)
+xác thực phiên bản phát hành phân loại (taxonomy release)
+rút ra giai đoạn vòng đời từ bước
+xác thực issue thuộc về service
+xác thực cặp value_status/FK
+xác thực quy tắc SV-10
+chèn quyết định bất biến
+cập nhật chiếu hiện tại (current projection)
+ghi thông tin xem xét + kiểm toán
 commit
 ```
 
-Response `201 Created` returns new decision and projection.
+Phản hồi `201 Created` trả về decision và projection mới.
 
 ---
 
-## 11.4 Review Prediction Shortcut
+## 11.4 Phím tắt Xem xét Dự đoán (Review Prediction Shortcut)
 
-System Design exposes:
+Thiết kế hệ thống công khai:
 
 ```http
 POST /api/v1/ai/predictions/{prediction_id}/review
 ```
 
-This endpoint is a UI convenience only. It MUST internally call the same decision application service as `POST /feedback-items/{id}/decisions`.
+Endpoint này chỉ là sự tiện lợi cho giao diện người dùng (UI convenience). Nó BẮT BUỘC phải gọi nội bộ cùng một dịch vụ áp dụng quyết định (decision application service) như `POST /feedback-items/{id}/decisions`.
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -1140,7 +1140,7 @@ Request:
 }
 ```
 
-Allowed actions:
+Các hành động được phép:
 
 ```text
 ACCEPT
@@ -1152,19 +1152,19 @@ SPLIT_REQUIRED
 SKIP
 ```
 
-`ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` create one immutable ClassificationDecision plus ReviewEvent. `SPLIT_REQUIRED` and `SKIP` create only ReviewEvent; actual split uses the separate split endpoint. No mutable "prediction review state" may become an alternative source of truth.
+`ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` tạo ra một ClassificationDecision bất biến cộng với ReviewEvent. `SPLIT_REQUIRED` và `SKIP` chỉ tạo ReviewEvent; việc chia tách thực tế sử dụng endpoint chia tách riêng biệt. Không một "trạng thái xem xét dự đoán" có thể thay đổi (mutable prediction review state) nào được phép trở thành một nguồn sự thật (source of truth) thay thế.
 
 ---
 
-# 12. Review Queue APIs
+# 12. Các API Hàng chờ Xem xét (Review Queue APIs)
 
-Recommended P0 query abstraction:
+Abstraction truy vấn P0 được khuyến nghị:
 
 ```http
 GET /api/v1/review-queue
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 project_id
@@ -1178,7 +1178,7 @@ limit
 cursor
 ```
 
-Queue item:
+Mục hàng chờ:
 
 ```json
 {
@@ -1194,24 +1194,24 @@ Queue item:
 }
 ```
 
-Ordering baseline:
+Baseline thứ tự ưu tiên:
 
 ```text
-safety/hard trigger
-→ severity
-→ oldest pending review
-→ lower confidence
+an toàn / kích hoạt cứng (safety/hard trigger)
+→ mức độ nghiêm trọng (severity)
+→ đánh giá chờ xử lý cũ nhất (oldest pending review)
+→ độ tin cậy thấp hơn (lower confidence)
 ```
 
 ---
 
-# 13. Analytics APIs
+# 13. Các API Phân tích (Analytics APIs)
 
-Analytics endpoints MUST read the governed semantic layer.
+Các endpoint phân tích BẮT BUỘC phải đọc từ lớp nghĩa quản trị (governed semantic layer).
 
-## 13.1 Shared Filter Contract
+## 13.1 Hợp đồng bộ lọc chung (Shared Filter Contract)
 
-All dashboard endpoints accept a common serialized filter context:
+Tất cả các endpoint bảng điều khiển đều chấp nhận một ngữ cảnh bộ lọc được tuần tự hóa (serialized filter context) chung:
 
 ```text
 project_id
@@ -1230,19 +1230,19 @@ sentiment
 operational_severity
 ```
 
-Persona is not accepted as a P0 filter or breakdown dimension.
+Persona không được chấp nhận như một bộ lọc P0 hoặc chiều chi tiết (breakdown dimension).
 
-The same filter object MUST be reusable for drill-down to `/feedback-items`.
+Cùng một đối tượng bộ lọc BẮT BUỘC phải tái sử dụng được cho việc đi sâu (drill-down) tới `/feedback-items`.
 
 ---
 
-## 13.2 Dashboard Summary
+## 13.2 Tóm tắt Bảng điều khiển (Dashboard Summary)
 
 ```http
 GET /api/v1/analytics/summary
 ```
 
-Response:
+Phản hồi:
 
 ```json
 {
@@ -1272,13 +1272,13 @@ Response:
 
 ---
 
-## 13.3 Trend
+## 13.3 Xu hướng (Trend)
 
 ```http
 GET /api/v1/analytics/trend
 ```
 
-Query:
+Truy vấn:
 
 ```text
 metric=item_volume|negative_rate|unknown_rate|active_hotspots
@@ -1288,13 +1288,13 @@ grain=day|week|month
 
 ---
 
-## 13.4 Breakdown
+## 13.4 Chi tiết theo chiều (Breakdown)
 
 ```http
 GET /api/v1/analytics/breakdown
 ```
 
-Query:
+Truy vấn:
 
 ```text
 dimension=service|issue|location|journey_stage|journey_step|service_request_step|intake_channel|affected_channel|sentiment|severity
@@ -1303,9 +1303,9 @@ limit=20
 <shared filters>
 ```
 
-Each bucket returns all requested metrics. `trend` is a time-bucket series under the same dimension/filter context; P0 does not calculate WoW/MoM/YoY comparison.
+Mỗi bucket trả về tất cả các chỉ số được yêu cầu. `trend` là một chuỗi time-bucket trong cùng một ngữ cảnh chiều/bộ lọc; P0 không tính toán so sánh WoW/MoM/YoY.
 
-Example for `dimension=journey_step`:
+Ví dụ cho `dimension=journey_step`:
 
 ```json
 {
@@ -1328,28 +1328,28 @@ Example for `dimension=journey_step`:
 
 ---
 
-## 13.5 Data Quality
+## 13.5 Chất lượng Dữ liệu (Data Quality)
 
 ```http
 GET /api/v1/analytics/data-quality
 ```
 
-Returns:
+Trả về:
 
 ```text
-missing/unknown by field
-SV-10 usage rate
-ineligible count
-unclassified count
-low-confidence prediction count
-stale review queue count
+thiếu/không xác định theo trường
+tỷ lệ sử dụng SV-10
+số lượng không hợp lệ
+số lượng chưa phân loại
+số lượng dự đoán độ tin cậy thấp
+số lượng hàng chờ xem xét bị lỗi thời
 ```
 
 ---
 
-## 13.6 Drill-down Consistency
+## 13.6 Tính nhất quán khi Đi sâu (Drill-down Consistency)
 
-Each analytics result MAY return:
+Mỗi kết quả phân tích CÓ THỂ trả về:
 
 ```json
 {
@@ -1360,19 +1360,19 @@ Each analytics result MAY return:
 }
 ```
 
-UI MUST reuse this context rather than reconstructing filter logic from chart labels.
+UI BẮT BUỘC phải tái sử dụng ngữ cảnh này thay vì dựng lại logic bộ lọc từ các nhãn biểu đồ.
 
 ---
 
-# 14. Hotspot APIs
+# 14. Các API Điểm nóng (Hotspot APIs)
 
-## 14.1 List Hotspots
+## 14.1 Liệt kê các Điểm nóng (List Hotspots)
 
 ```http
 GET /api/v1/hotspots
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 project_id
@@ -1391,36 +1391,36 @@ cursor
 
 ---
 
-## 14.2 Hotspot Detail
+## 14.2 Chi tiết Điểm nóng (Hotspot Detail)
 
 ```http
 GET /api/v1/hotspots/{id}
 ```
 
-Response includes:
+Phản hồi bao gồm:
 
 ```text
-dimensions
-rule/version
-status
-severity
-owner
-first_seen/last_seen
-evidence_count
-evidence feedback items
-timeline
-candidate causes if available
+các chiều (dimensions)
+quy tắc/phiên bản (rule/version)
+trạng thái (status)
+mức độ nghiêm trọng (severity)
+người phụ trách (owner)
+thời điểm thấy lần đầu/lần cuối (first_seen/last_seen)
+số lượng bằng chứng (evidence_count)
+các mục phản hồi bằng chứng (evidence feedback items)
+dòng thời gian (timeline)
+các nguyên nhân ứng viên nếu có (candidate causes if available)
 ```
 
 ---
 
-## 14.3 Acknowledge
+## 14.3 Xác nhận (Acknowledge)
 
 ```http
 POST /api/v1/hotspots/{id}/acknowledge
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -1431,7 +1431,7 @@ Request:
 
 ---
 
-## 14.4 Assign
+## 14.4 Phân công (Assign)
 
 ```http
 POST /api/v1/hotspots/{id}/assign
@@ -1448,23 +1448,23 @@ POST /api/v1/hotspots/{id}/assign
 
 ---
 
-## 14.5 Dismiss
+## 14.5 Bác bỏ (Dismiss)
 
 ```http
 POST /api/v1/hotspots/{id}/dismiss
 ```
 
-Reason is mandatory.
+Lý do là bắt buộc.
 
 ---
 
-## 14.6 Resolve
+## 14.6 Giải quyết (Resolve)
 
 ```http
 POST /api/v1/hotspots/{id}/resolve
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -1476,28 +1476,28 @@ Request:
 
 ---
 
-## 14.7 Reopen
+## 14.7 Mở lại (Reopen)
 
 ```http
 POST /api/v1/hotspots/{id}/reopen
 ```
 
-Allowed from:
+Được phép từ:
 
 ```text
 RESOLVED
 DISMISSED
 ```
 
-Reason required.
+Yêu cầu lý do.
 
 ---
 
-# 15. P1 Only — Investigation / Root Cause APIs
+# 15. Chỉ dành cho P1 — Các API Điều tra / Nguyên nhân gốc rễ (Investigation / Root Cause APIs)
 
-All endpoints in this section are excluded from the P0 OpenAPI document, routing table, authorization matrix and acceptance gate. P0 stops at hotspot evidence/owner/status and basic Candidate Cause.
+Tất cả các endpoint trong phần này đều bị loại khỏi tài liệu OpenAPI, bảng định tuyến (routing table), ma trận phân quyền (authorization matrix) và tiêu chí nghiệm thu (acceptance gate) của P0. P0 dừng lại ở bằng chứng/người phụ trách/trạng thái điểm nóng và Nguyên nhân ứng viên cơ bản.
 
-## 15.1 Investigation Detail
+## 15.1 Chi tiết Điều tra (Investigation Detail)
 
 ```http
 GET /api/v1/investigations/{id}
@@ -1505,25 +1505,25 @@ GET /api/v1/investigations/{id}
 
 ---
 
-## 15.2 Add Evidence
+## 15.2 Thêm bằng chứng (Add Evidence)
 
 ```http
 POST /api/v1/investigations/{id}/evidence
 ```
 
-May use JSON external reference or multipart upload.
+Có thể sử dụng tham chiếu bên ngoài bằng JSON hoặc tải lên multipart.
 
 ---
 
-## 15.3 Confirm Root Cause
+## 15.3 Xác nhận Nguyên nhân gốc rễ (Confirm Root Cause)
 
-Restricted privilege:
+Quyền hạn bị hạn chế:
 
 ```http
 POST /api/v1/investigations/{id}/root-causes
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -1548,19 +1548,19 @@ Request:
 }
 ```
 
-AI MUST NOT call this endpoint as an autonomous confirmer.
+AI BẮT BUỘC KHÔNG ĐƯỢC gọi endpoint này với vai trò là bên xác nhận tự động.
 
 ---
 
-# 16. Audit APIs
+# 16. Các API Kiểm toán (Audit APIs)
 
-Admin/auditor:
+Admin/kiểm toán viên:
 
 ```http
 GET /api/v1/audit-events
 ```
 
-Filters:
+Các bộ lọc:
 
 ```text
 project_id
@@ -1574,20 +1574,20 @@ limit
 cursor
 ```
 
-Raw PII is not returned in audit metadata by default.
+PII thô mặc định không được trả về trong metadata kiểm toán.
 
 ---
 
-# 17. Export APIs
+# 17. Các API Xuất dữ liệu (Export APIs)
 
-P0 exports SHOULD be asynchronous for large datasets.
+Các thao tác xuất dữ liệu P0 NÊN là bất đồng bộ đối với các tập dữ liệu lớn.
 
 ```http
 POST /api/v1/exports
 GET  /api/v1/exports/{id}
 ```
 
-Request:
+Yêu cầu:
 
 ```json
 {
@@ -1604,40 +1604,40 @@ Request:
 }
 ```
 
-Rules:
+Quy tắc:
 
-- `export_allowed` required;
-- `include_raw_content=true` additionally requires `raw_pii_allowed`;
-- raw export reason mandatory;
-- raw export is audited;
-- resulting object uses short-lived signed download URL.
+- bắt buộc có `export_allowed`;
+- `include_raw_content=true` yêu cầu thêm `raw_pii_allowed`;
+- lý do xuất dữ liệu thô là bắt buộc;
+- việc xuất dữ liệu thô sẽ được kiểm toán;
+- đối tượng kết quả sử dụng URL tải xuống được ký có thời hạn ngắn.
 
 ---
 
-# 18. API Permission Matrix
+# 18. Ma trận Quyền hạn API (API Permission Matrix)
 
-| Capability | VIEWER | ANALYST | REVIEWER | PILOT_ADMIN |
+| Khả năng / Quyền hạn (Capability) | VIEWER | ANALYST | REVIEWER | PILOT_ADMIN |
 |---|:---:|:---:|:---:|:---:|
-| View dashboard | ✓ | ✓ | ✓ | ✓ |
-| View masked feedback | ✓ | ✓ | ✓ | ✓ |
-| Run analytics filters | ✓ | ✓ | ✓ | ✓ |
-| Export masked data | policy | ✓ | ✓ | ✓ |
-| View raw content | — | policy | policy | policy |
-| Run AI prediction | — | ✓ | ✓ | ✓ |
-| Create classification decision | — | — | ✓ | ✓ |
-| Split Feedback Item | — | — | ✓ | ✓ |
-| Manage hotspot | — | policy | ✓ | ✓ |
-| Confirm root cause [P1 only] | — | — | privilege | ✓ |
-| Validate/publish taxonomy | — | — | — | ✓ |
-| View audit | — | — | — | ✓ |
+| Xem bảng điều khiển | ✓ | ✓ | ✓ | ✓ |
+| Xem phản hồi đã che | ✓ | ✓ | ✓ | ✓ |
+| Chạy các bộ lọc phân tích | ✓ | ✓ | ✓ | ✓ |
+| Xuất dữ liệu đã che | policy | ✓ | ✓ | ✓ |
+| Xem nội dung thô | — | policy | policy | policy |
+| Chạy dự đoán AI | — | ✓ | ✓ | ✓ |
+| Tạo quyết định phân loại | — | — | ✓ | ✓ |
+| Chia tách Mục phản hồi | — | — | ✓ | ✓ |
+| Quản lý điểm nóng | — | policy | ✓ | ✓ |
+| Xác nhận nguyên nhân gốc rễ [Chỉ P1] | — | — | privilege | ✓ |
+| Xác thực/xuất bản phân loại | — | — | — | ✓ |
+| Xem kiểm toán | — | — | — | ✓ |
 
-`policy` means explicit privilege and project scope are still required.
+`policy` có nghĩa là vẫn bắt buộc phải có quyền hạn (privilege) và phạm vi dự án (project scope) rõ ràng.
 
 ---
 
-# 19. API-to-Database Mapping
+# 19. Ánh xạ API sang Cơ sở dữ liệu (API-to-Database Mapping)
 
-| API Resource | Primary Data Source |
+| Tài nguyên API (API Resource) | Nguồn dữ liệu chính (Primary Data Source) |
 |---|---|
 | `/feedback-items` | `analytics_feedback_item_v1` + workspace joins |
 | `/feedback/{id}` | `feedback` |
@@ -1647,26 +1647,26 @@ Rules:
 | `/current-classification` | `classification_current` |
 | `/analytics/*` | governed semantic layer |
 | `/hotspots` | `hotspot` + evidence/timeline |
-| `/investigations` [P1 only] | investigation/RCA tables |
+| `/investigations` [chỉ P1] | investigation/RCA tables |
 | `/audit-events` | `audit_event` |
-| taxonomy reads | published reference tables |
+| các truy vấn đọc phân loại | các bảng tham chiếu đã xuất bản |
 
 ---
 
-# 20. OpenAPI Requirements
+# 20. Các yêu cầu OpenAPI (OpenAPI Requirements)
 
-FastAPI OpenAPI output MUST define:
+Đầu ra OpenAPI của FastAPI BẮT BUỘC phải định nghĩa:
 
-- all request/response schemas;
-- enums;
-- validation constraints;
-- documented error envelopes;
-- authentication scheme;
-- pagination contract;
-- example payloads;
-- operation IDs stable enough for frontend client generation.
+- tất cả request/response schema;
+- các enum;
+- các ràng buộc xác thực (validation constraints);
+- bao bì lỗi đã được ghi chép tài liệu;
+- cơ chế xác thực (authentication scheme);
+- hợp đồng phân trang;
+- các payload mẫu;
+- các operation ID đủ ổn định cho việc sinh client phía frontend.
 
-Recommended operation IDs:
+Các operation ID được khuyến nghị:
 
 ```text
 listFeedbackItems
@@ -1682,99 +1682,99 @@ listHotspots
 acknowledgeHotspot
 ```
 
-Do not expose ORM models directly as response schemas.
+Không công khai các mô hình ORM trực tiếp dưới dạng response schema.
 
 ---
 
-# 21. Performance Targets
+# 21. Các mục tiêu hiệu năng (Performance Targets)
 
-Subject to pilot sizing:
+Tùy thuộc vào quy mô pilot:
 
 ```text
 GET /feedback-items                 p95 < 3s
 GET /feedback-items/{id}            p95 < 2s
 GET /analytics/summary              p95 < 5s
 GET /analytics/breakdown            p95 < 5s
-simple taxonomy reads               p95 < 1s
+các truy vấn đọc phân loại đơn giản p95 < 1s
 ```
 
-Mutation endpoints that enqueue async work should return quickly with `202 Accepted`.
+Các endpoint thay đổi dữ liệu đưa công việc vào hàng chờ bất đồng bộ nên trả về nhanh chóng với `202 Accepted`.
 
 ---
 
-# 22. Security Requirements
+# 22. Các yêu cầu bảo mật (Security Requirements)
 
-1. HTTPS only outside local development.
-2. Server-side project scope enforcement.
-3. No raw PII in logs/errors.
-4. Raw view/export requires explicit privilege and audit.
-5. Signed object URLs must expire.
-6. Rate-limit expensive search/export/prediction endpoints.
-7. Validate uploaded file type/size/checksum.
-8. Reject unsafe arbitrary sort/filter expressions.
-9. Do not trust role claims supplied by frontend UI.
-10. Correlation IDs are identifiers, not authorization tokens.
-
----
-
-# 23. Contract Tests
-
-P0 contract tests MUST prove:
-
-1. unauthorized project access returns 403/404 according to policy;
-2. taxonomy reads return published stable IDs/codes;
-3. issue-service mismatch returns 422;
-4. stale decision write returns 409;
-5. prediction review creates a Decision, not an alternate truth record;
-6. split does not mutate raw Feedback;
-7. raw content endpoint enforces privilege and audit;
-8. retrying idempotent import does not duplicate Feedback;
-9. analytics drill-down filter context reproduces chart counts;
-10. invalid hotspot state transition returns 422;
-11. SV-10 without `other_reason` returns 422;
-12. `KNOWN` with null reference returns 422;
-13. large async operation returns 202 with job resource;
-14. API never returns raw PII in standard errors.
+1. Chỉ sử dụng HTTPS ngoài môi trường phát triển cục bộ.
+2. Thực thi phạm vi dự án phía máy chủ.
+3. Không đưa PII thô vào log/lỗi.
+4. Việc xem/xuất dữ liệu thô yêu cầu quyền hạn rõ ràng và được kiểm toán.
+5. Các URL đối tượng đã ký phải có thời hạn hết hạn.
+6. Giới hạn tần suất (rate-limit) cho các endpoint tìm kiếm/xuất dữ liệu/dự đoán tốn kém chi phí.
+7. Xác thực loại/kích thước/checksum của tệp được tải lên.
+8. Từ chối các biểu thức sắp xếp/lọc tùy ý không an toàn.
+9. Không tin tưởng các vai trò (role claims) do giao diện frontend cung cấp.
+10. ID liên kết là định danh, không phải là token phân quyền.
 
 ---
 
-# 24. P0 Build Order
+# 23. Kiểm thử Hợp đồng (Contract Tests)
 
-Recommended implementation sequence:
+Các bài kiểm thử hợp đồng P0 BẮT BUỘC phải chứng minh:
+
+1. truy cập dự án không có thẩm quyền trả về 403/404 theo chính sách;
+2. các truy vấn đọc phân loại trả về các ID/mã ổn định đã xuất bản;
+3. việc không khớp giữa issue và service trả về 422;
+4. thao tác ghi quyết định lỗi thời trả về 409;
+5. việc xem xét dự đoán tạo ra một Decision, không phải một bản ghi sự thật thay thế;
+6. việc chia tách không làm thay đổi Feedback thô;
+7. endpoint nội dung thô thực thi phân quyền và kiểm toán;
+8. thử lại việc nhập dữ liệu idempotent không làm trùng lặp Feedback;
+9. ngữ cảnh bộ lọc đi sâu (drill-down) phân tích tái tạo lại đúng số liệu của biểu đồ;
+10. chuyển đổi trạng thái điểm nóng không hợp lệ trả về 422;
+11. SV-10 mà không có `other_reason` sẽ trả về 422;
+12. `KNOWN` với tham chiếu null sẽ trả về 422;
+13. thao tác bất đồng bộ lớn trả về 202 cùng tài nguyên công việc;
+14. API không bao giờ trả về PII thô trong các lỗi chuẩn.
+
+---
+
+# 24. Thứ tự xây dựng P0 (P0 Build Order)
+
+Thứ tự triển khai được khuyến nghị:
 
 ```text
-1. auth principal + error envelope + correlation ID
-2. taxonomy read endpoints
-3. import job endpoints
-4. feedback list/detail
-5. prediction job/read endpoints
-6. decision/current-classification endpoints
-7. review queue
-8. analytics summary/breakdown/trend
-9. hotspot list/detail/mutations
-10. split workflow
-11. privileged raw view/export
-12. taxonomy validate/publish admin endpoints
-13. audit query endpoint
+1. chủ thể xác thực + bao bì lỗi + ID liên kết
+2. các endpoint đọc phân loại
+3. các endpoint công việc nhập dữ liệu
+4. danh sách/chi tiết phản hồi
+5. các endpoint công việc/đọc dự đoán
+6. các endpoint quyết định/phân loại hiện tại
+7. hàng chờ xem xét
+8. tóm tắt/chi tiết/xu hướng phân tích
+9. danh sách/chi tiết/thay đổi điểm nóng
+10. luồng công việc chia tách
+11. xem/xuất dữ liệu thô có đặc quyền
+12. các endpoint admin xác thực/xuất bản phân loại
+13. endpoint truy vấn kiểm toán
 ```
 
 ---
 
-# 25. API Acceptance Criteria
+# 25. Tiêu chí nghiệm thu API (API Acceptance Criteria)
 
-The P0 API is build-ready when:
+API P0 đã sẵn sàng xây dựng khi:
 
-- OpenAPI schemas match `05_Data_Model.md`;
-- no endpoint permits mutation that violates append-only ledgers;
-- all classification writes use the same application service;
-- version conflict behavior is standardized;
-- stable IDs/codes are used in filters;
-- taxonomy is not hard-coded in UI/backend handlers;
-- analytics and drill-down share one filter semantics;
-- analytics breakdown supports `item_volume`, `negative_rate`, `active_hotspots`, and `trend` for Journey/Service and supports `affected_channel` filter/dimension;
-- Persona is rejected as a P0 analytics filter/dimension;
-- all review writes use the seven canonical actions with correct Decision-versus-ReviewEvent behavior;
-- P0 exposes no Investigation/Confirmed Root Cause/Corrective/Preventive mutation;
-- raw PII boundary is explicit and audited;
-- contract tests pass;
-- UI can implement every required P0 flow without direct database assumptions.
+- Các OpenAPI schema khớp với `05_Data_Model.md`;
+- Không có endpoint nào cho phép thay đổi dữ liệu vi phạm sổ cái chỉ ghi thêm (append-only ledgers);
+- Tất cả các thao tác ghi phân loại đều sử dụng cùng một dịch vụ ứng dụng;
+- Hành vi xung đột phiên bản được chuẩn hóa;
+- Các ID/mã ổn định được sử dụng trong các bộ lọc;
+- Phân loại không bị mã hóa cứng trong UI/handler phía backend;
+- Phân tích và đi sâu (drill-down) dùng chung một ngữ nghĩa bộ lọc;
+- Phân tích chi tiết (breakdown) hỗ trợ `item_volume`, `negative_rate`, `active_hotspots`, và `trend` cho Hành trình/Dịch vụ và hỗ trợ bộ lọc/chiều `affected_channel`;
+- Persona bị từ chối như một bộ lọc/chiều phân tích của P0;
+- Tất cả các thao tác ghi xem xét đều sử dụng 7 hành động chuẩn hóa với hành vi Quyết định-so với-Sự kiện xem xét (Decision-versus-ReviewEvent) chính xác;
+- P0 không công khai bất kỳ thao tác thay đổi dữ liệu nào về Điều tra/Nguyên nhân gốc rễ đã xác nhận/Hành động khắc phục/Hành động phòng ngừa;
+- Ranh giới PII thô rõ ràng và được kiểm toán;
+- Các bài kiểm thử hợp đồng vượt qua;
+- UI có thể triển khai mọi luồng P0 bắt buộc mà không cần các giả định trực tiếp về cơ sở dữ liệu.

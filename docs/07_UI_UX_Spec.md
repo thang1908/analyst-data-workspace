@@ -1,6 +1,6 @@
-# 07 — UI/UX Specification
+# 07 — Đặc tả UI/UX
 
-# CX Journey, Service & Root Cause Intelligence Platform
+# Nền tảng Phân tích Trải nghiệm Khách hàng, Dịch vụ & Nguyên nhân Gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
 **Version:** 2.1  
 **Status:** P0 CX-First UI/UX Baseline  
@@ -10,13 +10,13 @@
 
 ---
 
-# 1. Purpose
+# 1. Mục đích
 
-This document defines the UI/UX architecture for the P0 CX Platform.
+Tài liệu này xác định kiến trúc UI/UX cho Nền tảng CX P0 (P0 CX Platform).
 
-The product must present itself as a **Customer Experience Intelligence Platform**, not as a ticket-management system.
+Sản phẩm phải thể hiện là một **Nền tảng Phân tích Trải nghiệm Khách hàng (Customer Experience Intelligence Platform)**, chứ không phải là một hệ thống quản lý yêu cầu/vé (ticket-management system).
 
-The UI must guide users through the following business question chain:
+Giao diện người dùng (UI) phải dẫn dắt người dùng qua chuỗi câu hỏi nghiệp vụ sau:
 
 ```text
 CX đang tốt hay xấu?
@@ -38,7 +38,7 @@ Candidate Cause là gì?
 Confirmed Root Cause và improvement action là gì?
 ```
 
-The P0 UI is therefore organized around:
+Do đó, UI P0 được tổ chức xoay quanh:
 
 ```text
 CUSTOMER EXPERIENCE
@@ -52,37 +52,37 @@ HOTSPOT & ROOT CAUSE
 ACTION / IMPROVEMENT
 ```
 
-Operational workspaces such as Feedback Explorer, Review Queue and Imports support this intelligence flow but are not treated as primary dashboards.
+Các không gian làm việc vận hành (Operational workspaces) như Feedback Explorer, Review Queue và Imports hỗ trợ luồng phân tích thông minh này nhưng không được coi là các dashboard chính.
 
 ---
 
-# 2. Core UX Positioning
+# 2. Định vị UX Cốt lõi
 
-## 2.1 Product Identity
+## 2.1 Định danh Sản phẩm (Product Identity)
 
-The product is:
+Sản phẩm là:
 
-> A CX Intelligence & Operations Platform that connects customer journey, customer feedback, service failures, hotspots, root causes and improvement actions.
+> Một Nền tảng Phân tích & Vận hành CX (CX Intelligence & Operations Platform) kết nối hành trình khách hàng (customer journey), phản hồi khách hàng (customer feedback), sự cố dịch vụ (service failures), điểm nóng (hotspots), nguyên nhân gốc rễ (root causes) và các hành động cải tiến (improvement actions).
 
-The product is NOT primarily:
+Sản phẩm CÓ BẢN CHẤT KHÔNG PHẢI LÀ:
 
-- a helpdesk;
-- a CRM;
-- a ticketing application;
-- a CMMS;
-- an ERP dashboard;
-- a social listening dashboard.
+- một hệ thống trợ giúp (helpdesk);
+- một hệ thống CRM;
+- một ứng dụng quản lý ticket;
+- một hệ thống CMMS;
+- một dashboard ERP;
+- một dashboard theo dõi mạng xã hội (social listening dashboard).
 
-The UI must therefore prioritize:
+Do đó, UI phải ưu tiên:
 
-1. Customer Experience
-2. Customer Journey
-3. Pain Point
-4. Evidence
-5. Root Cause
-6. Improvement
+1. Customer Experience (Trải nghiệm khách hàng)
+2. Customer Journey (Hành trình khách hàng)
+3. Pain Point (Điểm đau / Vấn đề)
+4. Evidence (Bằng chứng)
+5. Root Cause (Nguyên nhân gốc rễ)
+6. Improvement (Cải tiến)
 
-instead of:
+thay vì:
 
 ```text
 Ticket → Status → Assignee
@@ -90,13 +90,13 @@ Ticket → Status → Assignee
 
 ---
 
-# 3. UX Principles
+# 3. Nguyên tắc UX
 
-## UX-001 — Customer Journey Is the Primary Lens
+## UX-001 — Customer Journey là Ống kính Phân tích Chính
 
-The Customer Lifecycle must be visible as a first-class navigation and analysis structure.
+Hành trình trải nghiệm khách hàng (Customer Lifecycle) phải hiển thị như một cấu trúc điều hướng và phân tích cấp cao nhất (first-class structure).
 
-Canonical stages:
+Các giai đoạn chuẩn hóa (Canonical stages):
 
 ```text
 Nhận thức
@@ -107,15 +107,15 @@ Nhận thức
 → Vận hành
 ```
 
-The UI must allow the user to move from Stage → Step → Service → Issue → Feedback.
+UI phải cho phép người dùng di chuyển từ Stage → Step → Service → Issue → Feedback.
 
 ---
 
-## UX-002 — Evidence Before Interpretation
+## UX-002 — Bằng chứng Trước khi Nhận định
 
-Users should always be able to drill from aggregated CX insight to underlying Feedback Items.
+Người dùng luôn phải có khả năng khoan sâu (drill down) từ thông tin CX tổng hợp xuống các Feedback Items gốc.
 
-Example:
+Ví dụ:
 
 ```text
 Negative Rate: 42%
@@ -131,53 +131,53 @@ IS-07-01
 42 Feedback Items
 ```
 
-No KPI or hotspot should exist as a dead-end metric.
+Không chỉ số KPI hay Hotspot nào được tồn tại như một chỉ số ngõ cấm (dead-end metric).
 
 ---
 
-## UX-003 — Separate Observed Problem from Cause
+## UX-003 — Phân biệt Vấn đề Quan sát được với Nguyên nhân
 
-The UI must distinguish:
+UI phải phân biệt rõ:
 
 ```text
 Issue
-= observed problem / failure pattern
+= vấn đề quan sát được / mẫu sự cố (observed problem / failure pattern)
 
 Candidate Cause
-= investigation hypothesis
+= giả thuyết điều tra (investigation hypothesis)
 
 Confirmed Root Cause
-= evidence-backed conclusion
+= kết luận có bằng chứng xác thực (evidence-backed conclusion)
 ```
 
-AI suggestions must never be presented as confirmed root cause.
+Gợi ý từ AI (AI suggestions) tuyệt đối không được hiển thị như nguyên nhân gốc rễ đã xác nhận (confirmed root cause).
 
 ---
 
-## UX-004 — AI Suggestion ≠ Accepted Truth
+## UX-004 — Gợi ý của AI ≠ Sự thật được Chấp nhận
 
-The UI must visually distinguish:
+UI phải phân biệt trực quan:
 
 ```text
-AI Prediction
-Human/Source Decision
-Current Classification
+AI Prediction (Dự đoán từ AI)
+Human/Source Decision (Quyết định từ Con người/Nguồn)
+Current Classification (Phân loại Hiện tại)
 ```
 
-AI suggestions can help reviewers but must not look automatically accepted.
+Các gợi ý từ AI có thể hỗ trợ người duyệt (reviewers) nhưng không được trông như đã tự động chấp nhận.
 
 ---
 
-## UX-005 — Customer Lifecycle ≠ Service Request Lifecycle
+## UX-005 — Vòng đời Khách hàng ≠ Vòng đời Yêu cầu Dịch vụ
 
-The UI must present two separate dimensions:
+UI phải thể hiện hai chiều độc lập:
 
 ```text
-Customer Lifecycle
-Service Request Lifecycle
+Customer Lifecycle (Vòng đời Khách hàng)
+Service Request Lifecycle (Vòng đời Yêu cầu Dịch vụ)
 ```
 
-Example:
+Ví dụ:
 
 ```text
 Customer Lifecycle:
@@ -187,15 +187,15 @@ Service Request Lifecycle:
 SRV-02 · Gửi yêu cầu
 ```
 
-An `SRV-*` value must never appear inside Customer Journey navigation.
+Giá trị `SRV-*` không bao giờ được xuất hiện bên trong thanh điều hướng Customer Journey.
 
 ---
 
-## UX-006 — Analytics Must Tell a Story
+## UX-006 — Phân tích Phải Kể một Câu chuyện
 
-Each dashboard must answer one clear question.
+Mỗi dashboard phải trả lời một câu hỏi rõ ràng.
 
-The four P0 dashboards are:
+Bốn dashboard P0 gồm:
 
 ```text
 01 CX Overview
@@ -204,43 +204,43 @@ The four P0 dashboards are:
 04 Hotspot & Root Cause
 ```
 
-Together they form one analytical story rather than four disconnected dashboards.
+Cùng nhau, chúng tạo thành một câu chuyện phân tích thay vì bốn dashboard rời rạc.
 
 ---
 
-## UX-007 — Wide Enterprise Workspace
+## UX-007 — Không gian Làm việc Doanh nghiệp Khung rộng
 
-The desktop UI should use a wide-frame enterprise layout.
+UI desktop nên sử dụng bố cục doanh nghiệp khung rộng (wide-frame enterprise layout).
 
-Recommended desktop composition:
+Bố cục desktop đề xuất:
 
 ```text
 Sidebar: 200–240px
-Content: remaining width
-Max content width: none or very high
-Primary dashboard grid: 12 columns
+Content: phần chiều rộng còn lại
+Max content width: không giới hạn hoặc rất rộng
+Primary dashboard grid: 12 cột
 ```
 
-Avoid:
+Tránh:
 
-- excessive small cards;
-- overly decorative widgets;
-- consumer-app layouts;
-- oversized whitespace;
-- cards with no drill-down purpose.
+- quá nhiều thẻ (cards) nhỏ;
+- widget quá trang trí;
+- bố cục kiểu ứng dụng tiêu dùng (consumer-app);
+- khoảng trắng quá lớn;
+- các thẻ không có mục đích khoan sâu (drill-down).
 
-Prefer:
+Ưu tiên:
 
-- wide analysis tables;
-- ranked lists;
-- large trend charts;
-- journey visualization;
-- side-by-side evidence panels;
-- dense but readable operational data.
+- bảng phân tích rộng;
+- danh sách xếp hạng;
+- biểu đồ xu hướng lớn;
+- trực quan hóa hành trình (journey visualization);
+- bảng bằng chứng đặt song song (side-by-side evidence panels);
+- dữ liệu vận hành cô đọng nhưng dễ đọc.
 
 ---
 
-# 4. Information Architecture
+# 4. Kiến trúc Thông tin (Information Architecture)
 
 ```text
 CX PLATFORM
@@ -265,11 +265,11 @@ GOVERNANCE
 
 ---
 
-# 5. Global Application Shell
+# 5. Khung Ứng dụng Toàn cục (Global Application Shell)
 
 ## 5.1 Left Sidebar
 
-Recommended navigation:
+Điều hướng đề xuất:
 
 ```text
 CX Platform
@@ -293,7 +293,7 @@ GOVERNANCE
   Audit
 ```
 
-Optional badge examples:
+Ví dụ badge tùy chọn:
 
 ```text
 Review Queue   128
@@ -305,7 +305,7 @@ Imports           1
 
 ## 5.2 Top Bar
 
-Contains:
+Bao gồm:
 
 ```text
 Project Selector
@@ -314,9 +314,9 @@ Date Context
 User / Role
 ```
 
-Project selector must enforce authorized scope.
+Project selector phải thực thi đúng phạm vi được phân quyền (authorized scope).
 
-Example:
+Ví dụ:
 
 ```text
 Vinhomes Symphony ▼
@@ -324,11 +324,11 @@ Vinhomes Symphony ▼
 
 ---
 
-# 6. Global Filter Model
+# 6. Mô hình Bộ lọc Toàn cục (Global Filter Model)
 
-All dashboards should share a consistent filter vocabulary.
+Tất cả các dashboard nên chia sẻ một tập bộ lọc thống nhất.
 
-Primary filters:
+Các bộ lọc chính:
 
 ```text
 Project
@@ -351,18 +351,18 @@ Sentiment
 Operational Severity
 ```
 
-Context-sensitive rules:
+Quy tắc phụ thuộc ngữ cảnh:
 
 ```text
-Stage → narrows Journey Step
-Service → narrows Issue
-Issue → belongs to selected Service
-Location → hierarchical selector
+Stage → thu hẹp Journey Step
+Service → thu hẹp Issue
+Issue → thuộc về Service đã chọn
+Location → bộ chọn phân cấp (hierarchical selector)
 ```
 
-Filter chips should show stable code + localized label.
+Các chip bộ lọc phải hiển thị mã cố định (stable code) + nhãn bản địa hóa (localized label).
 
-Example:
+Ví dụ:
 
 ```text
 Service:
@@ -373,11 +373,11 @@ SV-07 · Kỹ thuật, tiện ích & tài sản chung
 
 # 7. Dashboard 01 — CX Overview
 
-## 7.1 Purpose
+## 7.1 Mục đích
 
-Answer:
+Trả lời:
 
-> Customer Experience overall đang như thế nào, và đâu là vùng trải nghiệm cần chú ý nhất?
+> Trải nghiệm khách hàng (Customer Experience) tổng thể đang như thế nào, và đâu là vùng trải nghiệm cần chú ý nhất?
 
 Route:
 
@@ -387,7 +387,7 @@ Route:
 
 ---
 
-## 7.2 Primary Layout
+## 7.2 Bố cục Chính
 
 ```text
 ┌───────────────────────────────────────────────────────────────────────────┐
@@ -406,9 +406,9 @@ Route:
 
 ---
 
-## 7.3 KPI Summary
+## 7.3 Tóm tắt KPI (KPI Summary)
 
-P0 cards:
+Thẻ P0:
 
 ```text
 Negative Rate
@@ -417,7 +417,7 @@ Active Hotspots
 Unknown / Ineligible Rate
 ```
 
-Optional secondary metrics:
+Các chỉ số phụ tùy chọn:
 
 ```text
 Unknown Rate
@@ -426,14 +426,13 @@ Top Service
 Top Journey Stage
 ```
 
-`CX Score` và `CX Health Index` không phải P0 KPI vì chưa có formula được phê duyệt. Không dùng hai nhãn này trên card, chart, status hoặc navigation P0.
+`CX Score` và `CX Health Index` không phải P0 KPI vì chưa có công thức được phê duyệt. Không dùng hai nhãn này trên card, chart, status hoặc navigation P0.
 
 ---
 
-
 ## 7.4 Reference Wide-Frame Wireframe
 
-> Wireframe này là **bố cục tham chiếu cho implementation**, không phải final visual design. Dev/design có thể thay đổi typography, spacing, component styling nhưng phải giữ hierarchy thông tin và drill-down logic.
+> Wireframe này là **bố cục tham chiếu cho việc triển khai (implementation)**, không phải thiết kế đồ họa cuối cùng (final visual design). Đội ngũ phát triển/thiết kế có thể thay đổi typography, spacing, component styling nhưng phải giữ nguyên thứ bậc thông tin (hierarchy) và logic khoan sâu (drill-down).
 
 ```text
 ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -477,33 +476,33 @@ Top Journey Stage
 └─────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Wireframe Interaction Contract
+### Hợp đồng Tương tác Wireframe (Wireframe Interaction Contract)
 
 ```text
 Click Journey Stage
 → Customer Journey Dashboard
-→ preserve Project / Date / Location filters
+→ duy trì các bộ lọc Project / Date / Location
 
 Click Pain Point
 → Service & Pain Points Dashboard
-→ preserve Service / Issue context
+→ duy trì ngữ cảnh Service / Issue
 
 Click Hotspot
 → Hotspot & Root Cause Dashboard
-→ open selected hotspot
+→ mở hotspot được chọn
 
 Click KPI / Trend point
 → Feedback Explorer
-→ same governed filter context
+→ cùng ngữ cảnh bộ lọc đã được quản trị
 ```
 
 ---
 
 # 8. CX Overview — Customer Journey Hero
 
-The central visual of the overview should be the six lifecycle stages.
+Hình ảnh trung tâm của trang Overview nên là 6 giai đoạn vòng đời (lifecycle stages).
 
-Example:
+Ví dụ:
 
 ```text
 NHẬN THỨC
@@ -530,7 +529,7 @@ VẬN HÀNH
 Score / Negative
 ```
 
-Desktop layout:
+Bố cục Desktop:
 
 ```text
 ┌────────────┐ → ┌────────────┐ → ┌────────────┐ → ┌────────────┐ → ┌────────────┐ → ┌────────────┐
@@ -539,25 +538,25 @@ Desktop layout:
 └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘
 ```
 
-Clicking any stage:
+Nhiệm vụ khi nhấp vào bất kỳ giai đoạn nào:
 
 ```text
 → Customer Journey Dashboard
-→ selected Stage preserved
-→ same global filter context
+→ Stage đã chọn được duy trì
+→ cùng ngữ cảnh bộ lọc toàn cục
 ```
 
 ---
 
-# 9. CX Overview — Experience Trend
+# 9. CX Overview — Xu hướng Trải nghiệm (Experience Trend)
 
-Recommended chart:
+Biểu đồ đề xuất:
 
 ```text
-Time-series line chart
+Biểu đồ đường theo chuỗi thời gian (Time-series line chart)
 ```
 
-Toggle metric:
+Chỉ số bật/tắt (Toggle metric):
 
 ```text
 Feedback Volume
@@ -566,45 +565,45 @@ Unknown Rate
 Hotspot Count
 ```
 
-Optional comparison:
+So sánh tùy chọn:
 
 ```text
-Previous period
-MoM
-YoY
+Kỳ trước (Previous period)
+MoM (So với tháng trước)
+YoY (So với cùng kỳ năm trước)
 ```
 
 Tooltip:
 
 ```text
-Date
-Metric value
-Delta
-Feedback count
+Ngày (Date)
+Giá trị chỉ số (Metric value)
+Mức thay đổi (Delta)
+Số lượng Feedback (Feedback count)
 ```
 
-Click point:
+Nhấp vào một điểm trên biểu đồ:
 
 ```text
 → Feedback Explorer
-→ same date window/filter context
+→ cùng khung thời gian / ngữ cảnh bộ lọc
 ```
 
 ---
 
 # 10. CX Overview — Top Pain Points
 
-Rank pain points by:
+Xếp hạng pain points theo:
 
 ```text
 Issue
-+ volume
-+ negative rate
-+ trend
-+ hotspot signal
++ volume (số lượng)
++ negative rate (tỷ lệ tiêu cực)
++ trend (xu hướng)
++ hotspot signal (tín hiệu điểm nóng)
 ```
 
-Example:
+Ví dụ:
 
 ```text
 1. Elevator waiting                 1,490
@@ -613,18 +612,18 @@ Example:
 4. Parking access failure             620
 ```
 
-Click:
+Nhấp vào:
 
 ```text
 → Service & Pain Points Dashboard
-→ pre-select Issue / Service
+→ chọn trước Issue / Service
 ```
 
 ---
 
 # 11. CX Overview — Emerging Hotspots
 
-Columns:
+Các cột:
 
 ```text
 Severity
@@ -637,7 +636,7 @@ Status
 Owner
 ```
 
-Example:
+Ví dụ:
 
 ```text
 SEV-2
@@ -650,20 +649,20 @@ INVESTIGATING
 Engineering
 ```
 
-Click:
+Nhấp vào:
 
 ```text
 → Hotspot & Root Cause Dashboard
-→ selected hotspot
+→ hotspot đã chọn
 ```
 
 ---
 
 # 12. Dashboard 02 — Customer Journey
 
-## 12.1 Purpose
+## 12.1 Mục đích
 
-Answer:
+Trả lời:
 
 > Khách hàng gặp khó khăn ở Stage và Step nào trong lifecycle?
 
@@ -675,7 +674,7 @@ Route:
 
 ---
 
-## 12.2 Layout
+## 12.2 Bố cục
 
 ```text
 CUSTOMER JOURNEY
@@ -695,7 +694,6 @@ Top Related Services
 ```
 
 ---
-
 
 ## 12.3 Reference Wide-Frame Wireframe
 
@@ -745,7 +743,7 @@ Top Related Services
 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Drill-Down Contract
+### Hợp đồng Khoan sâu (Drill-Down Contract)
 
 ```text
 Stage
@@ -755,17 +753,17 @@ Stage
 → Feedback Evidence
 ```
 
-The dashboard MUST NOT imply that one Journey Step maps to exactly one Service.
+Dashboard KHÔNG ĐƯỢC hàm ý rằng một Journey Step ánh xạ tương ứng 1-1 tới đúng một Service.
 
 ---
 
 # 13. Customer Journey — Stage Selector
 
-Use the six canonical stages.
+Sử dụng 6 giai đoạn chuẩn hóa (canonical stages).
 
-When a stage is selected, the UI expands its canonical steps.
+Khi một stage được chọn, UI sẽ mở rộng các step chuẩn hóa của nó.
 
-Example:
+Ví dụ:
 
 ```text
 CƯ TRÚ
@@ -797,9 +795,9 @@ Thực hiện thay đổi liên quan căn hộ
 
 ---
 
-# 14. Journey Step Card
+# 14. Thẻ Journey Step (Journey Step Card)
 
-Each Journey Step card shows:
+Mỗi thẻ Journey Step hiển thị:
 
 ```text
 Step code
@@ -810,7 +808,7 @@ Active Hotspots
 Trend
 ```
 
-Example:
+Ví dụ:
 
 ```text
 RES-03
@@ -822,17 +820,17 @@ Ra vào & di chuyển
 ↑ 22%
 ```
 
-Click:
+Nhấp vào:
 
 ```text
-→ Journey Step Detail section
+→ Phần chi tiết Journey Step (Journey Step Detail section)
 ```
 
 ---
 
 # 15. Journey Step Drill-Down
 
-Selected Journey Step shows:
+Journey Step được chọn sẽ hiển thị:
 
 ```text
 RES-03 — Ra vào & di chuyển
@@ -848,31 +846,31 @@ SV-07 Engineering, Utilities & Common Assets
 SV-08 Security, Fire & Emergency
 ```
 
-Important:
+Quan trọng:
 
-Journey Step and Service are N:N.
+Journey Step và Service có mối quan hệ N:N (nhiều - nhiều).
 
-Therefore UI must not imply:
+Do đó UI không được hàm ý:
 
 ```text
-RES-03 = one fixed Service
+RES-03 = một Service cố định
 ```
 
-Instead:
+Thay vào đó:
 
 ```text
 RES-03
    ↓
-Possible / observed related Services
+Các Service liên quan khả thi / quan sát được
 ```
 
 ---
 
 # 16. Dashboard 03 — Service & Pain Points
 
-## 16.1 Purpose
+## 16.1 Mục đích
 
-Answer:
+Trả lời:
 
 > Service nào đang tạo trải nghiệm xấu, và khách hàng đang gặp Issue gì?
 
@@ -884,7 +882,7 @@ Route:
 
 ---
 
-## 16.2 Layout
+## 16.2 Bố cục
 
 ```text
 SERVICE & PAIN POINTS
@@ -904,7 +902,6 @@ Trend
 ```
 
 ---
-
 
 ## 16.3 Reference Wide-Frame Wireframe
 
@@ -963,13 +960,13 @@ Canonical Service
 → representative Feedback
 ```
 
-`Pain Point` is an analytical/display concept. It MUST NOT automatically create a new taxonomy Issue.
+`Pain Point` là một khái niệm phân tích/hiển thị. Nó KHÔNG ĐƯỢC tự động tạo ra một Issue taxonomy mới.
 
 ---
 
-# 17. Service Performance Table
+# 17. Bảng Hiệu năng Dịch vụ (Service Performance Table)
 
-Columns:
+Các cột:
 
 ```text
 Service
@@ -980,7 +977,7 @@ Trend
 Top Issue
 ```
 
-Example:
+Ví dụ:
 
 ```text
 SV-07 Engineering
@@ -993,16 +990,16 @@ IS-07-01
 
 ---
 
-# 18. Selected Service Detail
+# 18. Chi tiết Service được Chọn (Selected Service Detail)
 
-Example:
+Ví dụ:
 
 ```text
 SV-07
 Kỹ thuật, tiện ích & tài sản chung
 ```
 
-Show canonical issues:
+Hiển thị các issue chuẩn hóa (canonical issues):
 
 ```text
 IS-07-01
@@ -1015,7 +1012,7 @@ IS-07-03
 Common Asset or Maintenance Failure
 ```
 
-Each Issue card:
+Mỗi thẻ Issue:
 
 ```text
 Feedback count
@@ -1027,15 +1024,15 @@ Trend
 
 ---
 
-# 19. Pain Point Representation
+# 19. Biểu diễn Pain Point (Pain Point Representation)
 
-In UI copy:
+Trong nội dung văn bản UI:
 
 ```text
 Pain Point
 ```
 
-may represent a human-readable combination of:
+có thể đại diện cho sự kết hợp đọc được của con người giữa:
 
 ```text
 Issue
@@ -1043,7 +1040,7 @@ Issue
 + context
 ```
 
-Example:
+Ví dụ:
 
 ```text
 Issue:
@@ -1053,19 +1050,19 @@ Pain Point:
 “Chờ thang máy lâu vào giờ cao điểm”
 ```
 
-Important:
+Quan trọng:
 
-Do not create a new canonical Issue for every symptom.
+Không tạo ra Issue chuẩn hóa (canonical Issue) mới cho mỗi triệu chứng.
 
-`Pain Point` is a UI/analysis concept; canonical taxonomy remains at Service + Issue level.
+`Pain Point` là một khái niệm UI/phân tích; danh mục phân loại chuẩn hóa (canonical taxonomy) vẫn duy trì ở cấp Service + Issue.
 
 ---
 
-# 20. Top Symptoms
+# 20. Top Symptoms (Triệu chứng Hàng đầu)
 
-Use `symptom_detail` aggregation/clustering.
+Sử dụng tổng hợp/phân cụm `symptom_detail`.
 
-Example:
+Ví dụ:
 
 ```text
 Chờ thang máy lâu
@@ -1075,15 +1072,15 @@ Không gọi được thang
 Điều hòa khu chung không ổn
 ```
 
-These should not automatically become new taxonomy labels.
+Các triệu chứng này không nên tự động trở thành các nhãn danh mục phân loại mới.
 
 ---
 
-# 21. Location Distribution
+# 21. Phân bố theo Vị trí (Location Distribution)
 
-Show where the pain point occurs.
+Hiển thị nơi xảy ra pain point.
 
-Possible views:
+Các góc nhìn có thể có:
 
 ```text
 Project
@@ -1092,21 +1089,21 @@ Zone
 Floor
 ```
 
-P0 may use:
+P0 có thể sử dụng:
 
-- ranked bar chart;
-- table;
-- simple heat ranking.
+- biểu đồ thanh xếp hạng (ranked bar chart);
+- bảng (table);
+- xếp hạng nhiệt đơn giản (simple heat ranking).
 
-GIS/map is P1 unless exact geospatial analysis is needed.
+GIS/bản đồ thuộc phạm vi P1 trừ khi cần phân tích không gian địa lý chính xác.
 
 ---
 
-# 22. Voice of Customer
+# 22. Ý kiến Khách hàng (Voice of Customer)
 
-Show representative masked feedback.
+Hiển thị phản hồi đại diện đã được ẩn danh (masked feedback).
 
-Example:
+Ví dụ:
 
 ```text
 “Buổi sáng đi làm phải chờ thang gần 10 phút.”
@@ -1116,7 +1113,7 @@ Example:
 “Đã thanh toán nhưng phí vẫn hiển thị chưa trả.”
 ```
 
-Each feedback snippet includes:
+Mỗi đoạn trích phản hồi bao gồm:
 
 ```text
 Sentiment
@@ -1125,7 +1122,7 @@ Date
 Location
 ```
 
-Click:
+Nhấp vào:
 
 ```text
 → Feedback Explorer / Item Detail
@@ -1135,9 +1132,9 @@ Click:
 
 # 23. Dashboard 04 — Hotspot & Root Cause
 
-## 23.1 Purpose
+## 23.1 Mục đích
 
-Answer:
+Trả lời:
 
 > Pain Point nào đang trở thành vấn đề vận hành, vì sao nó xảy ra, và doanh nghiệp đang xử lý thế nào?
 
@@ -1149,7 +1146,7 @@ Route:
 
 ---
 
-## 23.2 Layout
+## 23.2 Bố cục
 
 ```text
 HOTSPOT & ROOT CAUSE
@@ -1169,7 +1166,6 @@ Investigation Timeline → Confirmed Root Cause → Corrective/Preventive Action
 ```
 
 ---
-
 
 ## 23.3 Reference Wide-Frame Wireframe
 
@@ -1217,7 +1213,7 @@ Investigation Timeline → Confirmed Root Cause → Corrective/Preventive Action
 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Intelligence-to-Action Contract
+### Hợp đồng Phân tích-đến-Hành động (Intelligence-to-Action Contract)
 
 ```text
 P0:
@@ -1234,13 +1230,13 @@ P1:
 → Resolve / Monitor
 ```
 
-P0 MUST NOT render P1 controls as enabled or imply Candidate Cause is confirmed. When P1 is enabled, the UI MUST show each workflow stage and must not visually skip directly from AI hypothesis to confirmed root cause.
+P0 KHÔNG ĐƯỢC hiển thị các điều khiển P1 dưới dạng bật (enabled) hoặc hàm ý Candidate Cause là đã được xác nhận. Khi P1 được bật, UI PHẢI hiển thị từng giai đoạn của quy trình làm việc và không được bỏ qua trực quan từ giả thuyết AI sang nguyên nhân gốc rễ đã xác nhận.
 
 ---
 
-# 24. Active Hotspots Table
+# 24. Bảng Hotspot Đang Hoạt động (Active Hotspots Table)
 
-Columns:
+Các cột:
 
 ```text
 Severity
@@ -1255,19 +1251,19 @@ First Seen
 Last Seen
 ```
 
-Default sort:
+Sắp xếp mặc định:
 
 ```text
 SEV-1
 → SEV-2
-→ newest/highest trend
+→ mới nhất / xu hướng cao nhất
 ```
 
 ---
 
-# 25. Selected Hotspot — Customer Pain Context
+# 25. Selected Hotspot — Ngữ cảnh Pain Point Khách hàng
 
-Example:
+Ví dụ:
 
 ```text
 Pain Point:
@@ -1297,9 +1293,9 @@ Time concentration:
 
 ---
 
-# 26. Selected Hotspot — Evidence
+# 26. Selected Hotspot — Bằng chứng (Evidence)
 
-Evidence panel may include:
+Bảng bằng chứng có thể bao gồm:
 
 ```text
 Feedback Items
@@ -1308,15 +1304,15 @@ Time pattern
 Location pattern
 ```
 
-P0 uses linked Feedback Items as reproducible hotspot evidence. Operational records, BMS/CMMS references and inspection evidence are introduced with Investigation in P1.
+P0 sử dụng các Feedback Items liên kết như bằng chứng hotspot có thể tái lập. Hồ sơ vận hành, tham chiếu BMS/CMMS và bằng chứng kiểm tra được đưa vào cùng Investigation ở P1.
 
 ---
 
-# 27. Candidate Causes
+# 27. Nguyên nhân Ứng viên (Candidate Causes)
 
-Show hypotheses only.
+Chỉ hiển thị các giả thuyết.
 
-Example:
+Ví dụ:
 
 ```text
 Peak-hour capacity overload          72%
@@ -1324,27 +1320,27 @@ Dispatch configuration               61%
 One elevator unavailable             47%
 ```
 
-Display label:
+Nhãn hiển thị:
 
 ```text
 Candidate Cause
 ```
 
-Never:
+Tuyệt đối không dùng:
 
 ```text
 Root Cause
 ```
 
-before confirmation.
+trước khi xác nhận.
 
 ---
 
-# 28. P1 Only — Investigation Timeline
+# 28. Dành riêng cho P1 — Dòng thời gian Điều tra (Investigation Timeline)
 
-This section is not rendered, routed or called by P0.
+Phần này không được render, định tuyến hoặc gọi bởi P0.
 
-Visual flow:
+Luồng trực quan:
 
 ```text
 Feedback
@@ -1365,7 +1361,7 @@ Corrective Action
 Preventive Action
 ```
 
-Timeline events:
+Các sự kiện trên timeline:
 
 ```text
 Hotspot detected
@@ -1381,11 +1377,11 @@ Hotspot resolved
 
 ---
 
-# 29. P1 Only — Confirmed Root Cause
+# 29. Dành riêng cho P1 — Nguyên nhân Gốc rễ đã Xác nhận (Confirmed Root Cause)
 
-Only display when investigation confirms it.
+Chỉ hiển thị khi quá trình điều tra xác nhận.
 
-Example:
+Ví dụ:
 
 ```text
 Confirmed Root Cause
@@ -1395,7 +1391,7 @@ Confirmed Root Cause
 dispatch configuration not optimized for morning peak.
 ```
 
-Include:
+Bao gồm:
 
 ```text
 Confirmed by
@@ -1405,16 +1401,16 @@ Evidence summary
 
 ---
 
-# 30. P1 Only — Action / Improvement Section
+# 30. Dành riêng cho P1 — Phần Hành động / Cải tiến (Action / Improvement Section)
 
-Sections:
+Các phần:
 
 ```text
 Corrective Actions
 Preventive Actions
 ```
 
-Each action shows:
+Mỗi hành động hiển thị:
 
 ```text
 Description
@@ -1424,7 +1420,7 @@ Status
 Verification
 ```
 
-Example:
+Ví dụ:
 
 ```text
 ✓ Restore elevator
@@ -1444,9 +1440,9 @@ Planned
 
 # 31. Workspace 01 — Feedback Explorer
 
-## 31.1 Purpose
+## 31.1 Mục đích
 
-Operational drill-down to individual evidence.
+Khoan sâu vận hành xuống từng bằng chứng riêng lẻ (individual evidence).
 
 Route:
 
@@ -1454,7 +1450,7 @@ Route:
 /feedback
 ```
 
-Layout:
+Bố cục:
 
 ```text
 ┌────────────────────────────────────────────────┬───────────────────────────────┐
@@ -1467,7 +1463,7 @@ Layout:
 └────────────────────────────────────────────────┴───────────────────────────────┘
 ```
 
-Recommended width:
+Chiều rộng đề xuất:
 
 ```text
 65% list
@@ -1476,9 +1472,9 @@ Recommended width:
 
 ---
 
-# 32. Feedback Explorer Table
+# 32. Bảng Feedback Explorer
 
-Columns:
+Các cột:
 
 ```text
 Reported Time
@@ -1492,7 +1488,7 @@ Location
 Review State
 ```
 
-Optional columns:
+Các cột tùy chọn:
 
 ```text
 Source
@@ -1504,7 +1500,7 @@ Hotspot Link
 
 # 33. Feedback Item Detail
 
-Display:
+Hiển thị:
 
 ```text
 Masked content
@@ -1517,13 +1513,13 @@ Related hotspot
 Split lineage
 ```
 
-Raw content is hidden by default.
+Nội dung gốc (raw content) bị ẩn theo mặc định.
 
 ---
 
-# 34. Classification Review Panel
+# 34. Bảng Duyệt Phân loại (Classification Review Panel)
 
-Sections:
+Các phần:
 
 ```text
 Customer Lifecycle
@@ -1535,7 +1531,7 @@ Operational Severity
 Candidate Causes
 ```
 
-Important UI behavior:
+Hành vi UI quan trọng:
 
 ### Customer Lifecycle
 
@@ -1545,11 +1541,11 @@ Step
 Derived Stage
 ```
 
-Stage is read-only and derived from Step.
+Stage là chỉ đọc (read-only) và được suy ra từ Step.
 
 ### Service Request Lifecycle
 
-Separate group:
+Nhóm riêng biệt:
 
 ```text
 Value Status
@@ -1558,13 +1554,13 @@ Step
 
 ### Primary Service / Issue
 
-Issue selector is constrained by selected Service.
+Bộ chọn Issue bị giới hạn bởi Service đã chọn.
 
 ---
 
-# 35. AI Suggestion Pattern
+# 35. Mẫu Gợi ý từ AI (AI Suggestion Pattern)
 
-Example:
+Ví dụ:
 
 ```text
 AI Suggestion
@@ -1582,13 +1578,13 @@ Confidence: 81%
 [Accept]
 ```
 
-Current accepted value must have a different visual treatment.
+Giá trị được chấp nhận hiện tại phải có cách xử lý trực quan khác biệt.
 
 ---
 
-# 36. Version Conflict UX
+# 36. Trải nghiệm Xung đột Phiên bản (Version Conflict UX)
 
-When another reviewer has updated the item:
+Khi một người duyệt khác đã cập nhật mục này:
 
 ```text
 This item was updated by another reviewer.
@@ -1600,27 +1596,27 @@ Current version: 4
 [Copy My Notes]
 ```
 
-Never silently overwrite.
+Không bao giờ tự động ghi đè âm thầm.
 
 ---
 
-# 37. Split Multi-Intent Feedback
+# 37. Tách Phản hồi Đa Ý định (Split Multi-Intent Feedback)
 
-Action:
+Hành động:
 
 ```text
 Split Feedback
 ```
 
-Use when one source feedback contains multiple independent issues.
+Sử dụng khi một phản hồi nguồn chứa nhiều vấn đề độc lập.
 
-Example:
+Ví dụ:
 
 ```text
 “Thang máy chậm và app không đăng nhập được.”
 ```
 
-Split into:
+Tách thành:
 
 ```text
 Item 1
@@ -1630,12 +1626,12 @@ Item 2
 App không đăng nhập được
 ```
 
-Rules shown in UI:
+Quy tắc hiển thị trên UI:
 
 ```text
-Original Feedback remains unchanged.
-Historical decisions remain available.
-Child items are classified independently.
+Phản hồi gốc (Original Feedback) giữ nguyên không đổi.
+Các quyết định lịch sử (Historical decisions) vẫn được lưu lại.
+Các mục con (Child items) được phân loại độc lập.
 ```
 
 ---
@@ -1648,17 +1644,17 @@ Route:
 /review
 ```
 
-Purpose:
+Mục đích:
 
-> Review AI suggestions efficiently while preserving human control.
+> Duyệt các gợi ý từ AI một cách hiệu quả trong khi vẫn duy trì sự kiểm soát của con người.
 
-Layout:
+Bố cục:
 
 ```text
 Queue List | Review Panel
 ```
 
-Queue priority:
+Độ ưu tiên hàng chờ (Queue priority):
 
 ```text
 Hard trigger / safety
@@ -1670,9 +1666,9 @@ Hard trigger / safety
 
 ---
 
-# 39. Review Queue Actions
+# 39. Hành động trong Review Queue (Review Queue Actions)
 
-Allowed:
+Cho phép:
 
 ```text
 ACCEPT
@@ -1684,9 +1680,9 @@ SPLIT_REQUIRED
 SKIP
 ```
 
-UI labels may be localized/title-cased, but submitted wire values are exactly those above. The first five actions create ClassificationDecision + ReviewEvent; `SPLIT_REQUIRED` and `SKIP` create only ReviewEvent. “Save & Next” is navigation after a successful action, not a review action.
+Nhãn UI có thể được bản địa hóa/định dạng viết hoa chữ cái đầu, nhưng các giá trị wire gửi đi chính xác là các giá trị tiếng Anh ở trên. 5 hành động đầu tiên tạo ra ClassificationDecision + ReviewEvent; `SPLIT_REQUIRED` và `SKIP` chỉ tạo ReviewEvent. “Save & Next” là thao tác điều hướng sau một hành động thành công, không phải là một hành động duyệt.
 
-Do not allow blind bulk acceptance of AI classification in P0.
+Không cho phép chấp nhận hàng loạt mù quáng (blind bulk acceptance) phân loại AI trong P0.
 
 ---
 
@@ -1713,7 +1709,7 @@ Wizard:
 
 # 41. Import Upload
 
-Fields:
+Các trường:
 
 ```text
 Project
@@ -1722,7 +1718,7 @@ File
 Mapping Profile
 ```
 
-Display:
+Hiển thị:
 
 ```text
 Filename
@@ -1734,7 +1730,7 @@ Checksum
 
 # 42. Import Mapping
 
-Two-column mapping:
+Ánh xạ 2 cột:
 
 ```text
 Source Column
@@ -1742,7 +1738,7 @@ Source Column
 Platform Field
 ```
 
-Example:
+Ví dụ:
 
 ```text
 ticket_id
@@ -1762,7 +1758,7 @@ channel
 
 # 43. Import Validation
 
-Summary:
+Tóm tắt:
 
 ```text
 18,546 total
@@ -1770,7 +1766,7 @@ Summary:
 436 invalid
 ```
 
-Error table:
+Bảng lỗi:
 
 ```text
 Row
@@ -1779,11 +1775,11 @@ Error Code
 Message
 ```
 
-No Feedback is committed before Execute.
+Không có Feedback nào được commit trước bước Execute.
 
 ---
 
-# 44. Governance — Data Quality
+# 44. Quản trị — Chất lượng Dữ liệu (Governance — Data Quality)
 
 Route:
 
@@ -1791,11 +1787,11 @@ Route:
 /data-quality
 ```
 
-Purpose:
+Mục đích:
 
-> Monitor whether analytics and AI are trustworthy enough to use.
+> Giám sát xem dữ liệu phân tích và AI có đủ độ tin cậy để sử dụng hay không.
 
-Metrics:
+Chỉ số:
 
 ```text
 Unknown rate
@@ -1810,7 +1806,7 @@ Ineligible items
 
 ---
 
-# 45. Governance — Taxonomy
+# 45. Quản trị — Danh mục Phân loại (Governance — Taxonomy)
 
 Route:
 
@@ -1818,9 +1814,9 @@ Route:
 /admin/taxonomy
 ```
 
-P0 supports governance, not arbitrary production CRUD.
+P0 hỗ trợ quản trị (governance), không phải CRUD sản xuất tùy ý.
 
-Display:
+Hiển thị:
 
 ```text
 Release Version
@@ -1833,7 +1829,7 @@ Checksum
 28 Issues
 ```
 
-Actions:
+Hành động:
 
 ```text
 Validate
@@ -1843,7 +1839,7 @@ Publish
 
 ---
 
-# 46. Governance — Audit
+# 46. Quản trị — Kiểm toán (Governance — Audit)
 
 Route:
 
@@ -1851,7 +1847,7 @@ Route:
 /admin/audit
 ```
 
-Columns:
+Các cột:
 
 ```text
 Time
@@ -1863,15 +1859,15 @@ Reason
 Correlation ID
 ```
 
-Do not expose raw feedback in audit table.
+Không hiển thị phản hồi thô (raw feedback) trong bảng kiểm toán.
 
 ---
 
-# 47. CX Score / CX Health Metric Policy
+# 47. Chính sách Chỉ số CX Score / CX Health
 
-P0 MUST NOT display `CX Score` or `CX Health` as an official KPI because no formula is approved.
+P0 KHÔNG ĐƯỢC hiển thị `CX Score` hoặc `CX Health` dưới dạng một KPI chính thức vì chưa có công thức nào được phê duyệt.
 
-Possible score inputs may include:
+Các dữ liệu đầu vào điểm số có thể gồm:
 
 ```text
 Negative Rate
@@ -1881,9 +1877,9 @@ Resolution Improvement
 Unknown/Data Quality Penalty
 ```
 
-This UI spec does NOT define or approve the business formula. A future version may add the metric only after governance approval and versioned API/metric-definition support.
+Đặc tả UI này KHÔNG xác định hay phê duyệt công thức nghiệp vụ. Một phiên bản trong tương lai có thể thêm chỉ số này chỉ sau khi được phê duyệt quản trị và có hỗ trợ phiên bản API/chỉ số.
 
-Until approved, use explicit metrics:
+Cho đến khi được phê duyệt, hãy sử dụng các chỉ số rõ ràng:
 
 ```text
 Negative Rate
@@ -1892,48 +1888,48 @@ Hotspots
 Trend
 ```
 
-instead of inventing a composite CX Score.
+thay vì tự tạo ra chỉ số tổng hợp CX Score.
 
 ---
 
-# 48. Customer Journey Visualization Rules
+# 48. Quy tắc Trực quan hóa Customer Journey
 
-Customer Journey must remain understandable at two levels:
+Customer Journey phải duy trì tính dễ hiểu ở hai cấp độ:
 
-## Level 1 — Stage
+## Cấp độ 1 — Stage
 
 ```text
 6 stages
 ```
 
-## Level 2 — Step
+## Cấp độ 2 — Step
 
 ```text
 36 canonical steps
 ```
 
-The UI should never display all 36 steps at once on the Overview.
+UI không bao giờ nên hiển thị tất cả 36 steps cùng một lúc trên Overview.
 
-Instead:
+Thay vào đó:
 
 ```text
 Overview
 → 6 Stages
 
 Customer Journey Dashboard
-→ selected Stage
-→ its Steps
+→ Stage đã chọn
+→ các Step của Stage đó
 ```
 
-This avoids information overload.
+Điều này tránh gây quá tải thông tin.
 
 ---
 
-# 49. Service Request Lifecycle Visualization
+# 49. Trực quan hóa Vòng đời Yêu cầu Dịch vụ (Service Request Lifecycle)
 
-Service Request Lifecycle is a secondary dimension.
+Service Request Lifecycle là một chiều phân tích thứ cấp.
 
-It should appear primarily in:
+Nó nên xuất hiện chủ yếu ở:
 
 ```text
 Feedback Explorer
@@ -1942,16 +1938,16 @@ Journey Step detail
 Service detail
 ```
 
-Do not make it compete visually with the main Customer Lifecycle hero.
+Không làm cho nó cạnh tranh trực quan với phần chính Customer Lifecycle.
 
 ---
 
-# 50. Responsive Strategy
+# 50. Chiến lược Đáp ứng (Responsive Strategy)
 
-Primary target:
+Mục tiêu chính:
 
 ```text
-Desktop / large laptop
+Desktop / laptop màn hình lớn
 ```
 
 ### Large Desktop
@@ -1973,7 +1969,7 @@ Feedback detail as drawer
 
 ### Mobile
 
-P0 supports:
+P0 hỗ trợ:
 
 ```text
 Read
@@ -1981,28 +1977,28 @@ Basic drill-down
 Hotspot summary
 ```
 
-but does not promise full high-density reviewer productivity.
+nhưng không cam kết đầy đủ năng suất duyệt mật độ cao cho người duyệt.
 
 ---
 
-# 51. Accessibility
+# 51. Khả năng Truy cập (Accessibility)
 
-Minimum P0:
+P0 tối thiểu:
 
-1. Keyboard navigation.
-2. Visible focus state.
-3. Labels on all form fields.
-4. Status/severity not represented by color only.
-5. Accessible table headers.
-6. Chart textual summary.
-7. Modal focus trap.
-8. WCAG 2.1 AA target for primary workflows.
+1. Điều hướng bằng bàn phím (Keyboard navigation).
+2. Trạng thái focus rõ ràng (Visible focus state).
+3. Nhãn (labels) trên tất cả các trường form.
+4. Trạng thái/độ nghiêm trọng không chỉ được biểu diễn bằng màu sắc.
+5. Tiêu đề bảng truy cập được (Accessible table headers).
+6. Tóm tắt văn bản cho biểu đồ (Chart textual summary).
+7. Giữ focus trong modal (Modal focus trap).
+8. Mục tiêu WCAG 2.1 AA cho các quy trình làm việc chính.
 
 ---
 
-# 52. Loading States
+# 52. Trạng thái Đang tải (Loading States)
 
-Use skeletons for:
+Sử dụng skeletons cho:
 
 ```text
 KPI
@@ -2012,21 +2008,21 @@ Tables
 Detail panels
 ```
 
-When filters change:
+Khi các bộ lọc thay đổi:
 
 ```text
-Keep previous result visible
-Show loading state
-Replace after response
+Giữ kết quả trước đó hiển thị
+Hiển thị trạng thái đang tải (loading state)
+Thay thế sau khi có phản hồi
 ```
 
-Avoid full-page blank loading.
+Tránh tải trang trắng hoàn toàn (full-page blank loading).
 
 ---
 
-# 53. Empty States
+# 53. Trạng thái Trống (Empty States)
 
-Examples:
+Ví dụ:
 
 ```text
 No feedback matches these filters.
@@ -2049,9 +2045,9 @@ Investigation is still in progress.
 
 ---
 
-# 54. Error States
+# 54. Trạng thái Lỗi (Error States)
 
-Example:
+Ví dụ:
 
 ```text
 Couldn't load Customer Journey data.
@@ -2060,42 +2056,42 @@ Request ID: ...
 [Retry]
 ```
 
-Field-level domain errors must appear next to the relevant field.
+Các lỗi tên miền ở cấp trường (field-level domain errors) phải xuất hiện ngay bên cạnh trường tương ứng.
 
 ---
 
-# 55. PII UX
+# 55. UX cho Thông tin Định danh Cá nhân (PII UX)
 
-Default:
+Mặc định:
 
 ```text
 Masked content
 ```
 
-Privileged raw view:
+Chế độ xem thô có đặc quyền (Privileged raw view):
 
 ```text
 View Raw Content
     ↓
-Reason required
+Yêu cầu nhập lý do
     ↓
-Audited API request
+Yêu cầu API được ghi log kiểm toán
     ↓
-Temporary raw display
+Hiển thị thô tạm thời
 ```
 
-Raw content must not be included in:
+Nội dung thô không được đưa vào:
 
-- URLs;
-- analytics events;
-- standard browser telemetry;
-- normal dashboard tables.
+- URL;
+- sự kiện analytics;
+- dữ liệu đo đạc trình duyệt thông thường (standard browser telemetry);
+- các bảng dashboard thông thường.
 
 ---
 
-# 56. UI Component System
+# 56. Hệ thống Thành phần UI (UI Component System)
 
-Core reusable components:
+Các thành phần dùng lại cốt lõi:
 
 ```text
 AppShell
@@ -2143,9 +2139,9 @@ AuditTable
 
 ---
 
-# 57. Design Language
+# 57. Ngôn ngữ Thiết kế (Design Language)
 
-The visual style should be:
+Phong cách trực quan nên là:
 
 ```text
 Professional
@@ -2156,7 +2152,7 @@ Evidence-driven
 Modern but not decorative
 ```
 
-Avoid:
+Tránh:
 
 ```text
 bright consumer gradients everywhere
@@ -2166,7 +2162,7 @@ gaming-style heatmap colors
 UI that resembles a helpdesk SaaS
 ```
 
-Prefer:
+Ưu tiên:
 
 ```text
 neutral surfaces
@@ -2180,9 +2176,9 @@ wide analytical sections
 
 ---
 
-# 58. Dashboard Hierarchy
+# 58. Cấu trúc Phân cấp Dashboard (Dashboard Hierarchy)
 
-Each dashboard should follow:
+Mỗi dashboard nên tuân theo:
 
 ```text
 Context
@@ -2198,7 +2194,7 @@ Evidence
 Drill-down
 ```
 
-Example:
+Ví dụ:
 
 ```text
 Customer Journey
@@ -2218,9 +2214,9 @@ IS-07-01
 
 ---
 
-# 59. Navigation Between Dashboards
+# 59. Điều hướng Giữa các Dashboard (Navigation Between Dashboards)
 
-Required deep-link flow:
+Luồng liên kết sâu bắt buộc (Required deep-link flow):
 
 ```text
 CX Overview
@@ -2230,9 +2226,9 @@ CX Overview
 → Feedback Evidence
 ```
 
-Filters must persist where semantically applicable.
+Các bộ lọc phải duy trì khi có ý nghĩa ngữ cảnh.
 
-Example:
+Ví dụ:
 
 ```text
 Project = Symphony
@@ -2240,11 +2236,11 @@ Date = last 30 days
 Location = S2
 ```
 
-must remain active when moving between dashboards.
+phải duy trì kích hoạt khi di chuyển giữa các dashboard.
 
 ---
 
-# 60. URL Routes
+# 60. Đường dẫn URL (URL Routes)
 
 ```text
 /overview
@@ -2276,136 +2272,136 @@ must remain active when moving between dashboards.
 /admin/audit
 ```
 
-Do not put raw PII in URLs.
+Không đưa PII thô vào URL.
 
 ---
 
-# 61. API Mapping
+# 61. Ánh xạ API (API Mapping)
 
-| UI Surface | API |
+| Bề mặt UI (UI Surface) | API |
 |---|---|
 | CX Overview | `/analytics/summary`, `/analytics/trend`, `/analytics/breakdown`, `/hotspots` |
-| Customer Journey | `/analytics/breakdown?dimension=journey_stage&metrics=item_volume,negative_rate,active_hotspots,trend`, same contract for `journey_step` |
-| Service & Pain Points | `/analytics/breakdown?dimension=service&metrics=item_volume,negative_rate,active_hotspots,trend`, same contract for `issue`, plus `/feedback-items` |
+| Customer Journey | `/analytics/breakdown?dimension=journey_stage&metrics=item_volume,negative_rate,active_hotspots,trend`, cùng cấu trúc cho `journey_step` |
+| Service & Pain Points | `/analytics/breakdown?dimension=service&metrics=item_volume,negative_rate,active_hotspots,trend`, cùng cấu trúc cho `issue`, cộng thêm `/feedback-items` |
 | Hotspot & RCA [P0] | `/hotspots`, `/hotspots/{id}` |
-| Investigation/RCA [P1 only] | `/investigations/{id}` and P1 mutation endpoints |
+| Investigation/RCA [Dành riêng cho P1] | `/investigations/{id}` và các endpoint mutation của P1 |
 | Feedback Explorer | `/feedback-items`, `/feedback-items/{id}` |
 | Review Queue | `/review-queue`, `/ai/predictions/{id}/review`, `/feedback-items/{id}/decisions` |
 | Imports | `/import-jobs/*` |
 | Data Quality | `/analytics/data-quality` |
-| Taxonomy | taxonomy endpoints |
+| Taxonomy | các endpoint taxonomy |
 | Audit | `/audit-events` |
 
 ---
 
-# 62. Main User Flow — Manager
+# 62. Luồng Người dùng Chính — Manager
 
 ```text
-Open CX Overview
+Mở CX Overview
 ↓
-See Cư trú has highest negative rate
+Thấy Cư trú có tỷ lệ tiêu cực cao nhất
 ↓
-Open Customer Journey
+Mở Customer Journey
 ↓
-Select RES-03 Ra vào & di chuyển
+Chọn RES-03 Ra vào & di chuyển
 ↓
-See SV-07 / IS-07-01 concentration
+Thấy sự tập trung vào SV-07 / IS-07-01
 ↓
-Open Service & Pain Points
+Mở Service & Pain Points
 ↓
-See Elevator Waiting is top symptom
+Thấy Elevator Waiting là triệu chứng hàng đầu
 ↓
-Open Hotspot & Root Cause
+Mở Hotspot & Root Cause
 ↓
-See S2 hotspot
+Thấy điểm nóng ở S2
 ↓
-Review evidence, owner/status and Candidate Causes
+Duyệt bằng chứng, người phụ trách/trạng thái và Candidate Causes
 ```
 
 ---
 
-# 63. Main User Flow — CX Analyst
+# 63. Luồng Người dùng Chính — CX Analyst
 
 ```text
-Open CX Overview
+Mở CX Overview
 ↓
-Identify trend anomaly
+Phát hiện bất thường về xu hướng
 ↓
-Drill into Journey
+Khoan sâu vào Journey
 ↓
-Compare Service / Issue
+So sánh Service / Issue
 ↓
-Open representative feedback
+Mở phản hồi đại diện
 ↓
-Validate insight
+Xác thực nhận định
 ↓
-Prepare operational recommendation
+Chuẩn bị đề xuất vận hành
 ```
 
 ---
 
-# 64. Main User Flow — Reviewer
+# 64. Luồng Người dùng Chính — Reviewer
 
 ```text
-Open Review Queue
+Mở Review Queue
 ↓
-Read Feedback evidence
+Đọc bằng chứng Feedback
 ↓
-Review AI suggestions
+Duyệt gợi ý từ AI
 ↓
-Submit one canonical review action
+Gửi một hành động duyệt chuẩn hóa
 ↓
-Save Decision
+Lưu quyết định (Save Decision)
 ↓
-Current Classification updated
+Cập nhật Phân loại Hiện tại (Current Classification)
 ↓
-Analytics reflects accepted item
+Dữ liệu phân tích phản ánh mục đã được chấp nhận
 ```
 
 ---
 
-# 65. Main User Flow — Operations Manager
+# 65. Luồng Người dùng Chính — Operations Manager
 
 ```text
-Open Hotspot & Root Cause
+Mở Hotspot & Root Cause
 ↓
-Review evidence
+Duyệt bằng chứng
 ↓
-Acknowledge hotspot
+Ghi nhận hotspot (Acknowledge hotspot)
 ↓
-Assign owner
+Gán người phụ trách (Assign owner)
 ↓
-Update hotspot status / resolve or dismiss
+Cập nhật trạng thái hotspot / giải quyết hoặc loại bỏ
 
-P1 extension:
-Start Investigation → add evidence → confirm Root Cause → track Corrective/Preventive Actions
+Mở rộng P1:
+Khởi động Investigation → thêm bằng chứng → xác nhận Root Cause → theo dõi Corrective/Preventive Actions
 ```
 
 ---
 
-# 66. Main User Flow — Data Admin
+# 66. Luồng Người dùng Chính — Data Admin
 
 ```text
-Upload file
+Tải file lên (Upload file)
 ↓
-Map columns
+Ánh xạ các cột (Map columns)
 ↓
-Preview
+Xem trước (Preview)
 ↓
-Validate
+Xác thực (Validate)
 ↓
-Execute
+Thực thi (Execute)
 ↓
-Review data quality
+Duyệt chất lượng dữ liệu
 ↓
-Run prediction
+Chạy dự đoán (Run prediction)
 ↓
-Monitor unknown / other rate
+Giám sát tỷ lệ unknown / other
 ```
 
 ---
 
-# 67. P0 Screen Inventory
+# 67. Danh mục Màn hình P0 (P0 Screen Inventory)
 
 ## Dashboards
 
@@ -2433,7 +2429,7 @@ Monitor unknown / other rate
 11 Audit
 ```
 
-Total:
+Tổng cộng:
 
 ```text
 4 dashboards
@@ -2442,14 +2438,14 @@ Total:
 +
 3 governance screens
 =
-11 primary P0 screens
+11 màn hình P0 chính
 ```
 
 ---
 
-# 68. P0 Build Priority
+# 68. Thứ tự Ưu tiên Xây dựng P0 (P0 Build Priority)
 
-Recommended frontend order:
+Thứ tự đề xuất cho frontend:
 
 ```text
 1. App Shell + Global Filters
@@ -2468,39 +2464,38 @@ Recommended frontend order:
 
 ---
 
+# 68A. Quy tắc Triển khai Wireframe (Wireframe Implementation Rule)
 
-# 68A. Wireframe Implementation Rule
+Bốn wireframe dashboard trong tài liệu đặc tả này là **các tham chiếu bố cục chuẩn hóa cho P0 (normative layout references for P0)**.
 
-The four dashboard wireframes in this specification are **normative layout references for P0**.
+Kỹ thuật/thiết kế CÓ THỂ điều chỉnh:
 
-Engineering/design MAY adjust:
+- phong cách trực quan (visual styling);
+- kiểu chữ (typography);
+- khoảng cách (spacing);
+- hệ thống biểu tượng (iconography);
+- thư viện biểu đồ cụ thể (exact chart library);
+- sắp xếp đáp ứng (responsive arrangement).
 
-- visual styling;
-- typography;
-- spacing;
-- iconography;
-- exact chart library;
-- responsive arrangement.
+Kỹ thuật/thiết kế KHÔNG NÊN thay đổi nếu không có sự đánh giá từ phía sản phẩm/thiết kế:
 
-Engineering/design SHOULD NOT change without product/design review:
+- mục đích của dashboard;
+- cấu trúc phân cấp thông tin;
+- mức độ nổi bật của Customer Journey;
+- trình tự khoan sâu (drill-down sequence);
+- mối quan hệ Service → Issue;
+- khả năng truy cập Bằng chứng (Evidence access);
+- sự tách biệt giữa Candidate Cause và Confirmed Root Cause;
+- điều hướng từ dashboard sang workspace;
+- tính duy trì của bộ lọc đã quản trị.
 
-- dashboard purpose;
-- information hierarchy;
-- Customer Journey prominence;
-- drill-down sequence;
-- Service → Issue relationship;
-- Evidence access;
-- Candidate Cause vs Confirmed Root Cause separation;
-- dashboard-to-workspace navigation;
-- governed filter persistence.
-
-When implementation details are ambiguous, use the corresponding wireframe plus the section requirements together as the intended P0 behavior.
+Khi các chi tiết triển khai bị mơ hồ, hãy sử dụng wireframe tương ứng cùng với các yêu cầu của phần đó để làm hành vi dự kiến cho P0.
 
 ---
 
-# 69. First Vertical Slice
+# 69. Lát cắt Dọc Đầu tiên (First Vertical Slice)
 
-Build this first:
+Xây dựng điều này trước tiên:
 
 ```text
 Taxonomy Seed
@@ -2520,7 +2515,7 @@ CX Overview
 Customer Journey drill-down
 ```
 
-This validates:
+Điều này xác thực:
 
 ```text
 Data
@@ -2531,62 +2526,62 @@ Data
 → CX UI
 ```
 
-before implementing advanced root cause workflow.
+trước khi triển khai quy trình nguyên nhân gốc rễ nâng cao.
 
 ---
 
-# 70. P0 UI/UX Acceptance Criteria
+# 70. Tiêu chí Nghiệm thu UI/UX P0 (P0 UI/UX Acceptance Criteria)
 
-The UI/UX is considered build-ready when:
+UI/UX được coi là sẵn sàng xây dựng (build-ready) khi:
 
-1. The product clearly looks and behaves like a CX Platform, not a ticketing tool.
-2. The 6 Customer Lifecycle stages are central to the experience.
-3. Users can drill Stage → Step → Service → Issue → Feedback.
-4. The four dashboards answer four distinct CX questions.
-5. Feedback is always available as evidence behind aggregated insights.
-6. Customer Lifecycle and Service Request Lifecycle are visually separate.
-7. AI Prediction is visibly different from accepted Classification.
-8. Issue is visibly different from Candidate Cause; Confirmed Root Cause is absent in P0 and distinct when P1 is enabled.
-9. P0 Hotspot shows evidence, owner/status and Candidate Cause without RCA mutations; Investigation → Root Cause → Action is P1-only.
-10. Analytics filters persist across dashboard drill-down.
-11. Taxonomy labels are loaded from API, not hard-coded.
-12. PII remains masked by default.
-13. Version conflicts cannot silently overwrite another reviewer.
-14. Service constrains Issue.
-15. Customer Lifecycle Stage is derived from Step.
-16. Dashboard and drill-down counts use the same analytics eligibility logic.
-17. Journey Step and Service/Issue breakdowns show Feedback Volume, Negative Rate, Active Hotspots and Trend from the multi-metric API contract.
-18. Persona is not shown as a P0 filter; Intake Channel and Affected Channel are distinct supported filters.
-19. Review Queue submits exactly seven canonical action values and reflects Decision-versus-ReviewEvent behavior.
-20. The UI supports wide desktop analysis efficiently.
-21. Core workflows have loading, empty, error and permission states.
-22. All operational mutations map to defined API endpoints.
-23. The UI can be implemented without changing the domain model.
+1. Sản phẩm trông và hoạt động rõ ràng như một Nền tảng CX (CX Platform), không phải một công cụ quản lý ticket.
+2. 6 giai đoạn Customer Lifecycle là trung tâm của trải nghiệm.
+3. Người dùng có thể khoan sâu từ Stage → Step → Service → Issue → Feedback.
+4. Bốn dashboard trả lời bốn câu hỏi CX riêng biệt.
+5. Feedback luôn có sẵn làm bằng chứng đằng sau các thông tin phân tích tổng hợp.
+6. Customer Lifecycle và Service Request Lifecycle được tách biệt rõ ràng về mặt trực quan.
+7. AI Prediction khác biệt rõ ràng về mặt trực quan so với Classification đã được chấp nhận.
+8. Issue khác biệt rõ ràng so với Candidate Cause; Confirmed Root Cause vắng mặt ở P0 và phân biệt rõ ràng khi P1 được bật.
+9. P0 Hotspot hiển thị bằng chứng, người phụ trách/trạng thái và Candidate Cause mà không có đột biến RCA; Investigation → Root Cause → Action là dành riêng cho P1.
+10. Bộ lọc Analytics duy trì qua các thao tác khoan sâu dashboard.
+11. Các nhãn Taxonomy được tải từ API, không hard-code.
+12. PII được ẩn danh theo mặc định.
+13. Xung đột phiên bản không thể ghi đè âm thầm lên công việc của người duyệt khác.
+14. Service giới hạn phạm vi của Issue.
+15. Customer Lifecycle Stage được suy ra từ Step.
+16. Số liệu dashboard và khoan sâu sử dụng cùng logic tính điều kiện dữ liệu phân tích.
+17. Phân rã Journey Step và Service/Issue hiển thị Feedback Volume, Negative Rate, Active Hotspots và Trend từ hợp đồng API đa chỉ số.
+18. Persona không được hiển thị như một bộ lọc P0; Intake Channel và Affected Channel là các bộ lọc riêng biệt được hỗ trợ.
+19. Review Queue gửi chính xác 7 giá trị hành động chuẩn hóa và phản ánh hành vi Decision-so-với-ReviewEvent.
+20. UI hỗ trợ hiệu quả việc phân tích trên màn hình desktop rộng.
+21. Các quy trình làm việc cốt lõi có trạng thái đang tải (loading), trống (empty), lỗi (error) và phân quyền (permission).
+22. Tất cả các đột biến vận hành đều ánh xạ tới các endpoint API đã được xác định.
+23. UI có thể được triển khai mà không cần thay đổi mô hình tên miền (domain model).
 
 ---
 
-# 71. P1 Extension Points
+# 71. Các Điểm Mở rộng P1 (P1 Extension Points)
 
-Later versions may add:
+Các phiên bản sau có thể thêm:
 
-- formal CX Score / CX Health model;
-- persona segmentation;
-- NPS/CSAT/CES integrations;
-- journey comparison across projects;
-- anomaly detection;
-- saved dashboards;
-- notification center;
-- SLA/escalation inbox;
-- geographic/map visualization;
-- action effectiveness tracking;
-- before/after CX impact;
-- advanced RCA knowledge graph;
-- collaborative comments;
-- mobile operations workflow;
-- connector health monitoring;
-- taxonomy editing workflow.
+- mô hình CX Score / CX Health chính thức;
+- phân khúc nhân vật (persona segmentation);
+- tích hợp NPS/CSAT/CES;
+- so sánh hành trình giữa các dự án;
+- phát hiện bất thường (anomaly detection);
+- dashboard đã lưu;
+- trung tâm thông báo (notification center);
+- hộp thư đến SLA/leo thang;
+- trực quan hóa địa lý/bản đồ;
+- theo dõi hiệu quả hành động;
+- tác động CX trước/sau;
+- đồ thị kiến thức RCA nâng cao;
+- bình luận cộng tác;
+- quy trình vận hành trên di động;
+- giám sát sức khỏe đầu nối (connector health monitoring);
+- quy trình chỉnh sửa taxonomy.
 
-These must preserve the P0 analytical flow:
+Những điểm này phải duy trì luồng phân tích P0:
 
 ```text
 Experience

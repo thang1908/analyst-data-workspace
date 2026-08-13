@@ -1,16 +1,16 @@
-# 01 — Product Requirements Document
+# 01 — Document Yêu cầu Sản phẩm (Product Requirements Document)
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
-**Version:** 1.3
-**Status:** Pilot Build Baseline / Aligned with Taxonomy 3.0.0 / Pending Named Stakeholder Decisions
-**Domain:** Real Estate / Residential CX & Operations
-**Historical journey source:** `Customer Journey(2).xlsx`
-**Authoritative taxonomy:** `service_taxonomy.md` revision 3.0.0
+**Phiên bản:** 1.3
+**Trạng thái:** Pilot Build Baseline / Căn chỉnh theo Taxonomy 3.0.0 / Đang chờ Quyết định từ Stakeholder chỉ định
+**Lĩnh vực:** Bất động sản / Trải nghiệm khách hàng (CX) & Vận hành Nhà ở
+**Nguồn hành trình lịch sử:** `Customer Journey(2).xlsx`
+**Taxonomy chuẩn (Authoritative taxonomy):** `service_taxonomy.md` phiên bản revision 3.0.0
 
 ---
 
-## 1. Executive Summary
+## 1. Tóm tắt Điều hành (Executive Summary)
 
 CX Platform là nền tảng hợp nhất feedback và dữ liệu trải nghiệm khách hàng, sau đó chuẩn hóa chúng theo:
 
@@ -55,7 +55,7 @@ Làm gì để tránh tái diễn?
 
 ---
 
-## 2. Product Problem
+## 2. Vấn đề Sản phẩm (Product Problem)
 
 Customer Journey đã được khảo sát và chốt nhưng chưa đủ để phục vụ vận hành.
 
@@ -100,7 +100,7 @@ Candidate Cause
 
 ---
 
-## 3. Lifecycle Baseline
+## 3. Khung Lifecycle Cơ sở (Lifecycle Baseline)
 
 Taxonomy 3.0.0 định nghĩa hai chiều lifecycle độc lập: Customer Lifecycle có 6 stage/36 step, bao gồm `Vận hành`, và Service Request Lifecycle có 8 step. `Vận hành` là stage thứ sáu của Customer Lifecycle; Service Request Lifecycle không phải Customer Lifecycle Stage.
 
@@ -140,7 +140,7 @@ Ví dụ, một cư dân phản ánh lỗi thanh toán có thể đồng thời 
 
 ---
 
-## 4. Product Vision
+## 4. Tầm nhìn Sản phẩm (Product Vision)
 
 Xây dựng một **CX Intelligence & Operations Platform** với chu trình:
 
@@ -160,7 +160,7 @@ LEARN
 
 ---
 
-## 5. Product Goals
+## 5. Mục tiêu Sản phẩm (Product Goals)
 
 ### G1 — Unified CX Data
 
@@ -188,7 +188,7 @@ P0 tách Candidate Cause khỏi sự thật đã xác nhận và liên kết evi
 
 ---
 
-## 6. Non-goals — MVP
+## 6. Phạm vi Không thuộc Mục tiêu — MVP (Non-goals — MVP)
 
 MVP **không** nhằm thay thế:
 
@@ -206,7 +206,7 @@ Platform làm lớp CX intelligence/orchestration. Pilot P0 nhập file và lưu
 
 ---
 
-## 7. Core Domain Model
+## 7. Mô hình Miền Cốt lõi (Core Domain Model)
 
 ```text
 Customer / Interaction reference
@@ -295,7 +295,7 @@ Customer Lifecycle và Service Request Lifecycle là hai dimension độc lập.
 
 ---
 
-## 8. Personas
+## 8. Chân dung Người dùng (Personas)
 
 Các Persona dưới đây là product roles, không phải analytics dimension. P0 không có Persona segmentation/filter; nếu bổ sung ở P1 phải có definition, provenance, consent và contract riêng.
 
@@ -314,7 +314,7 @@ Các Persona dưới đây là product roles, không phải analytics dimension.
 
 ---
 
-## 9. Information Architecture
+## 9. Kiến trúc Thông tin (Information Architecture)
 
 ```text
 CX Platform
@@ -347,16 +347,16 @@ CX Platform
 
 ---
 
-## 10. User Stories & Acceptance Criteria
+## 10. Câu chuyện Người dùng & Tiêu chí Chấp nhận (User Stories & Acceptance Criteria)
 
-| Epic                               | User Story      | Persona            | I want                                                                  | So that                                                          | Priority     | Acceptance Criteria                                                                                                                                                                                             |
+| Epic                               | User Story      | Persona            | Tôi muốn                                                                | Để                                                               | Độ ưu tiên   | Tiêu chí Chấp nhận (Acceptance Criteria)                                                                                                                                                                        |
 | ---------------------------------- | --------------- | ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `EPIC-01` Lifecycle Taxonomy     | `US-JRN-01`   | Taxonomy Admin     | publish 6 Customer Lifecycle Stage/36 Step và 8 Service Request Step   | CX data được phân loại đúng hai lifecycle độc lập      | **P0** | Đủ A/C/TR/HO/RES/OPS theo taxonomy 3.0.0; code duy nhất; dictionary riêng; import seed đã validate; draft/approved/published/retired; effective date; không hard-delete.                                 |
-| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-02`   | Taxonomy Admin     | xem dictionary theo taxonomy canonical                                  | team dùng cùng một định nghĩa lifecycle                    | **P0** | Giữ wording approved trong`service_taxonomy.md`; hiển thị code/type/stage/step/version; mọi publish/retire tạo audit.                                                                                    |
+| `EPIC-01` Lifecycle Taxonomy     | `US-JRN-02`   | Taxonomy Admin     | xem dictionary theo taxonomy canonical                                  | team dùng cùng một định nghĩa lifecycle                    | **P0** | Giữ wording approved trong `service_taxonomy.md`; hiển thị code/type/stage/step/version; mọi publish/retire tạo audit.                                                                                    |
 | `EPIC-02` Service Catalog        | `US-SVC-01`   | Taxonomy Admin     | publish Canonical Service/Issue Catalog                                 | feedback được gắn đúng outcome/năng lực vận hành       | **P0** | Release có đúng 10 Service/28 Issue; Service có code, tên VI/EN, outcome definition, in/out scope và default severity; SV-10 có review queue và other-rate monitoring.                                  |
 | `EPIC-02` Service Catalog        | `US-SVC-02`   | Taxonomy Admin     | map Lifecycle Step với nhiều Service                                  | system biết service nào có thể tác động tới từng bước | **P0** | N:N mapping; bật/tắt; lịch sử hiệu lực; API đọc mapping; Customer và Service Request mapping không trộn type.                                                                                        |
 | `EPIC-03` Issue & Cause Taxonomy | `US-ISS-01`   | Service Owner      | quản lý Issue thuộc Service                                          | complaint được chuẩn hóa theo triệu chứng                 | **P0** | Issue thuộc đúng một Service; code unique; có tên VI/EN, definition, inclusion examples, safety flag và severity override; SV-01..SV-09 có 3 Issue, SV-10 có 1 Issue.                                  |
-| `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-01` | Technical Owner    | quản lý Candidate Cause theo Issue                                    | investigation có checklist nguyên nhân nhất quán            | **P1** | Issue↔Cause N:N; suggestion set hỗ trợ nhiều cause có rank/confidence;`UNKNOWN` không đi cùng cause cụ thể.                                                                                         |
+| `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-01` | Technical Owner    | quản lý Candidate Cause theo Issue                                    | investigation có checklist nguyên nhân nhất quán            | **P1** | Issue↔Cause N:N; suggestion set hỗ trợ nhiều cause có rank/confidence; `UNKNOWN` không đi cùng cause cụ thể.                                                                                         |
 | `EPIC-03` Issue & Cause Taxonomy | `US-CAUSE-02` | Technical Owner    | xác nhận Root Cause sau điều tra                                    | giả thuyết không bị coi là sự thật                        | **P1** | Root cause CONFIRMED bắt buộc evidence + confirmed_by + confirmed_at; AI không được confirm.                                                                                                              |
 | `EPIC-04` Feedback Intake        | `US-INT-01`   | CX Analyst         | import feedback từ CSV/XLSX                                            | dữ liệu lịch sử có thể vào platform                       | **P0** | Async job; preview; reusable column mapping; validate; idempotency; error file; partial/failed status; retry; row lineage; batch audit.                                                                         |
 | `EPIC-04` Feedback Intake        | `US-INT-02`   | Integration System | gửi feedback qua API                                                   | feedback mới đi vào platform tự động                       | **P1** | Idempotency key; source/channel; timestamp; content; response trả feedback_id.                                                                                                                                 |
@@ -387,7 +387,7 @@ CX Platform
 
 ---
 
-## 11. Functional Requirements
+## 11. Yêu cầu Chức năng (Functional Requirements)
 
 ### FR-01 — Lifecycle Taxonomy
 
@@ -480,10 +480,10 @@ Import CSV/XLSX là job bất đồng bộ với lifecycle:
 
 ```text
 UPLOADED → MAPPED → VALIDATING → VALIDATED → QUEUED → PROCESSING
-                                                   ├── COMPLETED
-                                                   ├── PARTIAL
-                                                   ├── FAILED
-                                                   └── CANCELLED
+                                                    ├── COMPLETED
+                                                    ├── PARTIAL
+                                                    ├── FAILED
+                                                    └── CANCELLED
 ```
 
 - Preview và validate không ghi feedback production.
@@ -611,7 +611,7 @@ P0 có bốn dashboard basic trong pilot scope với multi-metric breakdown và 
 
 ---
 
-## 12. Feedback Data Model
+## 12. Mô hình Dữ liệu Feedback (Feedback Data Model)
 
 ### 12.1 Feedback envelope
 
@@ -740,7 +740,7 @@ Mọi `*_value_status` dùng enum `KNOWN | UNKNOWN | MISSING | NOT_APPLICABLE`: 
 
 ---
 
-## 13. Business Rules
+## 13. Quy tắc Nghiệp vụ (Business Rules)
 
 ### BR-01
 
@@ -822,7 +822,7 @@ Raw content immutable. Split item, masking, prediction, decision và projection 
 
 ---
 
-## 14. AI Governance
+## 14. Quản trị AI (AI Governance)
 
 P0 vận hành ở chế độ **suggest-only** cho mọi confidence. Confidence chỉ dùng để sắp hàng review và phân tích calibration; không có threshold auto-apply trước khi có gold set và phê duyệt rủi ro theo từng field.
 
@@ -862,7 +862,7 @@ Customer Lifecycle Stage không phải prediction field riêng; hệ thống der
 
 ---
 
-## 15. Hotspot Logic — MVP
+## 15. Logic Hotspot — MVP (Hotspot Logic — MVP)
 
 ### Detection key
 
@@ -875,7 +875,7 @@ service_id
 
 `location_id` phải ở level được cấu hình trong rule, ví dụ Building hoặc Floor; không trộn level trong cùng detection key.
 
-### Deterministic pilot rule
+### Quy tắc Pilot Định tính / Rõ ràng (Deterministic pilot rule)
 
 P0 không dùng anomaly score mơ hồ. Rule baseline:
 
@@ -930,11 +930,11 @@ Hard trigger tạo alert ngay, không chờ hotspot volume. Danh sách trên ch�
 
 ---
 
-## 16. UI/UX Scope — MVP
+## 16. Phạm vi UI/UX — MVP (UI/UX Scope — MVP)
 
 P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module độc lập. Các màn hình có thể dùng tab/drawer nếu vẫn giữ URL/filter context và quyền truy cập.
 
-### Screen 01 — Import Jobs [P0]
+### Màn hình 01 — Import Jobs [P0]
 
 - Upload/mapping profile
 - Preview/validation summary
@@ -954,7 +954,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - Unknown/ineligible rate
 - Mọi KPI/segment drill-down cùng filter context
 
-### Screen 03 — Feedback Workspace [P0]
+### Màn hình 03 — Feedback Workspace [P0]
 
 - Data grid
 - Global filters
@@ -964,7 +964,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - Review status
 - Feedback item count/split indicator
 
-### Screen 04 — Feedback Detail & Decision History [P0]
+### Màn hình 04 — Feedback Detail & Decision History [P0]
 
 - Original content
 - Source
@@ -976,7 +976,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - Related feedback
 - Hotspot/Ticket refs
 
-### Screen 05 — AI Review [P0]
+### Màn hình 05 — AI Review [P0]
 
 - Low confidence queue
 - `ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE`
@@ -1001,7 +1001,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - P0: không hiển thị Investigation, Confirmed Root Cause hoặc Corrective/Preventive Action như chức năng khả dụng
 - P1: Investigation, Confirmed Root Cause, Corrective Action, Preventive Action và RCA đầy đủ
 
-### Screen 09 — Hotspot Detail [P0]
+### Màn hình 09 — Hotspot Detail [P0]
 
 - Trend
 - Related feedback
@@ -1010,7 +1010,7 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 - Owner
 - Acknowledge/assign/dismiss/resolve/reopen timeline
 
-### Screen 10 — Pilot Configuration & Taxonomy [P0 read/validate/publish]
+### Màn hình 10 — Pilot Configuration & Taxonomy [P0 read/validate/publish]
 
 - Customer/Service Request lifecycle dictionary
 - Service tree
@@ -1022,11 +1022,11 @@ P0 ưu tiên workflow end-to-end, không yêu cầu mười navigation module đ
 
 P0 configuration được load từ structured seed/migration đã review; màn hình không hỗ trợ row-level CRUD. Full taxonomy/location/rule editor thuộc P1.
 
-### Screen 11 — Lifecycle-Service Matrix [P1 full editor]
+### Màn hình 11 — Lifecycle-Service Matrix [P1 full editor]
 
 - N:N mapping management
 
-### Screen 12 — Access & Audit [P0 minimal]
+### Màn hình 12 — Access & Audit [P0 minimal]
 
 - Pilot role assignment
 - Raw PII/export privilege
@@ -1034,7 +1034,7 @@ P0 configuration được load từ structured seed/migration đã review; màn 
 
 ---
 
-## 17. API Baseline
+## 17. Khung API Cơ sở (API Baseline)
 
 ### Feedback
 
@@ -1124,9 +1124,9 @@ POST /api/v1/rca
 
 ---
 
-## 18. Non-functional Requirements
+## 18. Yêu cầu Phi chức năng (Non-functional Requirements)
 
-### Performance
+### Hiệu năng (Performance)
 
 - Feedback list/filter p95 < 3s cho standard query trong pilot sizing đã ký duyệt.
 - Feedback detail p95 < 2s.
@@ -1134,7 +1134,7 @@ POST /api/v1/rca
 - Import và AI batch xử lý async; UI không chờ inference theo từng item để hoàn tất upload.
 - Trước implementation phải chốt pilot sizing: số row lịch sử, daily ingest, concurrent user, retention và file-size limit. Nếu chưa chốt, latency target không được dùng để phê duyệt kiến trúc production.
 
-### Reliability
+### Độ tin cậy (Reliability)
 
 - Core feedback read/decision availability target ≥ 99.9% sau khi pilot được đưa vào production limited.
 - Import phải resumable/retryable.
@@ -1142,7 +1142,7 @@ POST /api/v1/rca
 - Current projection phải rebuild được từ immutable decision snapshots/review events.
 - Backup/restore và recovery test phải phù hợp retention/PII policy được phê duyệt.
 
-### Security
+### Bảo mật (Security)
 
 - SSO/basic RBAC là P0; fine-grained scope theo project/building/service là P1.
 - Pilot user luôn bị giới hạn vào pilot project.
@@ -1150,7 +1150,7 @@ POST /api/v1/rca
 - Mask PII ở analytics/AI khi không cần thiết.
 - Attachment ngoài scope P0; khi đưa vào P1 phải dùng malware scan, access check và signed URL ngắn hạn.
 
-### Observability
+### Khả năng Quan sát (Observability)
 
 - Request correlation ID.
 - API logs.
@@ -1161,9 +1161,9 @@ POST /api/v1/rca
 
 ---
 
-## 19. Success Metrics
+## 19. Chỉ số Thành công (Success Metrics)
 
-### 19.1 Metric semantics
+### 19.1 Ngữ nghĩa của Metric (Metric semantics)
 
 - Đơn vị analytics mặc định là `feedback_item`; UI phải ghi rõ khi KPI đếm feedback envelope.
 - `event_date` dùng `reported_at` theo timezone location/source; fallback `ingested_at` chỉ khi thiếu và phải gắn cờ inferred.
@@ -1179,7 +1179,7 @@ POST /api/v1/rca
 - Household count chỉ tính distinct pseudonymous household key; thiếu key thì metric là `N/A`.
 - Mọi metric lưu `metric_definition_version`; chart và drill-down phải dùng cùng filter, eligibility và version.
 
-### 19.2 Pilot release metrics
+### 19.2 Chỉ số Đợt phát hành Pilot (Pilot release metrics)
 
 - 100% manual decision, taxonomy publish, raw-PII view/export và hotspot state/owner change có audit.
 - 100% import row có outcome và lineage; không silent-drop.
@@ -1188,7 +1188,7 @@ POST /api/v1/rca
 - Issue unknown rate và location unknown rate phải có baseline tuần đầu; target giảm được chốt sau khi biết chất lượng nguồn, không đặt “Issue hoặc UNKNOWN” làm thành công.
 - Hotspot deterministic test tạo đúng một candidate, evidence set đúng, owner/status đúng và không duplicate khi retry.
 
-### 19.3 AI evaluation — không phải auto-apply gate P0
+### 19.3 Đánh giá AI — không phải auto-apply gate P0 (AI evaluation)
 
 Sau khi có `gold_set_v1`, báo cáo target định hướng:
 
@@ -1201,7 +1201,7 @@ Sentiment Macro-F1 ≥ 0.90
 
 Kết quả phải kèm sample size, label coverage, per-label precision/recall, calibration error và confidence interval. Không đạt target không chặn workflow manual của pilot; chỉ chặn quyết định bật auto-apply P1.
 
-### 19.4 Operational outcome
+### 19.4 Kết quả Vận hành (Operational outcome)
 
 - Đo median handling time/item và review queue age trong hai tuần baseline trước khi đặt target giảm.
 - Đo Hotspot MTTD theo định nghĩa trên; target giảm chỉ so với cùng nguồn dữ liệu và rule version.
@@ -1209,7 +1209,7 @@ Kết quả phải kèm sample size, label coverage, per-label precision/recall,
 
 ---
 
-## 20. MVP Scope
+## 20. Phạm vi MVP (MVP Scope)
 
 ### P0 — Pilot Build Baseline
 
@@ -1227,7 +1227,7 @@ P0 là production-limited pilot, không phải rollout vận hành trên toàn d
 
 Các Service/Issue ngoài pilot usage scope vẫn phải có trong structured seed và vượt taxonomy release gate; chúng không bắt buộc có dữ liệu vận hành trong P0.
 
-### P1 — Operational Expansion
+### P1 — Mở rộng Vận hành (Operational Expansion)
 
 1. Full taxonomy Admin UI, approval/rollback và Lifecycle-Service Matrix.
 2. Realtime Feedback API/connectors, saved/shared views và governed export.
@@ -1238,7 +1238,7 @@ Các Service/Issue ngoài pilot usage scope vẫn phải có trong structured se
 7. Fine-grained RBAC theo project/building/service.
 8. Auto-apply label low-risk chỉ sau gold-set calibration, risk sign-off và feature flag.
 
-### P2 — Advanced Intelligence
+### P2 — Trí tuệ Nâng cao (Advanced Intelligence)
 
 1. BMS/IoT và work-order integration sâu.
 2. Predictive maintenance.
@@ -1248,7 +1248,7 @@ Các Service/Issue ngoài pilot usage scope vẫn phải có trong structured se
 
 ---
 
-## 21. Feature Slicing, Build Order & Team Rules
+## 21. Phân chia Tính năng, Thứ tự Xây dựng & Quy tắc Nhóm (Feature Slicing, Build Order & Team Rules)
 
 ### 21.1 Feature slices
 
@@ -1263,7 +1263,7 @@ Các Service/Issue ngoài pilot usage scope vẫn phải có trong structured se
 | `F6 Detect & Own`          | Rule thang máy tạo đúng một hotspot, có evidence, owner và lifecycle                   | P0       |
 | `F7 Operational Action`    | Ticket/SLA/RCA hoặc integration system of record                                             | P1       |
 
-### 21.2 Recommended build order
+### 21.2 Thứ tự xây dựng đề xuất (Recommended build order)
 
 ```text
 F0 Scope + terminology + security/audit contract
@@ -1278,7 +1278,7 @@ F0 Scope + terminology + security/audit contract
 
 Không build AI, chart hoặc hotspot trực tiếp trên raw import table. Tất cả phải đi qua feedback item và current projection contract.
 
-### 21.3 Rules mọi team phải tuân thủ khi build
+### 21.3 Quy tắc mọi team phải tuân thủ khi build
 
 1. **Stable contract first:** schema, enum, API và event contract được review trước UI; change breaking cần migration/version.
 2. **No hard-code taxonomy/rules:** code chỉ dùng stable ID; wording, mapping, threshold, owner và effective date nằm trong versioned config.
@@ -1293,7 +1293,7 @@ Không build AI, chart hoặc hotspot trực tiếp trên raw import table. Tấ
 
 ---
 
-## 22. First Manual Vertical Slice — FEAT-001
+## 22. Lát cắt Dọc Thủ công Đầu tiên — FEAT-001 (First Manual Vertical Slice — FEAT-001)
 
 ### 22.1 Manual intake-to-insight
 
@@ -1331,7 +1331,7 @@ Current Projection:
 Pilot Analytics + eligible-item drill-down
 ```
 
-### 22.2 Later extension — F6 Detect & Own
+### 22.2 Mở rộng về sau — F6 Detect & Own (Later extension — F6 Detect & Own)
 
 Sau khi `FEAT-001` hoàn tất, slice `F6` mở rộng cùng contract khi nhiều feedback tương tự xuất hiện:
 
@@ -1350,7 +1350,7 @@ Acceptance demo của `FEAT-001` phải chứng minh retry import không tạo d
 
 ---
 
-## 23. Definition of Ready — Feature/Slice
+## 23. Định nghĩa Sẵn sàng — Feature/Slice (Definition of Ready — Feature/Slice)
 
 Một feature/slice chỉ vào sprint khi:
 
@@ -1367,7 +1367,7 @@ UI/UX có thể wireframe song song khi contract baseline đã có; không cần
 
 ---
 
-## 24. Definition of Done — MVP
+## 24. Định nghĩa Hoàn tất — MVP (Definition of Done — MVP)
 
 MVP được xem là hoàn thành khi:
 
@@ -1387,7 +1387,7 @@ MVP được xem là hoàn thành khi:
 
 ---
 
-## 25. Research References
+## 25. Tài liệu Tham khảo Nghiên cứu (Research References)
 
 - Vinhomes — Thẻ cư dân, thang máy và tiện ích: https://vinhomes.vn/vi/the-cu-dan-vinhomes
 - Vinhomes Smart City — Face ID, phân tầng thang máy: https://smartcity.vinhomes.vn/thanh-pho-thong-minh/
@@ -1397,7 +1397,7 @@ MVP được xem là hoàn thành khi:
 
 ---
 
-## 26. Open Decisions for Stakeholder Workshop
+## 26. Các Quyết định Mở cho Hội thảo Stakeholder (Open Decisions for Stakeholder Workshop)
 
 Mỗi decision phải có một người chịu trách nhiệm theo vai trò, deadline và link Decision Record. “Cần workshop” không được dùng như trạng thái vô thời hạn.
 
@@ -1405,12 +1405,12 @@ Mỗi decision phải có một người chịu trách nhiệm theo vai trò, de
 | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------- |
 | Pilot project/building, 1–3 Service, source, date range, volume và user cohort                                                   | **Blocks P0**                                             | Product Owner               | Không bắt đầu Sprint 1                                                |
 | Data sample quyền sử dụng, language/encoding, required columns và source trust rule                                            | **Blocks P0**                                             | Data Owner                  | Chỉ synthetic fixture; không production data                            |
-| Authoritative`service_taxonomy.md` revision 3.0.0, structured-seed checksum, approval owner và nơi lưu được team truy cập | **Blocks P0 taxonomy publish**                            | Product + Data Owner        | Không publish taxonomy release                                           |
+| Authoritative `service_taxonomy.md` revision 3.0.0, structured-seed checksum, approval owner và nơi lưu được team truy cập | **Blocks P0 taxonomy publish**                            | Product + Data Owner        | Không publish taxonomy release                                           |
 | Multi-intent split guideline và field nào bắt buộc/cho phép UNKNOWN                                                           | **Blocks P0**                                             | CX/Data Steward             | Manual split; prediction không auto-apply                                |
 | Location hierarchy, normalized S2 ID, grouping level và timezone                                                                  | **Blocks P0**                                             | BQL + Data Owner            | Record thiếu location bị ineligible cho hotspot                         |
 | Pilot Service/Issue owner và mapping; mapping legacy Priority P1–P4 sang SEV-1–SEV-4                                            | **Blocks P0**                                             | Service Owner               | Không publish taxonomy version                                           |
 | PII classification, masking, retention, raw-view/export role và AI data boundary                                                  | **Blocks P0**                                             | Security/Privacy Owner      | Mask trước AI; deny raw/export by default                               |
-| Hotspot pilot`N`, `W`, location level, cooldown, owner và resolve/dismiss playbook                                            | **Blocks P0**                                             | CX Manager + Service Owner  | Dùng test default chỉ trong non-production; feature flag off production |
+| Hotspot pilot `N`, `W`, location level, cooldown, owner và resolve/dismiss playbook                                            | **Blocks P0**                                             | CX Manager + Service Owner  | Dùng test default chỉ trong non-production; feature flag off production |
 | Pilot sizing, file limit, daily ingest, concurrent users và retention                                                             | **Blocks P0 architecture/performance sign-off**           | Product + Engineering       | Không tuyên bố production SLO                                          |
 | Gold-set sampling, label guideline, adjudication owner và target coverage                                                         | **Blocks P0 AI evaluation**, không block manual workflow | Data Steward + ML Lead      | AI suggest-only; không auto-apply                                        |
 | Metric baseline window, eligible source và operational target                                                                     | P0 measurement                                                  | Product Analytics           | Hiển thị baseline, chưa tuyên bố % cải thiện                       |

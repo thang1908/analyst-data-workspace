@@ -1,49 +1,49 @@
-# 03 — Business Rules
+# 03 — Quy tắc Nghiệp vụ
 
-# CX Journey, Service & Root Cause Intelligence Platform
+# Nền tảng Phân tích Thông minh Hành trình CX, Dịch vụ & Nguyên nhân gốc rễ
 
-**Version:** 1.1  
-**Status:** Draft for Engineering Baseline  
-**Derived from:** `docs/PRD.md` v1.3 and `docs/service_taxonomy.md` v3.0.0  
-**Scope:** P0 Pilot Build Baseline, with selected P1 rules explicitly marked  
-**Purpose:** Convert product/taxonomy decisions into enforceable domain rules that can be implemented in schema, API, jobs, UI validation, and automated tests.
+**Phiên bản:** 1.1  
+**Trạng thái:** Dự thảo cho Cơ sở Kỹ thuật (Engineering Baseline)  
+**Dẫn xuất từ:** `docs/PRD.md` v1.3 và `docs/service_taxonomy.md` v3.0.0  
+**Phạm vi:** Phác thảo Xây dựng Thử nghiệm (Pilot Build Baseline) P0, với các quy tắc P1 được chọn lọc và đánh dấu rõ ràng  
+**Mục đích:** Chuyển đổi các quyết định về sản phẩm/taxonomy thành các quy tắc nghiệp vụ (domain rules) có thể thực thi, được triển khai trong schema, API, job, kiểm tra hợp lệ UI (UI validation) và các bài kiểm thử tự động.
 
 ---
 
-## 1. Document Role
+## 1. Vai trò của Tài liệu
 
-This document is the normative business-rule layer between the PRD/taxonomy and implementation.
+Tài liệu này là tầng quy tắc nghiệp vụ quy phạm nằm giữa PRD/taxonomy và việc triển khai (implementation).
 
 ```text
 PRD
-  ↓ defines product behavior and scope
+  ↓ định nghĩa hành vi và phạm vi sản phẩm
 Taxonomy
-  ↓ defines canonical vocabulary and label boundaries
+  ↓ định nghĩa từ vựng chuẩn (canonical vocabulary) và ranh giới nhãn
 Business Rules
-  ↓ defines invariants and allowed state transitions
+  ↓ định nghĩa các bất biến (invariants) và các chuyển đổi trạng thái được phép
 System Design
-  ↓ maps those rules into architecture/schema/API/jobs
+  ↓ ánh xạ các quy tắc đó vào kiến trúc/schema/API/job
 Implementation
 ```
 
-The PRD remains authoritative for product scope. `service_taxonomy.md` remains authoritative for canonical lifecycle/service/issue wording. If this document conflicts with either source, the conflict must be resolved by a versioned decision before implementation.
+PRD giữ quyền quyết định cao nhất (authoritative) về phạm vi sản phẩm. `service_taxonomy.md` giữ quyền quyết định cao nhất về thuật ngữ chuẩn cho lifecycle/service/issue. Nếu tài liệu này có xung đột với một trong hai nguồn trên, xung đột phải được giải quyết bằng một quyết định được đánh phiên bản trước khi triển khai.
 
 ---
 
-## 2. Normative Language
+## 2. Ngôn ngữ Quy phạm
 
-- **MUST / MUST NOT** — mandatory invariant.
-- **SHOULD / SHOULD NOT** — expected default; deviation requires a documented reason.
-- **MAY** — optional behavior.
-- **P0** — required for pilot.
-- **P1** — operational expansion.
-- **P2** — advanced intelligence.
+- **MUST / MUST NOT** — bất biến bắt buộc phải tuân thủ.
+- **SHOULD / SHOULD NOT** — giá trị mặc định kỳ vọng; việc làm khác yêu cầu phải có lý do được ghi nhận bằng văn bản.
+- **MAY** — hành vi tùy chọn.
+- **P0** — bắt buộc cho bản thử nghiệm (pilot).
+- **P1** — mở rộng vận hành.
+- **P2** — trí tuệ nâng cao.
 
 ---
 
-## 3. Core Value Status Model
+## 3. Mô hình Trạng thái Giá trị Cốt lõi
 
-Classification fields that may be unknown or inapplicable MUST use an explicit value-status model.
+Các trường phân loại chưa biết (unknown) hoặc không áp dụng (inapplicable) MUST sử dụng một mô hình trạng thái giá trị (value-status model) rõ ràng.
 
 ```text
 KNOWN
@@ -52,60 +52,60 @@ MISSING
 NOT_APPLICABLE
 ```
 
-Rules:
+Các quy tắc:
 
-1. `KNOWN` MUST have a valid referenced ID.
-2. `UNKNOWN`, `MISSING`, and `NOT_APPLICABLE` MUST have the referenced ID set to `null`.
-3. `UNKNOWN` means the field was assessed but cannot yet be determined.
-4. `MISSING` means required source/context is absent.
-5. `NOT_APPLICABLE` means the field does not logically apply to the item.
-6. The system MUST NOT silently convert missing or ambiguous data into a taxonomy value.
+1. `KNOWN` MUST có một ID tham chiếu hợp lệ.
+2. `UNKNOWN`, `MISSING`, và `NOT_APPLICABLE` MUST đặt ID tham chiếu thành `null`.
+3. `UNKNOWN` có nghĩa là trường đã được đánh giá nhưng chưa thể xác định.
+4. `MISSING` có nghĩa là nguồn/ngữ cảnh bắt buộc bị thiếu.
+5. `NOT_APPLICABLE` có nghĩa là trường không áp dụng về mặt logic cho mục đó.
+6. Hệ thống MUST NOT tự động chuyển đổi dữ liệu bị thiếu hoặc mơ hồ thành giá trị taxonomy.
 
 ---
 
-# 4. Feedback & Atomic Item Rules
+# 4. Quy tắc về Feedback & Mục Nguyên tử (Atomic Item)
 
 ## BR-FB-001 — Raw Feedback Is Immutable
 
-**Priority:** P0  
-**Rule:** `content_raw` MUST NOT be edited after ingestion.
+**Mức ưu tiên:** P0  
+**Quy tắc:** `content_raw` MUST NOT được chỉnh sửa sau khi nạp dữ liệu (ingestion).
 
-Derived artifacts such as masking, normalization, splitting, predictions, and decisions MUST be stored separately.
+Các thành phần dẫn xuất như che mờ (masking), chuẩn hóa (normalization), tách mục (splitting), dự đoán (predictions), và quyết định (decisions) MUST được lưu trữ riêng biệt.
 
-**Enforcement**
-- Database update policy/service layer.
-- Audit privileged raw-content access.
-- Tests must prove correction/split does not modify the envelope.
+**Phương thức Thực thi**
+- Chính sách cập nhật cơ sở dữ liệu/tầng dịch vụ (service layer).
+- Kiểm toán truy cập đặc quyền vào nội dung thô.
+- Các bài kiểm thử phải chứng minh rằng việc đính chính/tách mục không làm thay đổi envelope gốc.
 
 ---
 
 ## BR-FB-002 — Feedback Is an Envelope; Feedback Item Is the Analytic Unit
 
-**Priority:** P0  
-**Rule:** One `Feedback` MUST contain one or more `Feedback Item` records.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một bản ghi `Feedback` MUST chứa một hoặc nhiều bản ghi `Feedback Item`.
 
 ```text
 Feedback 1 ─── N Feedback Item
 ```
 
-Analytics, classification review, and hotspot detection MUST operate on `feedback_item_id`, not directly on the feedback envelope.
+Phân tích dữ liệu, xem xét phân loại và phát hiện điểm nóng (hotspot) MUST hoạt động dựa trên `feedback_item_id`, chứ không hoạt động trực tiếp trên vỏ bọc feedback (envelope).
 
 ---
 
 ## BR-FB-003 — One Item, One Atomic Intent or Observable Failure
 
-**Priority:** P0  
-**Rule:** A `Feedback Item` MUST represent one customer intent or one observable failure.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một `Feedback Item` MUST đại diện cho một ý định của khách hàng hoặc một lỗi có thể quan sát được.
 
-If a source feedback contains multiple independent problems, it MUST be split before those problems receive different Primary Service/Issue classifications.
+Nếu feedback nguồn chứa nhiều vấn đề độc lập, nó MUST được tách ra trước khi các vấn đề đó nhận các phân loại Primary Service/Issue khác nhau.
 
-**Example**
+**Ví dụ**
 
 ```text
 "Thang máy chậm và app cư dân không đăng nhập được."
 ```
 
-must become at least:
+phải trở thành tối thiểu:
 
 ```text
 Item 1 → elevator problem
@@ -116,113 +116,113 @@ Item 2 → resident app problem
 
 ## BR-FB-004 — Split Must Preserve Provenance
 
-**Priority:** P0  
-**Rule:** Splitting MUST:
-- preserve the original `feedback_id`;
-- preserve `content_raw`;
-- create new item identity/index;
-- record `split_source`, actor, timestamp, and audit event;
-- never erase previous decision/prediction history.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc tách mục (Splitting) MUST:
+- bảo tồn `feedback_id` ban đầu;
+- bảo tồn `content_raw`;
+- tạo danh tính/chỉ mục mục mới (item identity/index);
+- ghi nhận `split_source`, tác nhân (actor), nhãn thời gian (timestamp), và sự kiện kiểm toán (audit event);
+- không bao giờ xóa lịch sử quyết định/dự đoán trước đó.
 
 ---
 
 ## BR-FB-005 — Location Cardinality
 
-**Priority:** P0  
-**Rule:** A Feedback Item MAY have zero or one normalized `location_id`.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một Feedback Item MAY có không hoặc một `location_id` đã chuẩn hóa.
 
-The system MUST NOT attach multiple classification locations to one atomic item. If a record truly describes separate failures at separate locations, split the item or preserve additional text as evidence/context.
+Hệ thống MUST NOT gắn nhiều địa điểm phân loại cho một mục nguyên tử (atomic item). Nếu một bản ghi thực sự mô tả các sự cố riêng biệt tại các địa điểm riêng biệt, hãy tách mục đó hoặc bảo tồn văn bản bổ sung dưới dạng bằng chứng/ngữ cảnh.
 
 ---
 
 ## BR-FB-006 — Affected Channel Cardinality
 
-**Priority:** P0  
-**Rule:** A Feedback Item MAY have zero to many Affected Channels.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một Feedback Item MAY có từ không đến nhiều Kênh bị Ảnh hưởng (Affected Channels).
 
-`intake_channel` and `affected_channel` are different concepts.
+`intake_channel` và `affected_channel` là hai khái niệm khác nhau.
 
 ---
 
 ## BR-FB-007 — Source System Is Not a Channel
 
-**Priority:** P0  
-**Rule:** CRM, ERP, BMS, CMMS, contact-center platforms, crawler pipelines, and sensor feeds MUST be represented as `source_system`, not as canonical `CH-*` channels.
+**Mức ưu tiên:** P0  
+**Quy tắc:** CRM, ERP, BMS, CMMS, các nền tảng tổng đài/chăm sóc khách hàng (contact-center platforms), đường ống thu thập dữ liệu (crawler pipelines), và nguồn cấp dữ liệu cảm biến (sensor feeds) MUST được biểu diễn dưới dạng `source_system`, không phải dưới dạng các kênh `CH-*` chuẩn (canonical).
 
 ---
 
 ## BR-FB-008 — Symptom Detail Is Free Text
 
-**Priority:** P0  
-**Rule:** `symptom_detail` is descriptive text and MUST NOT be promoted into a new Service/Issue solely for dashboard granularity.
+**Mức ưu tiên:** P0  
+**Quy tắc:** `symptom_detail` là văn bản mô tả và MUST NOT được thăng cấp thành một Service/Issue mới chỉ vì mục đích chia nhỏ mức độ chi tiết (granularity) trên dashboard.
 
 ---
 
-# 5. Lifecycle Rules
+# 5. Quy tắc Vòng đời (Lifecycle Rules)
 
 ## BR-LIFE-001 — Two Independent Lifecycle Dimensions
 
-**Priority:** P0  
-**Rule:** Customer Lifecycle and Service Request Lifecycle MUST be stored and queried as independent dimensions.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Vòng đời Khách hàng (Customer Lifecycle) và Vòng đời Yêu cầu Dịch vụ (Service Request Lifecycle) MUST được lưu trữ và truy vấn dưới dạng hai chiều độc lập.
 
 ```text
 CUSTOMER_LIFECYCLE
 SERVICE_REQUEST_LIFECYCLE
 ```
 
-An `SRV-*` code MUST NOT be stored as a Customer Lifecycle stage/step.
+Mã `SRV-*` MUST NOT được lưu trữ dưới dạng một giai đoạn/bước (stage/step) của Customer Lifecycle.
 
 ---
 
 ## BR-LIFE-002 — Customer Lifecycle Cardinality
 
-**Priority:** P0  
-**Rule:** A Feedback Item MAY have at most one current Customer Lifecycle Step.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một Feedback Item MAY có tối đa một Step Vòng đời Khách hàng hiện tại.
 
-Customer Lifecycle Stage MUST be derived from the selected Step within the same taxonomy release.
+Stage Vòng đời Khách hàng MUST được dẫn xuất từ Step đã chọn trong cùng một bản phát hành taxonomy.
 
-The system SHOULD NOT ask an AI model or reviewer to independently choose both stage and step when step is known.
+Hệ thống SHOULD NOT yêu cầu mô hình AI hoặc người xem xét tự chọn độc lập cả stage và step khi step đã được xác định.
 
 ---
 
 ## BR-LIFE-003 — Service Request Lifecycle Cardinality
 
-**Priority:** P0  
-**Rule:** A Feedback Item MAY have at most one current Service Request Step.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một Feedback Item MAY có tối đa một Service Request Step hiện tại.
 
-The field MAY be `NOT_APPLICABLE` when the item is not describing a service-request flow.
+Trường này MAY là `NOT_APPLICABLE` khi mục đó không mô tả luồng yêu cầu dịch vụ.
 
 ---
 
 ## BR-LIFE-004 — Lifecycle-to-Service Is N:N
 
-**Priority:** P0  
-**Rule:** A Lifecycle Step can map to multiple Services, and a Service can map to multiple Lifecycle Steps.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một Lifecycle Step có thể ánh xạ tới nhiều Service, và một Service có thể ánh xạ tới nhiều Lifecycle Step.
 
-Mapping MUST include:
-- lifecycle type;
-- stable IDs;
-- effective date;
-- version/release;
-- active/published state.
+Ánh xạ MUST bao gồm:
+- loại vòng đời (lifecycle type);
+- các ID cố định (stable IDs);
+- ngày có hiệu lực (effective date);
+- phiên bản/bản phát hành (version/release);
+- trạng thái hoạt động/đã xuất bản (active/published state).
 
 ---
 
 ## BR-LIFE-005 — Lifecycle Mapping Does Not Auto-Classify
 
-**Priority:** P0  
-**Rule:** Lifecycle-Service mapping is a constraint/suggestion space, not proof that a Service is correct.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Ánh xạ Lifecycle-Service là một không gian giới hạn/gợi ý, không phải là bằng chứng cho thấy một Service là chính xác.
 
-The system MAY use the mapping to narrow candidate values but MUST NOT silently create an accepted classification solely because a mapping exists.
+Hệ thống MAY sử dụng ánh xạ để thu hẹp các giá trị ứng viên nhưng MUST NOT tự động tạo một phân loại được chấp nhận chỉ vì tồn tại một ánh xạ.
 
 ---
 
-# 6. Taxonomy Rules
+# 6. Quy tắc Phân loại (Taxonomy Rules)
 
 ## BR-TAX-001 — Canonical Release Shape
 
-**Priority:** P0  
-**Rule:** A publishable taxonomy release MUST contain:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một bản phát hành taxonomy có thể xuất bản (publishable) MUST chứa:
 
 - 6 Customer Lifecycle Stages;
 - 36 Customer Journey Steps;
@@ -230,147 +230,147 @@ The system MAY use the mapping to narrow candidate values but MUST NOT silently 
 - 10 active Services;
 - 28 active Issues.
 
-Additionally:
-- `SV-01` through `SV-09` MUST each contain exactly 3 Issues.
-- `SV-10` MUST contain exactly 1 Issue: `IS-10-01`.
+Ngoài ra:
+- `SV-01` đến `SV-09` MUST mỗi Service chứa chính xác 3 Issues.
+- `SV-10` MUST chứa chính xác 1 Issue: `IS-10-01`.
 
 ---
 
 ## BR-TAX-002 — Issue Belongs to Exactly One Service
 
-**Priority:** P0  
-**Rule:** Each canonical Issue MUST belong to exactly one canonical Service in a taxonomy release.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Mỗi Issue chuẩn MUST thuộc về chính xác một Service chuẩn trong một bản phát hành taxonomy.
 
 ---
 
 ## BR-TAX-003 — Stable Codes Are Never Reused
 
-**Priority:** P0  
-**Rule:** Published taxonomy codes/IDs MUST NOT be reassigned to a different semantic meaning.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Các mã/ID taxonomy đã xuất bản MUST NOT được gán lại cho một ý nghĩa ngữ nghĩa (semantic meaning) khác.
 
-Retired values remain historically resolvable.
+Các giá trị đã ngưng sử dụng (retired) vẫn giữ khả năng truy xuất lịch sử.
 
 ---
 
 ## BR-TAX-004 — No Hard Delete After Historical Use
 
-**Priority:** P0  
-**Rule:** Taxonomy records and mappings referenced by historical data MUST NOT be hard-deleted.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Các bản ghi và ánh xạ taxonomy được tham chiếu bởi dữ liệu lịch sử MUST NOT bị xóa cứng (hard-deleted).
 
-Use `RETIRED`/effective-date semantics.
+Sử dụng ngữ nghĩa `RETIRED`/ngày có hiệu lực.
 
 ---
 
 ## BR-TAX-005 — Publish State Controls New Decisions
 
-**Priority:** P0  
-**Rule:** Taxonomy state MUST support:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Trạng thái Taxonomy MUST hỗ trợ:
 
 ```text
 DRAFT → APPROVED → PUBLISHED → RETIRED
 ```
 
-Only `PUBLISHED` values/releases may be used by new production classification decisions.
+Chỉ các giá trị/bản phát hành ở trạng thái `PUBLISHED` mới được phép sử dụng cho các quyết định phân loại sản xuất (production) mới.
 
 ---
 
 ## BR-TAX-006 — Taxonomy Must Be Versioned
 
-**Priority:** P0  
-**Rule:** Feedback decisions, predictions, mappings, metrics, and hotspot rules MUST retain the relevant taxonomy/rule version required to reproduce historical behavior.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Các quyết định feedback, dự đoán, ánh xạ, chỉ số (metrics), và quy tắc hotspot MUST giữ lại phiên bản taxonomy/quy tắc tương ứng để có thể tái tạo hành vi lịch sử.
 
 ---
 
 ## BR-TAX-007 — Application Must Not Hard-Code Labels
 
-**Priority:** P0  
-**Rule:** UI/API/business logic MUST use stable IDs/codes from published reference data rather than embedding canonical wording in application code.
+**Mức ưu tiên:** P0  
+**Quy tắc:** UI/API/business logic MUST sử dụng các ID/mã cố định từ dữ liệu tham chiếu đã xuất bản thay vì nhúng trực tiếp từ ngữ chuẩn vào mã nguồn ứng dụng.
 
 ---
 
 ## BR-TAX-008 — Do Not Create Taxonomy From Operational Metadata
 
-**Priority:** P0  
-**Rule:** A new Service or Issue MUST NOT be created merely because of a different:
-- location;
-- channel;
-- source system;
-- vendor;
-- contractor;
-- resolver;
-- handling unit;
-- asset;
-- building.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một Service hoặc Issue mới MUST NOT được tạo ra chỉ vì có sự khác biệt về:
+- địa điểm (location);
+- kênh (channel);
+- hệ thống nguồn (source system);
+- nhà cung cấp (vendor);
+- nhà thầu (contractor);
+- đơn vị giải quyết (resolver);
+- đơn vị xử lý (handling unit);
+- tài sản (asset);
+- tòa nhà (building).
 
 ---
 
 ## BR-TAX-009 — SV-10 Is Controlled Fallback, Not Unknown
 
-**Priority:** P0  
-**Rule:** `SV-10 / IS-10-01` MUST be used only when the item is understandable but outside `SV-01..SV-09`.
+**Mức ưu tiên:** P0  
+**Quy tắc:** `SV-10 / IS-10-01` MUST chỉ được sử dụng khi mục đó có thể hiểu được nhưng nằm ngoài phạm vi `SV-01..SV-09`.
 
-It MUST NOT be used for missing/ambiguous records.
+Nó MUST NOT được sử dụng cho các bản ghi bị thiếu hoặc mơ hồ.
 
-When used:
-- `other_reason` is mandatory;
-- human review is mandatory;
-- usage rate SHOULD be monitored.
+Khi được sử dụng:
+- `other_reason` là bắt buộc;
+- xem xét thủ công (human review) là bắt buộc;
+- tỷ lệ sử dụng SHOULD được giám sát.
 
 ---
 
-# 7. Classification Decision Rules
+# 7. Quy tắc Quyết định Phân loại
 
 ## BR-CLS-001 — One Current Primary Service
 
-**Priority:** P0  
-**Rule:** If `primary_service_value_status=KNOWN`, the current projection MUST contain exactly one `primary_service_id`.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Nếu `primary_service_value_status=KNOWN`, projection hiện tại MUST chứa chính xác một `primary_service_id`.
 
-There is no Secondary Service in P0.
+Không có Secondary Service trong P0.
 
 ---
 
 ## BR-CLS-002 — Issue Must Match Primary Service
 
-**Priority:** P0  
-**Rule:** If `issue_value_status=KNOWN`, the Issue MUST belong to the selected Primary Service in the same taxonomy release.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Nếu `issue_value_status=KNOWN`, Issue MUST thuộc về Primary Service đã chọn trong cùng bản phát hành taxonomy.
 
-If Primary Service changes and invalidates the current Issue, the write MUST:
-1. require a new valid Issue, or
-2. set Issue status to `UNKNOWN` with `issue_id=null`.
+Nếu Primary Service thay đổi và làm cho Issue hiện tại không hợp lệ, thao tác ghi MUST:
+1. yêu cầu một Issue mới hợp lệ, hoặc
+2. đặt trạng thái Issue thành `UNKNOWN` với `issue_id=null`.
 
 ---
 
 ## BR-CLS-003 — Decision Snapshot Is Atomic
 
-**Priority:** P0  
-**Rule:** A classification decision MUST represent one complete versioned snapshot of the item's accepted classification state.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một quyết định phân loại MUST đại diện cho một ảnh chụp (snapshot) hoàn chỉnh được đánh phiên bản về trạng thái phân loại đã được chấp nhận của mục đó.
 
-A correction MUST create a new `decision_version`; previous decisions MUST remain immutable.
+Việc đính chính MUST tạo một `decision_version` mới; các quyết định trước đó MUST giữ nguyên tính bất biến.
 
 ---
 
 ## BR-CLS-004 — Current Projection Is Derived State
 
-**Priority:** P0  
-**Rule:** `classification_current` is a rebuildable read projection, not the audit source of truth.
+**Mức ưu tiên:** P0  
+**Quy tắc:** `classification_current` là một read projection có thể tái tạo (rebuildable), không phải là nguồn sự thật (source of truth) cho kiểm toán.
 
-Source of truth is the append-only decision/review history.
+Nguồn sự thật là lịch sử quyết định/xem xét theo cơ chế chỉ ghi thêm (append-only).
 
 ---
 
 ## BR-CLS-005 — Prediction Is Not an Accepted Decision
 
-**Priority:** P0  
-**Rule:** AI prediction MUST NOT update current classification or analytics directly.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Dự đoán của AI MUST NOT cập nhật trực tiếp phân loại hiện tại hoặc dữ liệu phân tích.
 
-P0 is suggest-only for all confidence values.
+P0 chỉ áp dụng cơ chế gợi ý (suggest-only) đối với tất cả các giá trị độ tin cậy (confidence values).
 
 ---
 
 ## BR-CLS-006 — Accepted Sources
 
-**Priority:** P0  
-**Rule:** `decision_source` MUST use exactly this canonical enum across rules, database, API and UI:
+**Mức ưu tiên:** P0  
+**Quy tắc:** `decision_source` MUST sử dụng chính xác enum chuẩn này trên toàn bộ các quy tắc, cơ sở dữ liệu, API và UI:
 
 ```text
 MANUAL
@@ -381,14 +381,14 @@ POLICY_AUTO_APPLIED
 SYSTEM_MIGRATION
 ```
 
-For P0, `POLICY_AUTO_APPLIED` MUST remain disabled unless explicitly approved for a specific low-risk field.
+Đối với P0, `POLICY_AUTO_APPLIED` MUST duy trì ở trạng thái vô hiệu hóa trừ khi được phê duyệt rõ ràng cho một trường rủi ro thấp cụ thể.
 
 ---
 
 ## BR-CLS-007 — Canonical Human Review Actions
 
-**Priority:** P0  
-**Rule:** AI review MUST use exactly:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc xem xét kết quả AI MUST sử dụng chính xác:
 
 ```text
 ACCEPT
@@ -400,70 +400,70 @@ SPLIT_REQUIRED
 SKIP
 ```
 
-- `ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` MUST create one immutable `ClassificationDecision` and one `ReviewEvent`.
-- `SPLIT_REQUIRED` and `SKIP` MUST create only a `ReviewEvent`.
-- Actual split MUST use a separate split mutation; it creates child Feedback Items and MUST NOT create a decision for the split-parent.
-- API/UI labels MAY be localized, but wire values MUST remain the canonical enum above.
+- `ACCEPT`, `CORRECT`, `MARK_UNKNOWN`, `MARK_MISSING`, `MARK_NOT_APPLICABLE` MUST tạo một `ClassificationDecision` bất biến và một `ReviewEvent`.
+- `SPLIT_REQUIRED` và `SKIP` MUST chỉ tạo một `ReviewEvent`.
+- Việc tách thực tế MUST sử dụng một mutation tách riêng biệt; nó tạo các Feedback Item con và MUST NOT tạo một quyết định cho item cha bị tách (split-parent).
+- Các nhãn API/UI MAY được bản địa hóa, nhưng giá trị truyền nhận trên mạng (wire values) MUST giữ nguyên enum chuẩn ở trên.
 
 ---
 
 ## BR-CLS-008 — Stale Concurrent Decision Writes Are Rejected
 
-**Priority:** P0  
-**Rule:** A decision mutation MUST include/validate the expected previous decision or projection version.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một mutation quyết định MUST bao gồm/xác thực phiên bản quyết định hoặc projection trước đó kỳ vọng.
 
-If another actor changed the item first, the stale write MUST fail with a conflict response rather than overwrite the latest decision.
+Nếu một tác nhân khác đã thay đổi mục đó trước, thao tác ghi bị lạc hậu (stale write) MUST thất bại với phản hồi xung đột (conflict response) thay vì ghi đè lên quyết định mới nhất.
 
 ---
 
 ## BR-CLS-009 — Manual Override Requires Audit
 
-**Priority:** P0  
-**Rule:** Any manual correction or override MUST include:
-- actor;
-- timestamp;
-- reason;
-- previous decision reference;
-- resulting decision reference.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Bất kỳ đính chính hoặc ghi đè thủ công nào MUST bao gồm:
+- tác nhân (actor);
+- nhãn thời gian (timestamp);
+- lý do (reason);
+- tham chiếu quyết định trước đó;
+- tham chiếu quyết định kết quả.
 
 ---
 
-# 8. Cause & Root Cause Rules
+# 8. Quy tắc Nguyên nhân & Nguyên nhân Gốc rễ
 
 ## BR-CAUSE-001 — Issue Is Not Cause
 
-**Priority:** P0  
-**Rule:** Issue represents observed failure/symptom. Cause represents an investigation hypothesis.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Issue đại diện cho lỗi/triệu chứng quan sát được. Cause đại diện cho một giả thuyết điều tra.
 
-Cause data MUST NOT be encoded into the Issue catalog.
+Dữ liệu về Cause MUST NOT được mã hóa vào danh mục Issue.
 
 ---
 
 ## BR-CAUSE-002 — Candidate Cause Is 0:N
 
-**Priority:** P0  
-**Rule:** A decision/investigation MAY contain zero to many Candidate Causes.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một quyết định/điều tra MAY chứa từ không đến nhiều Candidate Causes.
 
-Each suggested cause SHOULD retain:
-- cause ID;
-- rank;
-- confidence;
-- source;
-- model/rule version where relevant.
+Mỗi nguyên nhân được gợi ý SHOULD giữ lại:
+- ID nguyên nhân;
+- thứ hạng (rank);
+- độ tin cậy (confidence);
+- nguồn (source);
+- phiên bản mô hình/quy tắc khi có liên quan.
 
 ---
 
 ## BR-CAUSE-003 — UNKNOWN Cannot Coexist With Specific Candidate Causes
 
-**Priority:** P0  
-**Rule:** If cause determination is `UNKNOWN`, the same decision set MUST NOT contain a specific candidate cause.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Nếu xác định nguyên nhân là `UNKNOWN`, tập hợp quyết định đó MUST NOT chứa nguyên nhân ứng viên cụ thể nào.
 
 ---
 
 ## BR-CAUSE-004 — Canonical Cause Determination Status
 
-**Priority:** P0  
-**Rule:** `cause_determination_status` MUST use exactly:
+**Mức ưu tiên:** P0  
+**Quy tắc:** `cause_determination_status` MUST sử dụng chính xác:
 
 ```text
 NOT_ASSESSED
@@ -474,56 +474,56 @@ CONFIRMED
 NOT_APPLICABLE
 ```
 
-- P0 classification/review MAY write only `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE`.
-- `SUGGESTED` requires at least one Candidate Cause; `UNKNOWN` MUST NOT coexist with a concrete Candidate Cause.
-- `UNDER_INVESTIGATION` and `CONFIRMED` are P1 states written only by Investigation/RCA workflow.
-- Classifier/AI MUST NOT write `UNDER_INVESTIGATION` or `CONFIRMED`.
+- Phân loại/xem xét trong P0 MAY chỉ ghi `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE`.
+- `SUGGESTED` yêu cầu ít nhất một Candidate Cause; `UNKNOWN` MUST NOT cùng tồn tại với một Candidate Cause cụ thể.
+- `UNDER_INVESTIGATION` và `CONFIRMED` là các trạng thái P1 chỉ được ghi bởi luồng công việc Điều tra/RCA.
+- Bộ phân loại (Classifier)/AI MUST NOT ghi `UNDER_INVESTIGATION` hoặc `CONFIRMED`.
 
 ---
 
 ## BR-CAUSE-005 — AI Cannot Confirm Root Cause
 
-**Priority:** P0/P1  
-**Rule:** No AI model, prompt, anomaly score, or classifier confidence may independently create a confirmed root cause.
+**Mức ưu tiên:** P0/P1  
+**Quy tắc:** Không một mô hình AI, prompt, điểm bất thường (anomaly score) hay độ tin cậy của bộ phân loại nào có thể độc lập tạo ra một nguyên nhân gốc rễ đã xác nhận (confirmed root cause).
 
 ---
 
 ## BR-CAUSE-006 — Confirmed Root Cause Requires Evidence
 
-**Priority:** P1  
-**Rule:** A confirmed root cause MUST have:
+**Mức ưu tiên:** P1  
+**Quy tắc:** Một nguyên nhân gốc rễ đã xác nhận MUST có:
 - `confirmed_by`;
 - `confirmed_at`;
-- evidence;
-- investigation/RCA reference;
-- authorized confirmer.
+- bằng chứng (evidence);
+- tham chiếu điều tra/RCA;
+- người xác nhận có thẩm quyền.
 
 ---
 
 ## BR-CAUSE-007 — Asset and Work Order Are Investigation References
 
-**Priority:** P1  
-**Rule:** Asset IDs, BMS objects, CMMS work orders, and technical-system identifiers MAY be linked to investigations but MUST NOT become core Service/Issue classification dimensions.
+**Mức ưu tiên:** P1  
+**Quy tắc:** Asset ID, đối tượng BMS, đơn công việc (work order) CMMS, và các mã định danh hệ thống kỹ thuật MAY được liên kết với điều tra nhưng MUST NOT trở thành các chiều phân loại Service/Issue cốt lõi.
 
 ---
 
 ## BR-CAUSE-008 — P0/P1 RCA Boundary
 
-**Priority:** P0/P1  
-**Rule:** P0 is limited to Hotspot, evidence Feedback Items, owner, hotspot status and basic Candidate Cause. P1 owns Investigation, Confirmed Root Cause, Corrective Action, Preventive Action and full RCA workflow/storage/API/UI.
+**Mức ưu tiên:** P0/P1  
+**Quy tắc:** P0 giới hạn ở Hotspot, các Feedback Item làm bằng chứng, người phụ trách (owner), trạng thái hotspot và Candidate Cause cơ bản. P1 sở hữu Investigation, Confirmed Root Cause, Corrective Action (Hành động Khắc phục), Preventive Action (Hành động Phòng ngừa) và toàn bộ luồng công việc/lưu trữ/API/UI của RCA.
 
-P0 MUST NOT expose a mutation that starts an Investigation, confirms Root Cause or manages Corrective/Preventive Actions.
+P0 MUST NOT mở ra mutation cho phép bắt đầu một Investigation, xác nhận Root Cause hoặc quản lý Corrective/Preventive Actions.
 
 ---
 
-# 9. Import & Ingestion Rules
+# 9. Quy tắc Nhập & Nạp Dữ liệu (Import & Ingestion Rules)
 
 ## BR-IMP-001 — Import Is Asynchronous
 
-**Priority:** P0  
-**Rule:** CSV/XLSX import MUST run as an asynchronous job.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc nhập CSV/XLSX MUST chạy dưới dạng một job bất đồng bộ.
 
-Canonical lifecycle:
+Vòng đời chuẩn:
 
 ```text
 UPLOADED
@@ -542,133 +542,133 @@ UPLOADED
 
 ## BR-IMP-002 — Preview/Validation Does Not Commit Production Feedback
 
-**Priority:** P0  
-**Rule:** Preview and validation MUST NOT create production Feedback records.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc xem trước (preview) và xác thực (validation) MUST NOT tạo các bản ghi Feedback sản xuất (production).
 
 ---
 
 ## BR-IMP-003 — Execute Only From VALIDATED
 
-**Priority:** P0  
-**Rule:** Import execution MUST be rejected unless the job is in `VALIDATED`.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc thực thi nhập dữ liệu MUST bị từ chối trừ khi job đang ở trạng thái `VALIDATED`.
 
 ---
 
 ## BR-IMP-004 — File/Schema Failure Versus Row Failure
 
-**Priority:** P0  
-**Rule:**
-- file/schema-level blocking error → job becomes `FAILED`;
-- row-level validation errors MAY still allow `VALIDATED` if configured to commit valid rows.
+**Mức ưu tiên:** P0  
+**Quy tắc:**
+- lỗi chặn ở cấp file/schema → job chuyển thành `FAILED`;
+- các lỗi xác thực ở cấp dòng MAY vẫn cho phép chuyển thành `VALIDATED` nếu được cấu hình để commit các dòng hợp lệ.
 
 ---
 
 ## BR-IMP-005 — Every Row Has Lineage and Outcome
 
-**Priority:** P0  
-**Rule:** Every source row MUST retain:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Mỗi dòng nguồn MUST giữ lại:
 - `import_job_id`;
 - `source_row_number`;
-- checksum/idempotency identity;
-- processing outcome;
-- error code/message when unsuccessful.
+- danh tính checksum/tính lặp lại không đổi (idempotency identity);
+- kết quả xử lý (processing outcome);
+- mã/thông điệp lỗi khi không thành công.
 
-No row may be silently dropped.
+Không một dòng nào được phép bị bỏ qua một cách âm thầm.
 
 ---
 
 ## BR-IMP-006 — Retry Is Idempotent
 
-**Priority:** P0  
-**Rule:** Retry MUST process only rows not previously committed successfully and MUST NOT create duplicate Feedback records.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc thử lại MUST chỉ xử lý các dòng chưa được commit thành công trước đó và MUST NOT tạo các bản ghi Feedback trùng lặp.
 
 ---
 
 ## BR-IMP-007 — Event Time Semantics
 
-**Priority:** P0  
-**Rule:** `reported_at` preserves source time/timezone when available.
+**Mức ưu tiên:** P0  
+**Quy tắc:** `reported_at` bảo tồn thời gian/múi giờ nguồn khi có sẵn.
 
-If unavailable:
-- use `ingested_at`;
-- set `event_time_inferred=true`.
+Nếu không có sẵn:
+- sử dụng `ingested_at`;
+- đặt `event_time_inferred=true`.
 
-Storage timestamps SHOULD be UTC. User-facing bucketing MUST respect source/location timezone policy.
+Các nhãn thời gian lưu trữ SHOULD là UTC. Việc gom nhóm (bucketing) hiển thị cho người dùng MUST tuân thủ chính sách múi giờ nguồn/địa điểm.
 
 ---
 
 ## BR-IMP-008 — Mask Before AI
 
-**Priority:** P0  
-**Rule:** When raw content contains protected personal data that is not necessary for model inference, `content_masked`/`item_text_masked` MUST be generated before AI processing.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Khi nội dung thô chứa dữ liệu cá nhân được bảo vệ không cần thiết cho suy luận mô hình, `content_masked`/`item_text_masked` MUST được tạo ra trước khi xử lý AI.
 
 ---
 
-# 10. Analytics Rules
+# 10. Quy tắc Phân tích Dữ liệu (Analytics Rules)
 
 ## BR-ANA-001 — Feedback Item Is Default Metric Grain
 
-**Priority:** P0  
-**Rule:** Unless explicitly labeled otherwise, product analytics MUST count distinct eligible `feedback_item_id`.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Trừ khi được dán nhãn rõ ràng khác, phân tích sản phẩm MUST đếm số lượng `feedback_item_id` hợp lệ duy nhất (distinct eligible).
 
 ---
 
 ## BR-ANA-002 — Analytics Requires Eligible Current Decision
 
-**Priority:** P0  
-**Rule:** An item may enter standard analytics only when:
-- item is active;
+**Mức ưu tiên:** P0  
+**Quy tắc:** Một mục chỉ có thể đưa vào phân tích tiêu chuẩn khi:
+- mục đang hoạt động (active);
 - `analytic_eligibility=INCLUDED`;
-- not duplicate/excluded;
-- current projection comes from accepted human/source-trusted decision;
-- referenced taxonomy values are valid for the recorded release.
+- không trùng lặp/bị loại trừ;
+- projection hiện tại đến từ quyết định được chấp nhận của con người/nguồn tin cậy (source-trusted);
+- các giá trị taxonomy được tham chiếu hợp lệ đối với bản phát hành được ghi nhận.
 
-Unreviewed prediction alone is insufficient.
+Chỉ riêng dự đoán chưa qua xem xét là không đủ điều kiện.
 
 ---
 
 ## BR-ANA-003 — Unknown Is Not Silently Dropped
 
-**Priority:** P0  
-**Rule:** Unknown/missing rates MUST be separately measurable.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Tỷ lệ unknown/missing MUST đo lường được một cách riêng biệt.
 
-For sentiment:
-- `negative_rate` denominator uses eligible items with known sentiment;
-- unknown sentiment MUST be shown through `sentiment_unknown_rate`.
+Đối với sắc thái (sentiment):
+- mẫu số của `negative_rate` sử dụng các mục hợp lệ có sắc thái đã biết (known sentiment);
+- sắc thái chưa biết MUST được hiển thị thông qua `sentiment_unknown_rate`.
 
 ---
 
 ## BR-ANA-004 — Metric Definition Is Versioned
 
-**Priority:** P0  
-**Rule:** KPI, chart, drill-down, and export must share:
-- filter context;
-- eligibility logic;
-- event-time semantics;
+**Mức ưu tiên:** P0  
+**Quy tắc:** KPI, biểu đồ (chart), xem chi tiết (drill-down), và xuất dữ liệu (export) phải dùng chung:
+- ngữ cảnh bộ lọc (filter context);
+- logic tính hợp lệ (eligibility logic);
+- ngữ nghĩa thời gian sự kiện;
 - `metric_definition_version`.
 
 ---
 
 ## BR-ANA-005 — No Dead-End Chart
 
-**Priority:** P0  
-**Rule:** Every standard dashboard segment MUST drill down to the corresponding filtered Feedback Item list and then to item detail.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Mỗi phân đoạn biểu đồ tiêu chuẩn trên dashboard MUST cho phép drill-down đến danh sách Feedback Item tương ứng đã được lọc, và từ đó xem chi tiết từng mục.
 
 ---
 
 ## BR-ANA-006 — Four Basic P0 Dashboards
 
-**Priority:** P0  
-**Rule:** P0 MUST provide four basic dashboards: CX Overview, Customer Journey, Service & Pain Points, and Hotspot & Root Cause.
+**Mức ưu tiên:** P0  
+**Quy tắc:** P0 MUST cung cấp bốn dashboard cơ bản: CX Overview, Customer Journey, Service & Pain Points, và Hotspot & Root Cause.
 
-The fourth dashboard is limited in P0 to hotspot, evidence, owner/status and Candidate Cause. Investigation, confirmed Root Cause and actions remain P1.
+Dashboard thứ tư bị giới hạn trong P0 ở hotspot, evidence, owner/status và Candidate Cause. Investigation, confirmed Root Cause và các hành động (actions) vẫn thuộc phạm vi P1.
 
 ---
 
 ## BR-ANA-007 — Multi-metric Breakdown Contract
 
-**Priority:** P0  
-**Rule:** Analytics breakdown by `journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel` or `affected_channel` MUST support:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Phân tích chi tiết (breakdown) theo `journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel` hoặc `affected_channel` MUST hỗ trợ:
 
 ```text
 item_volume
@@ -677,39 +677,39 @@ active_hotspots
 trend
 ```
 
-All metrics and drill-downs MUST share filter context, eligibility logic and metric-definition version.
+Tất cả chỉ số và các thao tác drill-down MUST dùng chung ngữ cảnh bộ lọc, logic tính hợp lệ và phiên bản định nghĩa chỉ số.
 
 ---
 
 ## BR-ANA-008 — Persona Is Not a P0 Analytics Dimension
 
-**Priority:** P0  
-**Rule:** P0 API/UI MUST NOT expose Persona filter or segmentation. Product personas are authorization/user roles, not customer analytics data.
+**Mức ưu tiên:** P0  
+**Quy tắc:** P0 API/UI MUST NOT hiển thị bộ lọc hoặc phân đoạn Persona. Chân dung người dùng (product personas) là các vai trò ủy quyền/người dùng (authorization/user roles), không phải là dữ liệu phân tích khách hàng.
 
 ---
 
 ## BR-ANA-009 — Affected Channel Is Supported in P0 Analytics
 
-**Priority:** P0  
-**Rule:** `affected_channel` MUST be available as a P0 filter and breakdown dimension, distinct from `intake_channel`.
+**Mức ưu tiên:** P0  
+**Quy tắc:** `affected_channel` MUST có sẵn dưới dạng bộ lọc và chiều phân tích chi tiết trong P0, phân biệt rõ ràng với `intake_channel`.
 
 ---
 
 ## BR-ANA-010 — Household Count Is Conditional
 
-**Priority:** P0  
-**Rule:** Distinct household count may be displayed only when a valid pseudonymous household key exists and passes its data-quality gate.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Số lượng hộ gia đình duy nhất chỉ có thể được hiển thị khi một khóa hộ gia đình ẩn danh (pseudonymous household key) hợp lệ tồn tại và vượt qua cổng kiểm định chất lượng dữ liệu (data-quality gate).
 
-Otherwise display `N/A`; do not infer households from feedback count.
+Nếu không, hiển thị `N/A`; không tự suy luận số hộ gia đình từ số lượng feedback.
 
 ---
 
-# 11. Hotspot Rules
+# 11. Quy tắc Điểm nóng (Hotspot Rules)
 
 ## BR-HOT-001 — Deterministic P0 Detection Key
 
-**Priority:** P0  
-**Rule:** P0 hotspot detection MUST be based on:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc phát hiện hotspot trong P0 MUST dựa trên:
 
 ```text
 primary_service_id
@@ -723,21 +723,21 @@ primary_service_id
 
 ## BR-HOT-002 — Only Accepted Eligible Items Count
 
-**Priority:** P0  
-**Rule:** Hotspot input MUST exclude:
-- unreviewed AI predictions;
-- duplicate items;
-- excluded/ineligible items;
-- records missing required detection dimensions.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Đầu vào hotspot MUST loại trừ:
+- các dự đoán AI chưa qua xem xét;
+- các mục trùng lặp;
+- các mục bị loại trừ/không hợp lệ;
+- các bản ghi thiếu chiều phát hiện bắt buộc.
 
 ---
 
 ## BR-HOT-003 — P0 Rule Is Threshold-Based
 
-**Priority:** P0  
-**Rule:** In a configured rolling window `W`, if at least `N` eligible deduplicated items share the configured detection key, the system MUST upsert one hotspot candidate.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Trong một cửa sổ thời gian trượt (rolling window) `W` được cấu hình, nếu có ít nhất `N` mục hợp lệ đã khử trùng lặp có chung khóa phát hiện được cấu hình, hệ thống MUST upsert một ứng viên hotspot.
 
-Pilot vertical-slice default:
+Mặc định lát cắt dọc thử nghiệm (pilot vertical-slice):
 
 ```text
 W = 2 hours
@@ -747,95 +747,95 @@ Issue = IS-07-01
 Location level = Building/Zone
 ```
 
-This is a test/pilot default, not a production-wide threshold.
+Đây là mặc định cho thử nghiệm/kiểm thử, không phải ngưỡng áp dụng cho toàn hệ thống sản xuất.
 
 ---
 
 ## BR-HOT-004 — Hotspot Upsert Is Idempotent
 
-**Priority:** P0  
-**Rule:** The same `dimension_key + rule_version + active window` MUST NOT create duplicate active candidates when a job retries.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Cùng một tập hợp `dimension_key + rule_version + active window` MUST NOT tạo ra các ứng viên hoạt động trùng lặp khi job thực hiện thử lại (retry).
 
 ---
 
 ## BR-HOT-005 — Evidence Must Be Reproducible
 
-**Priority:** P0  
-**Rule:** Each hotspot candidate MUST retain the set of evidence Feedback Items used to create/recalculate it.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Mỗi ứng viên hotspot MUST lưu giữ tập hợp các Feedback Item bằng chứng được sử dụng để tạo/tính toán lại hotspot đó.
 
 ---
 
 ## BR-HOT-006 — Default Owner Comes From Service Configuration
 
-**Priority:** P0  
-**Rule:** New candidate owner SHOULD resolve from versioned Service operational ownership configuration.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Người phụ trách (owner) của ứng viên mới SHOULD được xác định từ cấu hình quyền sở hữu vận hành Service được đánh phiên bản.
 
-If no owner exists:
-- candidate goes to an unassigned queue;
-- the condition is raised as a data-quality/operational configuration error.
+Nếu không có owner:
+- ứng viên chuyển vào hàng đợi chưa gán (unassigned queue);
+- điều kiện này được ghi nhận như một lỗi chất lượng dữ liệu/cấu hình vận hành.
 
-`SV-10` has no implicit default owner.
+`SV-10` không có owner mặc định ngầm định.
 
 ---
 
 ## BR-HOT-007 — Hotspot Lifecycle Is Controlled
 
-**Priority:** P0  
-**Rule:** Allowed lifecycle:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Vòng đời được phép:
 
 ```text
 CANDIDATE → ACKNOWLEDGED → INVESTIGATING → RESOLVED
-     └──────────────────────────────→ DISMISSED
+      └──────────────────────────────→ DISMISSED
 
 RESOLVED/DISMISSED → REOPENED → INVESTIGATING
 ```
 
-Invalid transitions MUST be rejected.
+Các chuyển đổi không hợp lệ MUST bị từ chối.
 
-`INVESTIGATING` here is a Hotspot operational status only; in P0 it MUST NOT create an Investigation/RCA entity or change cause status to `UNDER_INVESTIGATION`.
+`INVESTIGATING` ở đây chỉ là một trạng thái vận hành của Hotspot; trong P0 nó MUST NOT tạo ra một thực thể Investigation/RCA hoặc thay đổi trạng thái nguyên nhân thành `UNDER_INVESTIGATION`.
 
 ---
 
 ## BR-HOT-008 — State/Ownership Changes Are Audited
 
-**Priority:** P0  
-**Rule:** Acknowledge, assign, reassign, dismiss, resolve, and reopen MUST capture actor, timestamp, and reason.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Các thao tác Acknowledge, assign, reassign, dismiss, resolve, và reopen MUST ghi nhận tác nhân (actor), nhãn thời gian (timestamp), và lý do (reason).
 
 ---
 
 ## BR-HOT-009 — Safety Hard Trigger Is Independent of Sentiment/Classifier
 
-**Priority:** P1 after sign-off  
-**Rule:** Approved safety hard triggers MUST NOT depend on sentiment or waiting for volume/classifier completion.
+**Mức ưu tiên:** P1 sau khi phê duyệt (sign-off)  
+**Quy tắc:** Các kích hoạt cứng an toàn (safety hard triggers) đã được phê duyệt MUST NOT phụ thuộc vào sắc thái (sentiment) hoặc việc chờ hoàn thành xử lý khối lượng/bộ phân loại (volume/classifier completion).
 
-P0 MUST keep automated hard-trigger execution feature-flagged off until Safety/Legal/BQL approval.
+P0 MUST duy trì việc thực thi hard-trigger tự động ở trạng thái tắt cờ tính năng (feature-flagged off) cho đến khi nhận được sự phê duyệt của Safety/Legal/BQL.
 
 ---
 
-# 12. Priority & Severity Rules
+# 12. Quy tắc Mức độ Ưu tiên & Mức độ Nghiêm trọng
 
 ## BR-SEV-001 — Delivery Priority Is Not Operational Severity
 
-**Priority:** P0  
-**Rule:** These are separate dimensions:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Đây là hai chiều tách biệt:
 
 ```text
 delivery_priority = P0 | P1 | P2
 operational_severity = SEV-1 | SEV-2 | SEV-3 | SEV-4
 ```
 
-They MUST NOT share:
-- the same database field;
-- the same API meaning;
-- the same UI filter;
-- the same display semantics.
+Chúng MUST NOT dùng chung:
+- cùng một trường cơ sở dữ liệu;
+- cùng một ý nghĩa API;
+- cùng một bộ lọc UI;
+- cùng một ngữ nghĩa hiển thị.
 
 ---
 
 ## BR-SEV-002 — Legacy Priority Mapping
 
-**Priority:** P0 migration  
-**Rule:** Legacy operational Priority `P1..P4` maps to:
+**Mức ưu tiên:** Chuyển đổi P0 (P0 migration)  
+**Quy tắc:** Priority vận hành cũ `P1..P4` ánh xạ thành:
 
 ```text
 P1 → SEV-1
@@ -844,23 +844,23 @@ P3 → SEV-3
 P4 → SEV-4
 ```
 
-The migration must make the semantic conversion explicit.
+Quá trình chuyển đổi phải thể hiện rõ ràng sự chuyển đổi ngữ nghĩa này.
 
 ---
 
-# 13. Security & Audit Rules
+# 13. Quy tắc Bảo mật & Kiểm toán
 
 ## BR-SEC-001 — Server-Side Authorization
 
-**Priority:** P0  
-**Rule:** Permission checks MUST be enforced by API/service layer. Hiding controls in UI is not authorization.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Kiểm tra quyền hạn MUST được thực thi bởi tầng API/dịch vụ. Việc ẩn các nút điều khiển trên UI không phải là ủy quyền (authorization).
 
 ---
 
 ## BR-SEC-002 — Minimum Pilot Roles
 
-**Priority:** P0  
-**Rule:** Pilot MUST support at least:
+**Mức ưu tiên:** P0  
+**Quy tắc:** Bản thử nghiệm MUST hỗ trợ tối thiểu:
 
 ```text
 PILOT_ADMIN
@@ -869,145 +869,145 @@ REVIEWER
 VIEWER
 ```
 
-All users MUST be restricted to the approved pilot project scope.
+Tất cả người dùng MUST bị giới hạn trong phạm vi dự án thử nghiệm đã được phê duyệt.
 
 ---
 
 ## BR-SEC-003 — Raw PII Is Privileged
 
-**Priority:** P0  
-**Rule:** Viewing/exporting `content_raw` or customer identifiers requires an explicit privilege.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Việc xem/xuất `content_raw` hoặc các thông tin định danh khách hàng yêu cầu phải có một đặc quyền rõ ràng.
 
-Non-privileged users must receive masked content.
+Người dùng không có đặc quyền phải nhận nội dung đã được che mờ (masked content).
 
 ---
 
 ## BR-SEC-004 — Privileged Actions Are Audited
 
-**Priority:** P0  
-**Rule:** Audit MUST cover at least:
-- login/admin actions;
-- import execution;
-- raw PII view/export;
-- taxonomy publication;
-- Feedback Item split;
-- classification decision;
-- hotspot owner/state changes;
-- hotspot rule changes.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Kiểm toán (Audit) MUST bao quát tối thiểu:
+- các hành động đăng nhập/quản trị (login/admin);
+- thực thi nhập dữ liệu (import);
+- xem/xuất dữ liệu PII thô;
+- xuất bản taxonomy;
+- tách Feedback Item;
+- quyết định phân loại;
+- thay đổi người phụ trách/trạng thái hotspot;
+- thay đổi quy tắc hotspot.
 
 ---
 
 ## BR-SEC-005 — Audit Records Are Append-Only
 
-**Priority:** P0  
-**Rule:** Audit events MUST NOT be overwritten by normal application workflows.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Các sự kiện kiểm toán MUST NOT bị ghi đè bởi luồng công việc ứng dụng thông thường.
 
 ---
 
-# 14. Reliability & Data Quality Rules
+# 14. Quy tắc Độ tin cậy & Chất lượng Dữ liệu
 
 ## BR-DQ-001 — No Silent Fallback
 
-**Priority:** P0  
-**Rule:** Missing taxonomy, location, event time, owner, or invalid mapping MUST produce:
-- an explicit value status, or
-- an observable data-quality error.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Trường hợp thiếu taxonomy, địa điểm, thời gian sự kiện, người phụ trách, hoặc ánh xạ không hợp lệ MUST tạo ra:
+- một trạng thái giá trị (value status) rõ ràng, hoặc
+- một lỗi chất lượng dữ liệu có thể quan sát được.
 
-The platform MUST NOT silently guess a replacement value.
+Nền tảng MUST NOT tự động đoán giá trị thay thế một cách âm thầm.
 
 ---
 
 ## BR-DQ-002 — Projection Must Be Rebuildable
 
-**Priority:** P0  
-**Rule:** Current classification projection MUST be rebuildable from immutable decisions/review events.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Projection phân loại hiện tại MUST có thể tái tạo lại được từ các quyết định/sự kiện xem xét bất biến.
 
 ---
 
 ## BR-DQ-003 — Async Work Must Be Retryable and Observable
 
-**Priority:** P0  
-**Rule:** Import, AI prediction, and hotspot evaluation jobs MUST expose:
-- job state;
-- retry behavior;
-- correlation ID;
-- error details;
-- idempotency protection.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Các job nhập dữ liệu, dự đoán AI, và đánh giá hotspot MUST hiển thị rõ:
+- trạng thái job;
+- hành vi thử lại (retry);
+- mã tương quan (correlation ID);
+- chi tiết lỗi;
+- cơ chế bảo vệ tính lặp lại không đổi (idempotency protection).
 
 ---
 
 ## BR-DQ-004 — Versioned Configuration Must Be Reproducible
 
-**Priority:** P0  
-**Rule:** Historical behavior MUST remain reproducible from stored taxonomy/mapping/metric/rule versions.
+**Mức ưu tiên:** P0  
+**Quy tắc:** Hành vi lịch sử MUST có thể tái tạo lại từ các phiên bản taxonomy/mapping/metric/rule được lưu trữ.
 
 ---
 
-# 15. Rule-to-Enforcement Matrix
+# 15. Ma trận Quy tắc và Phương thức Thực thi
 
-| Rule group | DB constraint | API/service validation | Async worker | UI validation | Audit | Automated test |
+| Nhóm quy tắc | DB constraint | API/service validation | Async worker | UI validation | Audit | Automated test |
 |---|---:|---:|---:|---:|---:|---:|
-| Feedback immutability | ✓ | ✓ |  | ✓ | ✓ | ✓ |
-| Atomic item/split |  | ✓ |  | ✓ | ✓ | ✓ |
-| Lifecycle separation | ✓ | ✓ |  | ✓ |  | ✓ |
-| Issue↔Service consistency | ✓/logical | ✓ |  | ✓ | ✓ | ✓ |
-| Decision append-only | ✓ | ✓ |  | ✓ | ✓ | ✓ |
-| Prediction suggest-only | ✓/logical | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Import idempotency | ✓ | ✓ | ✓ |  | ✓ | ✓ |
-| Analytics eligibility |  | ✓ | ✓/query | ✓ |  | ✓ |
-| Hotspot idempotency | ✓ | ✓ | ✓ |  | ✓ | ✓ |
-| PII privilege |  | ✓ |  | ✓ | ✓ | ✓ |
-| Taxonomy publish invariants | ✓/validator | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Tính bất biến của Feedback | ✓ | ✓ |  | ✓ | ✓ | ✓ |
+| Mục nguyên tử/Tách mục |  | ✓ |  | ✓ | ✓ | ✓ |
+| Phân tách vòng đời | ✓ | ✓ |  | ✓ |  | ✓ |
+| Tính nhất quán Issue↔Service | ✓/logical | ✓ |  | ✓ | ✓ | ✓ |
+| Quyết định chỉ ghi thêm (append-only) | ✓ | ✓ |  | ✓ | ✓ | ✓ |
+| Dự đoán chỉ gợi ý (suggest-only) | ✓/logical | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Tính lặp lại không đổi của Import | ✓ | ✓ | ✓ |  | ✓ | ✓ |
+| Điều kiện hợp lệ của phân tích |  | ✓ | ✓/query | ✓ |  | ✓ |
+| Tính lặp lại không đổi của Hotspot | ✓ | ✓ | ✓ |  | ✓ | ✓ |
+| Đặc quyền PII |  | ✓ |  | ✓ | ✓ | ✓ |
+| Các bất biến xuất bản Taxonomy | ✓/validator | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 ---
 
-# 16. Minimum P0 Acceptance Invariants
+# 16. Các Bất biến Nghiệm thu Tối thiểu cho P0
 
-Before P0 is considered technically valid, automated tests MUST demonstrate at least:
+Trước khi P0 được coi là hợp lệ về mặt kỹ thuật, các bài kiểm thử tự động MUST chứng minh được tối thiểu các điều sau:
 
-1. Retry of the same import does not duplicate successful feedback.
-2. A multi-intent feedback can be split without changing `content_raw`.
-3. `SRV-*` cannot be persisted as a Customer Lifecycle step.
-4. A known Issue cannot be saved under the wrong Primary Service.
-5. A prediction cannot enter current projection without an accepted decision.
-6. A manual correction creates a new decision version instead of overwriting history.
-7. Current projection can be rebuilt from decision history.
-8. `SV-10/IS-10-01` without `other_reason` is rejected.
-9. A known taxonomy ID from a retired/non-published release cannot be used for a new decision.
-10. Analytics exclude unreviewed predictions and ineligible items.
-11. The configured vertical slice creates exactly one hotspot candidate at threshold.
-12. Retrying hotspot evaluation does not duplicate that candidate.
-13. Hotspot evidence set is traceable back to the exact Feedback Items.
-14. Raw PII is denied to a role without raw-view privilege.
-15. Every privileged/decision/hotspot-state mutation creates an audit record.
-
----
-
-# 17. Open Business Decisions That Block or Shape P0
-
-The following must remain explicit configuration/decision records rather than hard-coded assumptions:
-
-- pilot project/building/source/date range/user cohort;
-- source-trust policy;
-- multi-intent split guideline;
-- required versus optional UNKNOWN fields;
-- location hierarchy and grouping level;
-- Service owner configuration;
-- final legacy severity mapping approval;
-- PII masking/retention/export policy;
-- hotspot `N`, `W`, cooldown, owner and playbook;
-- pilot sizing and file-size limit;
-- gold-set sampling/adjudication rules;
-- operational metric baseline.
+1. Việc thử lại cùng một vụ nhập dữ liệu (import) không làm trùng lặp các feedback đã thành công.
+2. Một feedback có nhiều ý định có thể được tách ra mà không làm thay đổi `content_raw`.
+3. `SRV-*` không thể được lưu trữ dưới dạng một bước (step) Vòng đời Khách hàng.
+4. Một Issue đã biết không thể được lưu dưới một Primary Service sai.
+5. Một dự đoán không thể đi vào projection hiện tại mà không có quyết định được chấp nhận.
+6. Một đính chính thủ công tạo ra một phiên bản quyết định mới thay vì ghi đè lên lịch sử.
+7. Projection hiện tại có thể được tái tạo lại từ lịch sử quyết định.
+8. `SV-10/IS-10-01` không có `other_reason` sẽ bị từ chối.
+9. Một taxonomy ID đã biết thuộc bản phát hành đã ngưng sử dụng/chưa xuất bản không thể được sử dụng cho một quyết định mới.
+10. Dữ liệu phân tích loại trừ các dự đoán chưa qua xem xét và các mục không hợp lệ.
+11. Lát cắt dọc (vertical slice) được cấu hình tạo ra chính xác một ứng viên hotspot khi đạt ngưỡng.
+12. Việc thử lại đánh giá hotspot không làm trùng lặp ứng viên đó.
+13. Tập hợp bằng chứng hotspot có thể truy xuất ngược lại chính xác các Feedback Item tương ứng.
+14. PII thô bị từ chối truy cập đối với vai trò không có đặc quyền xem dữ liệu thô (raw-view privilege).
+15. Mọi mutation thay đổi đặc quyền/quyết định/trạng thái hotspot đều tạo ra một bản ghi kiểm toán (audit record).
 
 ---
 
-# 18. Source of Truth
+# 17. Các Quyết định Nghiệp vụ Mở Chặn hoặc Định hình P0
 
-This document is derived from:
+Những điều sau đây phải duy trì dưới dạng các bản ghi cấu hình/quyết định rõ ràng thay vì các giả định được hard-code:
 
-1. `docs/PRD.md` — product requirements, domain model, functional requirements, business rules, API baseline, NFRs, MVP acceptance.
-2. `docs/service_taxonomy.md` — canonical lifecycle/service/issue definitions and taxonomy publication invariants.
+- dự án thử nghiệm/tòa nhà/nguồn/khoảng thời gian/nhóm người dùng (user cohort);
+- chính sách tin cậy nguồn (source-trust policy);
+- hướng dẫn tách nhiều ý định (multi-intent split guideline);
+- các trường UNKNOWN bắt buộc so với tùy chọn;
+- phân cấp địa điểm và cấp độ gom nhóm;
+- cấu hình người phụ trách (owner) của Service;
+- sự phê duyệt cuối cùng cho ánh xạ mức độ nghiêm trọng cũ (legacy severity mapping);
+- chính sách che mờ/lưu giữ/xuất dữ liệu PII;
+- các tham số hotspot `N`, `W`, thời gian chờ (cooldown), owner và playbook;
+- quy mô thử nghiệm và giới hạn dung lượng file;
+- quy tắc lấy mẫu bộ dữ liệu chuẩn (gold-set sampling) và phân xử (adjudication rules);
+- cơ sở chỉ số vận hành (operational metric baseline).
 
-Any new rule that changes canonical taxonomy meaning must first be reflected in `service_taxonomy.md`.  
-Any new rule that changes product scope/behavior must first be reflected in `PRD.md` or a linked Decision Record.
+---
+
+# 18. Nguồn Sự thật (Source of Truth)
+
+Tài liệu này được dẫn xuất từ:
+
+1. `docs/PRD.md` — yêu cầu sản phẩm, mô hình tên miền (domain model), yêu cầu chức năng, quy tắc nghiệp vụ, phác thảo API baseline, các NFR, và nghiệm thu MVP.
+2. `docs/service_taxonomy.md` — định nghĩa chuẩn về vòng đời/service/issue và các bất biến khi xuất bản taxonomy.
+
+Bất kỳ quy tắc mới nào làm thay đổi ý nghĩa taxonomy chuẩn đều phải được phản ánh trước trong `service_taxonomy.md`.  
+Bất kỳ quy tắc mới nào làm thay đổi phạm vi/hành vi sản phẩm đều phải được phản ánh trước trong `PRD.md` hoặc một Decision Record được liên kết.

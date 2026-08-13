@@ -1,41 +1,41 @@
-# 04 — System Design
+# 04 — Thiết kế Hệ thống
 
-# CX Journey, Service & Root Cause Intelligence Platform
+# Nền tảng Trí tuệ Phân tích Hành trình Khách hàng, Dịch vụ & Nguyên nhân Gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
-**Version:** 1.1
-**Status:** P0 Pilot Architecture Baseline
-**Derived from:** `docs/PRD.md` v1.3, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.1
-**Repository baseline:** Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg 3, Alembic; repository already separates `apps/api`, `apps/web`, and `apps/worker`.
-
----
-
-## 1. Purpose
-
-This document defines how the P0 CX Platform should be implemented as a coherent, testable system.
-
-It translates the product/domain contracts into:
-
-- application architecture;
-- module boundaries;
-- persistence model;
-- asynchronous processing;
-- API design;
-- security/audit behavior;
-- analytics read paths;
-- hotspot processing;
-- deployment/observability;
-- failure handling;
-- build order.
-
-The system design deliberately optimizes for a production-limited pilot and clear domain contracts before scale-out complexity.
+**Phiên bản:** 1.1  
+**Trạng thái:** P0 Pilot Architecture Baseline  
+**Dựa trên:** `docs/PRD.md` v1.3, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.1  
+**Repository baseline:** Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg 3, Alembic; kho lưu trữ đã tách biệt `apps/api`, `apps/web`, và `apps/worker`.
 
 ---
 
-# 2. Architecture Decision Summary
+## 1. Mục đích
 
-## SD-ADR-001 — Use a Modular Monolith for P0
+Tài liệu này xác định cách triển khai P0 CX Platform như một hệ thống nhất quán, có thể kiểm thử được.
 
-P0 SHOULD use one domain-oriented backend application plus one asynchronous worker, not multiple microservices.
+Tài liệu chuyển đổi các hợp đồng nghiệp vụ/tên miền thành:
+
+- kiến trúc ứng dụng;
+- ranh giới mô-đun;
+- mô hình lưu trữ;
+- xử lý bất đồng bộ;
+- thiết kế API;
+- hành vi bảo mật/kiểm toán;
+- đường dẫn đọc phân tích;
+- xử lý điểm nóng;
+- triển khai/khả năng giám sát;
+- xử lý lỗi;
+- thứ tự xây dựng.
+
+Thiết kế hệ thống cố ý tối ưu hóa cho một phiên bản thử nghiệm (pilot) bị giới hạn về phạm vi sản xuất và các hợp đồng tên miền rõ ràng trước khi gia tăng độ phức tạp khi mở rộng quy mô.
+
+---
+
+# 2. Tóm tắt Quyết định Kiến trúc
+
+## SD-ADR-001 — Sử dụng Modular Monolith cho P0
+
+P0 NÊN sử dụng một ứng dụng backend định hướng theo tên miền (domain-oriented backend application) kết hợp với một worker bất đồng bộ, thay vì nhiều microservice.
 
 ```text
 apps/web
@@ -51,36 +51,36 @@ PostgreSQL
         apps/worker
 ```
 
-**Why**
+**Lý do**
 
-- P0 is a pilot with many domain rules but limited scale.
-- Most operations require transactional consistency across feedback, decisions, audit, and projections.
-- Splitting into services early would add distributed consistency and deployment overhead without clear product value.
-- Domain module boundaries can later become service boundaries if needed.
+- P0 là phiên bản thử nghiệm có nhiều quy tắc tên miền (domain rules) nhưng quy mô còn hạn chế.
+- Hầu hết các thao tác yêu cầu tính nhất quán giao dịch (transactional consistency) giữa phản hồi (feedback), quyết định (decisions), kiểm toán (audit) và các projection.
+- Việc chia nhỏ thành các dịch vụ sớm sẽ làm tăng chi phí quản lý tính nhất quán phân tán và triển khai mà không mang lại giá trị sản phẩm rõ ràng.
+- Ranh giới giữa các mô-đun tên miền sau này có thể chuyển đổi thành ranh giới dịch vụ nếu cần.
 
 ---
 
-## SD-ADR-002 — PostgreSQL Is the P0 System of Record
+## SD-ADR-002 — PostgreSQL là System of Record cho P0
 
-PostgreSQL SHOULD store:
+PostgreSQL NÊN lưu trữ:
 
-- reference/taxonomy data;
-- import-job metadata;
+- dữ liệu tham chiếu/taxonomy;
+- metadata của công việc nhập dữ liệu (import-job);
 - Feedback/Feedback Item;
-- prediction ledger;
-- decision ledger;
-- current projection;
-- audit;
-- hotspot state/evidence;
-- metric configuration.
+- sổ nhật ký dự đoán (prediction ledger);
+- sổ nhật ký quyết định (decision ledger);
+- projection hiện tại (current projection);
+- dữ liệu kiểm toán (audit);
+- trạng thái/bằng chứng điểm nóng (hotspot state/evidence);
+- cấu hình chỉ số (metric configuration).
 
-Large uploaded files/error files MAY be stored in S3-compatible object storage.
+Các tệp tải lên dung lượng lớn/tệp lỗi CÓ THỂ được lưu trữ trong bộ lưu trữ đối tượng (object storage) tương thích S3.
 
 ---
 
-## SD-ADR-003 — Append-Only Ledgers + Rebuildable Projection
+## SD-ADR-003 — Ledgers Chỉ ghi nối tiếp (Append-Only Ledgers) + Projection Có thể tái thiết lập (Rebuildable Projection)
 
-The classification architecture MUST separate:
+Kiến trúc phân loại BẮT BUỘC phải tách biệt:
 
 ```text
 Prediction Ledger        (immutable)
@@ -92,15 +92,15 @@ Current Classification Projection
 Analytics / Hotspot / UI reads
 ```
 
-The projection is disposable/rebuildable derived state.
+Projection là trạng thái phái sinh có thể hủy bỏ/tái thiết lập.
 
 ---
 
-## SD-ADR-004 — P0 Async Queue Can Be PostgreSQL-Backed
+## SD-ADR-004 — Async Queue cho P0 Có thể Dựa trên PostgreSQL
 
-Because the current Python dependency baseline does not require Redis/Celery, P0 MAY implement a durable PostgreSQL job queue with worker claiming via transaction/`FOR UPDATE SKIP LOCKED`.
+Vì baseline phụ thuộc Python hiện tại không bắt buộc Redis/Celery, P0 CÓ THỂ triển khai một hàng chờ công việc (job queue) bền vững dựa trên PostgreSQL với cơ chế worker nhận việc (claiming) thông qua giao dịch/`FOR UPDATE SKIP LOCKED`.
 
-Recommended migration path:
+Lộ trình chuyển đổi được đề xuất:
 
 ```text
 P0:
@@ -110,13 +110,13 @@ Scale-out:
 Redis / SQS / RabbitMQ / managed queue
 ```
 
-The job contract must remain queue-technology agnostic.
+Hợp đồng công việc (job contract) phải độc lập với công nghệ hàng chờ.
 
 ---
 
-## SD-ADR-005 — AI Is an External/Replaceable Adapter
+## SD-ADR-005 — AI là Adapter Bên ngoài/Có thể thay thế
 
-Domain/application logic MUST NOT depend directly on one ML provider/model.
+Logic tên miền/ứng dụng KHÔNG ĐƯỢC phụ thuộc trực tiếp vào một nhà cung cấp/mô hình ML cụ thể.
 
 ```text
 ClassificationService
@@ -129,11 +129,11 @@ Model Adapter
    └── LLM endpoint
 ```
 
-All prediction output is persisted with model/pipeline/taxonomy version before review.
+Tất cả đầu ra dự đoán đều được lưu trữ kèm theo phiên bản của mô hình/pipeline/taxonomy trước khi đánh giá (review).
 
 ---
 
-# 3. System Context
+# 3. Bối cảnh Hệ thống
 
 ```mermaid
 flowchart LR
@@ -162,9 +162,9 @@ flowchart LR
 
 ---
 
-# 4. P0 Repository Mapping
+# 4. Ánh xạ Kho lưu trữ P0
 
-Recommended repository structure:
+Cấu trúc kho lưu trữ được đề xuất:
 
 ```text
 apps/
@@ -211,29 +211,29 @@ tests/
 └── e2e/
 ```
 
-Rule: routers/controllers should remain thin. Business invariants belong in domain/application services, not inside HTTP handlers.
+Quy tắc: routers/controllers phải giữ cho gọn nhẹ. Các bất biến nghiệp vụbelong về domain/application services, không nằm bên trong các HTTP handler.
 
 ---
 
-# 5. Backend Module Boundaries
+# 5. Ranh giới các Mô-đun Backend
 
-## 5.1 Taxonomy Module
+## 5.1 Mô-đun Taxonomy
 
-Responsibilities:
+Trách nhiệm:
 
-- read lifecycle/service/issue/cause dictionaries;
-- validate taxonomy release shape;
-- validate lifecycle-service mappings;
-- validate stable/effective IDs;
-- publish an approved release;
-- expose published reference data to UI/API.
+- đọc các danh mục lifecycle/service/issue/cause;
+- xác thực cấu trúc phát hành (release shape) của taxonomy;
+- xác thực các ánh xạ lifecycle-service;
+- xác thực các ID ổn định/có hiệu lực;
+- xuất bản bản phát hành đã được phê duyệt;
+- cung cấp dữ liệu tham chiếu đã xuất bản cho UI/API.
 
-P0:
+Trong P0:
 
-- read/validate/publish;
-- no arbitrary row-level CRUD.
+- đọc/xác thực/xuất bản;
+- không cung cấp CRUD tùy ý ở cấp dòng.
 
-Core objects:
+Các đối tượng cốt lõi:
 
 ```text
 TaxonomyRelease
@@ -249,21 +249,21 @@ ServiceOwnerConfig
 
 ---
 
-## 5.2 Import Module
+## 5.2 Mô-đun Import
 
-Responsibilities:
+Trách nhiệm:
 
 - upload metadata;
-- mapping profile;
-- preview;
-- schema/row validation;
-- execution;
-- retry;
-- error report;
-- row lineage;
-- idempotency.
+- cấu hình ánh xạ;
+- xem trước;
+- xác thực schema/dòng;
+- thực thi;
+- thử lại;
+- báo cáo lỗi;
+- nguồn gốc dòng dữ liệu;
+- tính bảo toàn thao tác.
 
-Core objects:
+Các đối tượng cốt lõi:
 
 ```text
 ImportJob
@@ -274,17 +274,17 @@ ImportRowError
 
 ---
 
-## 5.3 Feedback Module
+## 5.3 Mô-đun Feedback
 
-Responsibilities:
+Trách nhiệm:
 
-- immutable Feedback envelope;
-- Feedback Item creation/split;
-- masked text;
-- source/location/channel normalization;
-- Feedback workspace queries.
+- vỏ bọc Feedback bất biến;
+- tạo/tách Feedback Item;
+- văn bản đã được ẩn danh/che dấu PII;
+- chuẩn hóa nguồn/vị trí/kênh;
+- truy vấn không gian làm việc Feedback.
 
-Core objects:
+Các đối tượng cốt lõi:
 
 ```text
 Feedback
@@ -294,18 +294,18 @@ FeedbackItemAffectedChannel
 
 ---
 
-## 5.4 Classification Module
+## 5.4 Mô-đun Classification
 
-Responsibilities:
+Trách nhiệm:
 
-- AI prediction ledger;
-- human/source decision ledger;
-- review actions;
-- optimistic concurrency;
-- current projection rebuild;
-- taxonomy consistency validation.
+- sổ nhật ký dự đoán AI;
+- sổ nhật ký quyết định từ con người/nguồn;
+- các hành động đánh giá;
+- kiểm soát đồng thời lạc quan;
+- tái thiết lập projection hiện tại;
+- xác thực tính nhất quán của taxonomy.
 
-Core objects:
+Các đối tượng cốt lõi:
 
 ```text
 PredictionRun
@@ -318,7 +318,7 @@ ClassificationCurrent
 ClassificationCurrentCandidateCause
 ```
 
-Canonical contracts:
+Hợp đồng chuẩn hóa:
 
 ```text
 decision_source = MANUAL | SOURCE_TRUSTED | HUMAN_ACCEPTED_AI | HUMAN_CORRECTED_AI | POLICY_AUTO_APPLIED | SYSTEM_MIGRATION
@@ -326,21 +326,21 @@ cause_determination_status = NOT_ASSESSED | UNKNOWN | SUGGESTED | UNDER_INVESTIG
 review_action = ACCEPT | CORRECT | MARK_UNKNOWN | MARK_MISSING | MARK_NOT_APPLICABLE | SPLIT_REQUIRED | SKIP
 ```
 
-P0 writers may use only `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE` for cause determination. P1 Investigation/RCA owns `UNDER_INVESTIGATION` and `CONFIRMED`.
+Các luồng ghi trong P0 chỉ được sử dụng `NOT_ASSESSED`, `UNKNOWN`, `SUGGESTED`, `NOT_APPLICABLE` cho xác định nguyên nhân. P1 Investigation/RCA mới sở hữu `UNDER_INVESTIGATION` và `CONFIRMED`.
 
 ---
 
-## 5.5 Analytics Module
+## 5.5 Mô-đun Analytics
 
-Responsibilities:
+Trách nhiệm:
 
-- central eligibility predicate;
-- metric definitions;
-- KPI query functions/views;
-- filter-context serialization;
-- drill-down consistency.
+- vị tự điều kiện hợp lệ trung tâm;
+- định nghĩa các chỉ số;
+- các hàm/view truy vấn KPI;
+- tuần tự hóa bối cảnh bộ lọc;
+- tính nhất quán khi đi sâu vào chi tiết.
 
-P0 metrics:
+Các chỉ số trong P0:
 
 - item volume;
 - negative rate;
@@ -351,25 +351,25 @@ P0 metrics:
 - active hotspots;
 - data-quality counts.
 
-P0 exposes four basic dashboard read models: CX Overview, Customer Journey, Service & Pain Points, and Hotspot & Root Cause. The fourth contains only hotspot/evidence/owner/status/Candidate Cause in P0. Each dimension breakdown (`journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel`, `affected_channel`) returns `item_volume`, `negative_rate`, `active_hotspots`, and `trend` under one filter/metric-definition context.
+P0 cung cấp 4 mô hình đọc dashboard cơ bản: CX Overview, Customer Journey, Service & Pain Points, và Hotspot & Root Cause. Dashboard thứ tư chỉ chứa hotspot/evidence/owner/status/Candidate Cause trong P0. Mỗi góc độ phân tích chi tiết (`journey_stage`, `journey_step`, `service`, `issue`, `location`, `intake_channel`, `affected_channel`) trả về `item_volume`, `negative_rate`, `active_hotspots`, và `trend` trong cùng một ngữ cảnh bộ lọc/định nghĩa chỉ số.
 
-Persona is not a P0 analytics dimension. Affected Channel is supported independently from Intake Channel.
+Persona không phải là một chiều phân tích trong P0. Affected Channel được hỗ trợ độc lập với Intake Channel.
 
 ---
 
-## 5.6 Hotspot Module
+## 5.6 Mô-đun Hotspot
 
-Responsibilities:
+Trách nhiệm:
 
-- deterministic rule configuration;
-- eligible item selection;
-- rolling-window evaluation;
-- idempotent candidate upsert;
-- evidence linkage;
-- lifecycle/owner changes;
-- audit.
+- cấu hình quy tắc định tính;
+- lựa chọn các item đủ điều kiện;
+- đánh giá theo cửa sổ trượt;
+- upsert ứng viên bảo toàn thao tác;
+- liên kết bằng chứng;
+- thay đổi lifecycle/người sở hữu;
+- kiểm toán.
 
-Core objects:
+Các đối tượng cốt lõi:
 
 ```text
 HotspotRule
@@ -381,20 +381,20 @@ HotspotTimelineEvent
 
 ---
 
-## 5.7 Security & Audit Module
+## 5.7 Mô-đun Security & Audit
 
-Responsibilities:
+Trách nhiệm:
 
-- authenticated principal;
-- pilot scope;
-- role/privilege checks;
-- raw-PII enforcement;
-- immutable audit events;
-- correlation ID.
+- đối tượng thực thể được xác thực;
+- phạm vi thử nghiệm;
+- kiểm tra vai trò/quyền hạn;
+- thực thi quy định PII thô;
+- các sự kiện kiểm toán bất biến;
+- ID tương quan.
 
 ---
 
-# 6. Logical Data Model
+# 6. Mô hình Dữ liệu Logic
 
 ```mermaid
 erDiagram
@@ -419,9 +419,9 @@ erDiagram
 
 ---
 
-# 7. Recommended PostgreSQL Tables
+# 7. Các Bảng PostgreSQL Được đề xuất
 
-## 7.1 Reference & Governance
+## 7.1 Tham chiếu & Quản trị
 
 ```text
 taxonomy_release
@@ -440,17 +440,17 @@ pilot_scope_manifest
 metric_definition
 ```
 
-Important constraints:
+Các ràng buộc quan trọng:
 
-- codes unique per canonical namespace;
-- Issue belongs to exactly one Service;
-- published release immutable except retirement metadata;
-- effective dates validated;
-- no reused stable code.
+- các code duy nhất trên mỗi không gian tên chuẩn hóa;
+- Issue thuộc về duy nhất một Service;
+- bản phát hành đã xuất bản là bất biến, ngoại trừ metadata về ngưng sử dụng;
+- các ngày có hiệu lực phải được xác thực;
+- không tái sử dụng mã ổn định.
 
 ---
 
-## 7.2 Intake
+## 7.2 Thu thập Dữ liệu
 
 ```text
 import_job
@@ -462,19 +462,19 @@ feedback_item
 feedback_item_affected_channel
 ```
 
-Suggested uniqueness:
+Ràng buộc duy nhất được đề xuất:
 
 ```text
 UNIQUE(source_system, source_record_key)
 ```
 
-when the source guarantees a stable key.
+khi hệ thống nguồn bảo đảm một key ổn định.
 
-Otherwise use a deterministic idempotency key/checksum scoped to source/import policy.
+Nếu không, sử dụng một idempotency key/checksum định tính trong phạm vi nguồn/chính sách nhập dữ liệu.
 
 ---
 
-## 7.3 Classification
+## 7.3 Phân loại
 
 ```text
 prediction_run
@@ -487,18 +487,18 @@ classification_current
 classification_current_candidate_cause
 ```
 
-Suggested constraints:
+Ràng buộc được đề xuất:
 
 ```text
 UNIQUE(feedback_item_id, decision_version)
 UNIQUE(feedback_item_id) on classification_current
 ```
 
-`classification_decision` is append-only.
+`classification_decision` là bảng chỉ ghi nối tiếp.
 
 ---
 
-## 7.4 Hotspot
+## 7.4 Điểm nóng
 
 ```text
 hotspot_rule
@@ -507,23 +507,23 @@ hotspot_timeline_event
 feedback_item_hotspot
 ```
 
-Recommended idempotency key:
+Idempotency key được đề xuất:
 
 ```text
 UNIQUE(dimension_key, rule_version, active_window_key)
 ```
 
-or an equivalent deterministic unique key.
+hoặc một unique key định tính tương đương.
 
 ---
 
-## 7.5 Audit
+## 7.5 Kiểm toán
 
 ```text
 audit_event
 ```
 
-Suggested fields:
+Các trường được đề xuất:
 
 ```text
 audit_event_id
@@ -541,13 +541,13 @@ after_ref
 metadata_json
 ```
 
-Audit records should avoid duplicating sensitive raw content unless explicitly required.
+Dữ liệu kiểm toán nên tránh việc trùng lặp nội dung thô nhạy cảm trừ khi có yêu cầu rõ ràng.
 
 ---
 
-# 8. Classification Current Projection
+# 8. Projection Phân loại Hiện tại
 
-The projection exists to optimize read/filter workloads.
+Projection tồn tại để tối ưu hóa khối lượng công việc đọc/lọc dữ liệu.
 
 ```text
 feedback_item_id
@@ -571,27 +571,27 @@ last_decision_at
 projection_version
 ```
 
-## Projection update algorithm
+## Thuật toán cập nhật Projection
 
-Within one transaction:
+Trong cùng một giao dịch:
 
 ```text
-1. Lock/read current projection version.
-2. Validate expected previous decision/version.
-3. Validate taxonomy release is allowed.
-4. Validate Service/Issue/lifecycle invariants.
-5. Insert new immutable ClassificationDecision.
-6. Insert decision child references.
-7. Upsert ClassificationCurrent from new decision.
-8. Write audit/review event.
+1. Lock/đọc phiên bản projection hiện tại.
+2. Xác thực quyết định/phiên bản trước đó dự kiến.
+3. Xác thực bản phát hành taxonomy có được phép hay không.
+4. Xác thực các bất biến của Service/Issue/lifecycle.
+5. Chèn ClassificationDecision bất biến mới.
+6. Chèn các tham chiếu con của quyết định.
+7. Upsert ClassificationCurrent từ quyết định mới.
+8. Ghi sự kiện kiểm toán/đánh giá.
 9. Commit.
 ```
 
-If step 2 detects stale state, return HTTP `409 Conflict`.
+Nếu bước 2 phát hiện trạng thái lỗi thời, trả về HTTP `409 Conflict`.
 
 ---
 
-# 9. Import Flow
+# 9. Luồng Nhập dữ liệu
 
 ```mermaid
 sequenceDiagram
@@ -630,11 +630,11 @@ sequenceDiagram
 
 ---
 
-# 10. Import Worker Contract
+# 10. Hợp đồng Import Worker
 
-Each worker operation MUST be safe to retry.
+Mỗi thao tác của worker BẮT BUỘC phải an toàn khi thử lại.
 
-Pseudo-behavior:
+Hành vi giả lập:
 
 ```text
 claim job
@@ -654,11 +654,11 @@ for each uncommitted row:
 aggregate job status
 ```
 
-No silent row loss is allowed.
+Không được phép mất mát dòng dữ liệu một cách âm thầm.
 
 ---
 
-# 11. AI Prediction Flow
+# 11. Luồng Dự đoán AI
 
 ```mermaid
 sequenceDiagram
@@ -676,7 +676,7 @@ sequenceDiagram
     Note over DB: Current classification unchanged
 ```
 
-Prediction fields in P0:
+Các trường dự đoán trong P0:
 
 ```text
 customer_lifecycle_step
@@ -686,11 +686,11 @@ issue
 sentiment
 ```
 
-Customer Lifecycle Stage is derived from step.
+Customer Lifecycle Stage được suy ra từ step.
 
 ---
 
-# 12. AI Review / Human Decision Flow
+# 12. Luồng Đánh giá AI / Quyết định từ Con người
 
 ```mermaid
 sequenceDiagram
@@ -716,9 +716,9 @@ sequenceDiagram
 
 ---
 
-# 13. Hotspot Detection Flow
+# 13. Luồng Phát hiện Điểm nóng
 
-P0 baseline:
+Baseline cho P0:
 
 ```text
 Eligible current-classification items
@@ -742,7 +742,7 @@ resolve default owner
 audit/timeline
 ```
 
-## Candidate lifecycle
+## Vòng đời của Candidate
 
 ```mermaid
 stateDiagram-v2
@@ -758,21 +758,21 @@ stateDiagram-v2
     REOPENED --> INVESTIGATING
 ```
 
-Every mutation requires actor/timestamp/reason.
+Mọi thay đổi trạng thái đều yêu cầu actor/timestamp/reason.
 
 ---
 
-# 14. Analytics Read Path
+# 14. Đường dẫn Đọc dữ liệu Phân tích
 
-Analytics MUST read from a governed semantic query layer, not from arbitrary raw tables.
+Analytics BẮT BUỘC phải đọc từ một lớp truy vấn ngữ nghĩa được quản trị, không đọc trực tiếp từ các bảng thô tùy ý.
 
-Recommended logical view:
+View logic được đề xuất:
 
 ```text
 analytics_feedback_item_v1
 ```
 
-joining:
+kết hợp:
 
 ```text
 feedback_item
@@ -782,9 +782,9 @@ feedback_item
 + location
 ```
 
-and applying one central eligibility predicate.
+và áp dụng một vị tự điều kiện hợp lệ trung tâm.
 
-Example conceptual predicate:
+Ví dụ về vị tự ngữ niệm:
 
 ```sql
 WHERE feedback_item.status = 'ACTIVE'
@@ -793,11 +793,11 @@ WHERE feedback_item.status = 'ACTIVE'
   AND classification_current.classification_state = 'ACCEPTED'
 ```
 
-Exact implementation may differ, but all KPI, chart, export, and drill-down queries must reuse the same predicate/version.
+Triển khai thực tế có thể khác nhau, nhưng tất cả các truy vấn KPI, biểu đồ, xuất dữ liệu và xem chi tiết phải tái sử dụng cùng một predicate/phiên bản.
 
 ---
 
-# 15. API Design
+# 15. Thiết kế API
 
 Base prefix:
 
@@ -805,21 +805,21 @@ Base prefix:
 /api/v1
 ```
 
-## 15.1 Conventions
+## 15.1 Quy ước
 
-Every request should have:
+Mỗi request nên có:
 
 - authenticated principal;
 - correlation ID;
-- pilot-scope enforcement.
+- thực thi pilot-scope.
 
-Mutation endpoints that can be retried SHOULD accept:
+Các endpoint thay đổi dữ liệu có thể thử lại NÊN chấp nhận:
 
 ```http
 Idempotency-Key: <client-generated-key>
 ```
 
-Responses SHOULD expose:
+Response NÊN công khai:
 
 ```text
 request_id / correlation_id
@@ -827,7 +827,7 @@ resource version
 created/updated timestamp
 ```
 
-Standard errors:
+Các mã lỗi chuẩn:
 
 ```text
 400 VALIDATION_ERROR
@@ -869,7 +869,7 @@ POST /api/v1/feedback-items/{id}/decisions
 GET  /api/v1/feedback-items/{id}/current-classification
 ```
 
-Filtering should use stable IDs/codes, not localized labels.
+Việc lọc nên sử dụng các ID/mã ổn định, không dùng nhãn đã bản địa hóa.
 
 ---
 
@@ -888,7 +888,7 @@ POST /api/v1/taxonomy-versions/{id}/validate
 POST /api/v1/taxonomy-versions/{id}/publish
 ```
 
-P0 does not expose general row-level taxonomy CRUD.
+P0 không cung cấp API CRUD taxonomy tổng quát ở cấp dòng.
 
 ---
 
@@ -910,7 +910,7 @@ GET /api/v1/analytics/breakdown
 GET /api/v1/analytics/trend
 ```
 
-`breakdown` accepts one dimension plus a repeated/comma-separated metrics set containing `item_volume`, `negative_rate`, `active_hotspots`, `trend`. Filter serialization includes `affected_channel_code`; Persona is rejected as an unsupported P0 dimension.
+`breakdown` chấp nhận một chiều dữ liệu cộng với danh sách chỉ số phân tách bằng dấu phẩy/lặp lại chứa `item_volume`, `negative_rate`, `active_hotspots`, `trend`. Tuần tự hóa bộ lọc bao gồm `affected_channel_code`; Persona bị từ chối do là chiều dữ liệu không được hỗ trợ trong P0.
 
 ---
 
@@ -928,11 +928,11 @@ POST /api/v1/hotspots/{id}/reopen
 
 ---
 
-# 16. Authentication & Authorization
+# 16. Xác thực & Phân quyền
 
-P0 uses SSO plus application role/privilege enforcement.
+P0 sử dụng SSO kết hợp với kiểm soát vai trò/quyền hạn ứng dụng.
 
-Minimum roles:
+Các vai trò tối thiểu:
 
 ```text
 PILOT_ADMIN
@@ -941,9 +941,9 @@ REVIEWER
 VIEWER
 ```
 
-Authorization must be evaluated server-side.
+Phân quyền phải được đánh giá phía server.
 
-Recommended principal context:
+Ngữ cảnh principal được đề xuất:
 
 ```text
 user_id
@@ -954,13 +954,13 @@ raw_pii_allowed
 export_allowed
 ```
 
-P0 may use a pilot project allowlist. Fine-grained building/service scope is P1.
+P0 có thể sử dụng danh sách cho phép dự án thử nghiệm. Phân quyền chi tiết theo tòa nhà/dịch vụ thuộc phạm vi P1.
 
 ---
 
-# 17. PII and Data Boundary
+# 17. PII và Ranh giới Dữ liệu
 
-## Raw vs Masked
+## Thô vs Đã che dấu
 
 ```text
 content_raw      → privileged storage/read
@@ -968,41 +968,41 @@ content_masked   → default analytics/AI display
 item_text_masked → AI inference default
 ```
 
-Rules:
+Quy tắc:
 
-- do not log raw PII in standard application logs;
-- do not put raw PII in correlation/error messages;
-- AI receives masked text unless approved use case requires otherwise;
-- raw view/export always audited;
-- attachment support is out of P0.
-
----
-
-# 18. Audit Design
-
-Audit should be application-generated for semantic operations rather than relying only on DB logs.
-
-Minimum audited actions:
-
-- taxonomy publish;
-- import execute/retry;
-- Feedback Item split;
-- raw content view/export;
-- classification decision;
-- review action;
-- hotspot assign/status change;
-- configuration/rule change;
-- admin role/privilege change.
-
-Audit event and domain transaction should commit together where practical.
+- không ghi log PII thô trong nhật ký ứng dụng tiêu chuẩn;
+- không đưa PII thô vào thông điệp tương quan/lỗi;
+- AI nhận văn bản đã được che dấu PII ngoại trừ các trường hợp sử dụng đã phê duyệt có yêu cầu khác;
+- xem/xuất dữ liệu thô luôn được kiểm toán;
+- hỗ trợ tệp đính kèm nằm ngoài phạm vi P0.
 
 ---
 
-# 19. Transaction Boundaries
+# 18. Thiết kế Kiểm toán
 
-Use database transactions for operations that must remain consistent.
+Kiểm toán nên được tạo bởi ứng dụng cho các thao tác ngữ nghĩa hơn là chỉ dựa vào log DB.
 
-## Decision transaction
+Các thao tác tối thiểu cần kiểm toán:
+
+- xuất bản taxonomy;
+- thực thi/thử lại import;
+- tách Feedback Item;
+- xem/xuất nội dung thô;
+- quyết định phân loại;
+- hành động đánh giá;
+- phân công/thay đổi trạng thái điểm nóng;
+- thay đổi cấu hình/quy tắc;
+- thay đổi vai trò/quyền hạn admin.
+
+Sự kiện kiểm toán và giao dịch tên miền nên commit cùng nhau trong thực tế.
+
+---
+
+# 19. Ranh giới Giao dịch
+
+Sử dụng giao dịch cơ sở dữ liệu cho các thao tác phải đảm bảo tính nhất quán.
+
+## Giao dịch Quyết định
 
 ```text
 validate expected version
@@ -1013,7 +1013,7 @@ validate expected version
 = one transaction
 ```
 
-## Feedback split transaction
+## Giao dịch Tách Phản hồi
 
 ```text
 validate source item
@@ -1023,7 +1023,7 @@ validate source item
 = one transaction
 ```
 
-## Hotspot state mutation
+## Thay đổi Trạng thái Điểm nóng
 
 ```text
 validate transition
@@ -1033,24 +1033,24 @@ validate transition
 = one transaction
 ```
 
-Async external calls (AI/object storage) should not be held inside long DB transactions.
+Các cuộc gọi bất đồng bộ bên ngoài (AI/object storage) không được giữ bên trong các giao dịch DB kéo dài.
 
 ---
 
-# 20. Concurrency Model
+# 20. Mô hình Đồng thời
 
-## Classification
+## Phân loại
 
-Use optimistic concurrency:
+Sử dụng kiểm soát đồng thời lạc quan:
 
 - `projection_version`;
-- or `expected_current_decision_id`.
+- hoặc `expected_current_decision_id`.
 
-Conflict → HTTP `409`.
+Xung đột → HTTP `409`.
 
-## Job claiming
+## Nhận công việc
 
-For PostgreSQL-backed queue:
+Đối với hàng chờ dựa trên PostgreSQL:
 
 ```sql
 SELECT ...
@@ -1058,17 +1058,17 @@ FOR UPDATE SKIP LOCKED
 LIMIT ...
 ```
 
-Worker marks claimed lease/state and processes outside long-held locks.
+Worker đánh dấu lease/trạng thái đã nhận và xử lý bên ngoài các khóa giữ lâu.
 
-## Hotspot
+## Điểm nóng
 
-Use deterministic unique key plus UPSERT to prevent duplicate candidates.
+Sử dụng unique key định tính kết hợp với UPSERT để ngăn chặn các ứng viên trùng lặp.
 
 ---
 
-# 21. Indexing Strategy
+# 21. Chiến lược Đánh chỉ mục
 
-Minimum candidate indexes:
+Các chỉ mục ứng viên tối thiểu:
 
 ```text
 feedback(reported_at, project_id)
@@ -1096,20 +1096,20 @@ audit_event(resource_type, resource_id, occurred_at)
 audit_event(actor_user_id, occurred_at)
 ```
 
-Composite indexes should be validated against actual pilot query plans before production sign-off.
+Chỉ mục tổng hợp nên được xác thực theo execution plan của truy vấn thử nghiệm thực tế trước khi phê duyệt sản xuất.
 
 ---
 
-# 22. Object Storage
+# 22. Lưu trữ Đối tượng
 
-Use object storage for:
+Sử dụng bộ lưu trữ đối tượng cho:
 
-- original uploaded file;
-- generated error file;
-- optional import preview artifact;
-- future export artifacts.
+- tệp tải lên ban đầu;
+- tệp lỗi được tạo ra;
+- artifact xem trước import (tùy chọn);
+- artifact xuất dữ liệu trong tương lai.
 
-Recommended metadata in DB:
+Metadata được đề xuất trong DB:
 
 ```text
 object_key
@@ -1121,17 +1121,17 @@ created_by
 retention_class
 ```
 
-Do not expose permanent public URLs. Use short-lived signed access where needed.
+Không công khai các URL truy cập vĩnh viễn. Sử dụng signed URL thời hạn ngắn khi cần.
 
 ---
 
-# 23. Observability
+# 23. Khả năng Giám sát
 
-Every API/job flow should carry a correlation ID.
+Mọi luồng API/job nên mang theo một correlation ID.
 
-## Logs
+## Log
 
-Structured fields:
+Các trường có cấu trúc:
 
 ```text
 timestamp
@@ -1147,31 +1147,31 @@ duration_ms
 error_code
 ```
 
-Never log raw PII by default.
+Không bao giờ ghi log PII thô theo mặc định.
 
-## Metrics
+## Các chỉ số
 
-P0 platform metrics:
+Các chỉ số nền tảng trong P0:
 
-- API latency/error rate;
-- import job duration/rows/sec;
-- import failed-row rate;
-- worker queue depth/age;
-- AI batch duration/failure rate;
-- review queue age;
-- unknown/ineligible rate;
-- hotspot detection lag;
-- duplicate/idempotency conflict count.
+- độ trễ/tỷ lệ lỗi API;
+- thời lượng/số dòng xử lý/giây của import job;
+- tỷ lệ dòng lỗi khi import;
+- độ sâu/thời gian chờ của hàng chờ worker;
+- thời lượng batch/tỷ lệ thất bại của AI;
+- thời gian tồn tại của hàng chờ đánh giá;
+- tỷ lệ không xác định/không đủ điều kiện;
+- độ trễ phát hiện điểm nóng;
+- số lượng xung đột trùng lặp/idempotency.
 
 ## Tracing
 
-Optional P0, recommended if infrastructure already supports OpenTelemetry.
+Tùy chọn trong P0, đề xuất nếu hạ tầng đã hỗ trợ OpenTelemetry.
 
 ---
 
-# 24. Performance Targets
+# 24. Mục tiêu Hiệu năng
 
-From product requirements:
+Từ yêu cầu sản phẩm:
 
 ```text
 Feedback list/filter p95 < 3s
@@ -1179,38 +1179,38 @@ Feedback detail p95 < 2s
 Standard dashboard p95 < 5s
 ```
 
-These targets are valid only after pilot sizing is agreed:
+Các mục tiêu này chỉ có hiệu lực sau khi quy mô phiên bản thử nghiệm được thống nhất:
 
-- historical row count;
-- daily ingest;
-- concurrent users;
-- retention;
-- max file size.
+- số lượng dòng lịch sử;
+- lượng dữ liệu nhập hàng ngày;
+- số người dùng đồng thời;
+- thời gian lưu trữ dữ liệu;
+- dung lượng tệp tối đa.
 
-The system design should not claim enterprise-scale production SLO before those inputs are known.
-
----
-
-# 25. Reliability
-
-Required P0 properties:
-
-- resumable/retryable import;
-- idempotent ingestion;
-- rebuildable classification projection;
-- deterministic hotspot idempotency;
-- database backup/restore procedure;
-- migration rollback/forward-fix plan;
-- worker crash recovery;
-- no silent row loss.
-
-Core feedback read/decision target after limited production rollout: ≥99.9% availability, subject to approved infrastructure/SLO.
+Thiết kế hệ thống không nên cam kết SLO sản xuất quy mô doanh nghiệp trước khi các tham số đầu vào đó được xác định.
 
 ---
 
-# 26. Failure Handling
+# 25. Độ tin cậy
 
-## Import file failure
+Các tính chất bắt buộc của P0:
+
+- import có thể tiếp tục/thử lại;
+- thu thập dữ liệu bảo toàn thao tác;
+- projection phân loại có thể tái thiết lập;
+- tính bảo toàn thao tác định tính của điểm nóng;
+- quy trình sao lưu/khôi phục cơ sở dữ liệu;
+- kế hoạch rollback/sửa lỗi chuyển tiếp cho migration;
+- khôi phục sự cố của worker;
+- không mất dòng dữ liệu âm thầm.
+
+Mục tiêu đọc/quyết định phản hồi cốt lõi sau khi triển khai sản xuất có giới hạn: độ sẵn sàng ≥99.9%, tùy thuộc vào hạ tầng/SLO được phê duyệt.
+
+---
+
+# 26. Xử lý Lỗi
+
+## Thất bại tệp import
 
 ```text
 invalid/unreadable schema
@@ -1219,7 +1219,7 @@ invalid/unreadable schema
 → no production Feedback commit
 ```
 
-## Row failure
+## Thất bại dòng
 
 ```text
 row invalid
@@ -1228,7 +1228,7 @@ row invalid
 → PARTIAL
 ```
 
-## Worker crash
+## Worker bị sự cố
 
 ```text
 job lease expires / job remains retryable
@@ -1236,7 +1236,7 @@ job lease expires / job remains retryable
 → idempotency prevents duplicates
 ```
 
-## AI failure
+## Thất bại AI
 
 ```text
 prediction job failed/retryable
@@ -1244,19 +1244,19 @@ prediction job failed/retryable
 → manual workflow remains available
 ```
 
-## Projection failure
+## Thất bại Projection
 
 ```text
 decision committed only if projection update succeeds in same transaction
 ```
 
-If future architecture decouples projection asynchronously, an outbox/replay mechanism becomes mandatory.
+Nếu kiến trúc tương lai tách rời projection bất đồng bộ, cơ chế outbox/replay trở thành bắt buộc.
 
 ---
 
-# 27. Deployment Topology — P0
+# 27. Topo Triển khai — P0
 
-Logical topology:
+Topo logic:
 
 ```text
 [Web]
@@ -1276,15 +1276,15 @@ Logical topology:
 [API] --------------- [SSO]
 ```
 
-P0 may deploy API and Worker from the same codebase/container image with different entrypoints.
+P0 có thể triển khai API và Worker từ cùng một codebase/container image với các entrypoint khác nhau.
 
-Do not place AI inference in the synchronous upload request path.
+Không đặt suy luận AI vào đường dẫn request upload đồng bộ.
 
 ---
 
-# 28. Environment Strategy
+# 28. Chiến lược Môi trường
 
-Minimum:
+Tối thiểu:
 
 ```text
 local
@@ -1293,92 +1293,92 @@ staging/pilot
 production-limited
 ```
 
-Each environment must have:
+Mỗi môi trường phải có:
 
-- separate database;
-- separate object namespace/bucket;
-- explicit taxonomy seed/version;
-- explicit feature flags;
-- no accidental production AI mutation.
-
----
-
-# 29. Configuration & Feature Flags
-
-Versioned domain configuration:
-
-- taxonomy release;
-- lifecycle-service mappings;
-- location hierarchy;
-- Service owner mapping;
-- metric definition;
-- hotspot rule.
-
-Environment feature flags:
-
-- AI auto-apply: OFF in P0;
-- safety hard trigger: OFF in P0 until sign-off;
-- realtime connector mutation: OFF in P0;
-- P1 RCA/ticket features: OFF until available.
-
-Configuration must not be buried in source-code constants when it affects business meaning.
+- cơ sở dữ liệu riêng biệt;
+- không gian tên/bucket đối tượng riêng biệt;
+- dữ liệu seed/phiên bản taxonomy rõ ràng;
+- feature flags rõ ràng;
+- không vô tình làm thay đổi AI trên môi trường sản xuất.
 
 ---
 
-# 30. Security Baseline
+# 29. Cấu hình & Feature Flags
 
-- TLS in transit.
-- Secrets from environment/secret manager, never committed.
-- Database credentials least privilege.
-- SSO token validation server-side.
-- RBAC on every protected route.
-- Pilot project allowlist.
-- Raw-PII privilege.
-- Input file type/size validation.
-- SQLAlchemy parameterized queries.
-- Export authorization and audit.
-- Rate limits where abuse risk exists.
-- Dependency vulnerability scanning in CI where available.
+Cấu hình tên miền có phiên bản:
+
+- bản phát hành taxonomy;
+- các ánh xạ lifecycle-service;
+- phân cấp vị trí;
+- ánh xạ người sở hữu Service;
+- định nghĩa chỉ số;
+- quy tắc điểm nóng.
+
+Feature flags môi trường:
+
+- AI auto-apply: TẮT trong P0;
+- kích hoạt cứng an toàn: TẮT trong P0 cho đến khi phê duyệt;
+- thay đổi dữ liệu qua connector thời gian thực: TẮT trong P0;
+- các tính năng P1 RCA/ticket: TẮT cho đến khi khả thi.
+
+Cấu hình không được nhúng cứng vào hằng số mã nguồn khi nó ảnh hưởng đến ý nghĩa nghiệp vụ.
 
 ---
 
-# 31. Testing Strategy
+# 30. Tiêu chuẩn Bảo mật Cơ sở
+
+- TLS cho dữ liệu đang truyền.
+- Secret lưu trong môi trường/secret manager, không bao giờ commit vào repo.
+- Quyền hạn tối thiểu cho thông tin đăng nhập cơ sở dữ liệu.
+- Xác thực SSO token phía server.
+- RBAC trên mọi route được bảo vệ.
+- Danh sách cho phép dự án thử nghiệm.
+- Quyền truy cập PII thô.
+- Xác thực loại/kích thước tệp đầu vào.
+- Truy vấn tham số hóa SQLAlchemy.
+- Phân quyền và kiểm toán việc xuất dữ liệu.
+- Giới hạn tần suất ở nơi có rủi ro lạm dụng.
+- Quét lỗ hổng phụ thuộc trong CI nếu có.
+
+---
+
+# 31. Chiến lược Kiểm thử
 
 ## Unit
 
-Test domain invariants:
+Kiểm thử các bất biến tên miền:
 
-- value-status rules;
-- issue/service consistency;
-- allowed hotspot transitions;
-- classification snapshot creation;
-- taxonomy validator.
+- quy tắc value-status;
+- tính nhất quán giữa issue/service;
+- chuyển đổi điểm nóng được phép;
+- tạo snapshot phân loại;
+- bộ xác thực taxonomy.
 
 ## Integration
 
-Test:
+Kiểm thử:
 
-- PostgreSQL constraints;
-- migrations;
-- decision transaction;
-- import idempotency;
-- projection rebuild;
-- hotspot UPSERT;
-- PII authorization.
+- các ràng buộc PostgreSQL;
+- migration;
+- giao dịch quyết định;
+- tính bảo toàn thao tác của import;
+- tái thiết lập projection;
+- UPSERT điểm nóng;
+- phân quyền PII.
 
 ## Contract
 
-Test API schema/status/error codes.
+Kiểm thử API schema/trạng thái/mã lỗi.
 
-## End-to-End P0 Vertical Slice
+## Lát cắt Dọc End-to-End P0
 
-Input:
+Đầu vào:
 
 ```text
 "Thang máy S2 sáng nào cũng phải chờ rất lâu."
 ```
 
-Expected:
+Kết quả mong đợi:
 
 ```text
 Import
@@ -1390,7 +1390,7 @@ Import
 → Pilot Analytics
 ```
 
-Later F6:
+Sau này với F6:
 
 ```text
 3 accepted equivalent items
@@ -1403,9 +1403,9 @@ within configured 2h window
 
 ---
 
-# 32. CI Quality Gates
+# 32. Quality Gates trong CI
 
-Recommended gates:
+Các gate được đề xuất:
 
 ```text
 format/lint
@@ -1417,31 +1417,31 @@ format/lint
 → API contract tests
 ```
 
-Taxonomy CI must verify:
+CI cho Taxonomy phải kiểm tra:
 
 - 10 Services / 28 Issues;
-- Issue ownership;
-- 6 stages / 36 customer steps;
-- 8 service-request steps;
-- code uniqueness;
-- required `OPS-01..OPS-08`;
-- SV-10 constraints.
+- Quyền sở hữu Issue;
+- 6 giai đoạn / 36 bước hành trình khách hàng;
+- 8 bước yêu cầu dịch vụ;
+- tính duy nhất của code;
+- bắt buộc phải có `OPS-01..OPS-08`;
+- các ràng buộc SV-10.
 
 ---
 
-# 33. Database Migration Strategy
+# 33. Chiến lược Migration Dữ liệu
 
-Use Alembic.
+Sử dụng Alembic.
 
-Rules:
+Quy tắc:
 
-- schema changes are versioned;
-- destructive migrations require explicit data migration/retention plan;
-- never drop historical taxonomy/decision data just because UI no longer uses it;
-- migration should be backward-compatible during pilot deploy where feasible;
-- seed/reference publication should be distinguishable from schema migration.
+- các thay đổi schema đều được đánh phiên bản;
+- các migration phá hủy yêu cầu kế hoạch chuyển đổi/lưu trữ dữ liệu rõ ràng;
+- không bao giờ xóa dữ liệu lịch sử taxonomy/decision chỉ vì UI không còn sử dụng;
+- migration nên tương thích ngược trong quá trình triển khai pilot nếu khả thi;
+- phát hành seed/dữ liệu tham chiếu phải phân biệt rõ ràng với migration cấu trúc schema.
 
-Recommended separation:
+Phân tách được đề xuất:
 
 ```text
 alembic migrations → database structure
@@ -1450,84 +1450,84 @@ structured seed     → taxonomy/reference/config release
 
 ---
 
-# 34. Recommended Build Order
+# 34. Thứ tự Xây dựng Được đề xuất
 
-Follow the product vertical slicing:
+Tuân theo việc chia lát cắt dọc sản phẩm:
 
 ```text
-F0 Governance Foundation
+F0 Nền tảng Quản trị
   ↓
-F1 Reference Data
+F1 Dữ liệu Tham chiếu
   ↓
-F2 Trusted Intake
+F2 Thu thập Tin cậy
   ↓
-F3 Human Classification
+F3 Phân loại bởi Con người
   ↓
-F4 AI Assist
+F4 Trợ lý AI
   ↓
-F5 Pilot Insight
+F5 Thông tin Thử nghiệm
   ↓
-F6 Detect & Own
+F6 Phát hiện & Sở hữu
 ```
 
-Concrete engineering order:
+Thứ tự kỹ thuật cụ thể:
 
-1. common enums/IDs/error model/correlation ID;
+1. các enum/ID/mô hình lỗi/correlation ID chung;
 2. PostgreSQL + Alembic;
-3. pilot auth/RBAC/audit;
-4. taxonomy/location seed validator + publish/read API;
-5. import job schema and worker;
+3. xác thực pilot/RBAC/kiểm toán;
+4. bộ xác thực seed taxonomy/vị trí + API xuất bản/đọc;
+5. schema và worker cho công việc import;
 6. Feedback/Feedback Item;
-7. decision ledger + projection;
-8. Feedback list/detail filters;
-9. analytics semantic queries;
-10. AI prediction ledger + review;
-11. hotspot rule/worker/lifecycle;
-12. hardening, observability, runbook.
+7. sổ nhật ký quyết định + projection;
+8. bộ lọc danh sách/chi tiết Feedback;
+9. truy vấn ngữ nghĩa cho phân tích;
+10. sổ nhật ký dự đoán AI + đánh giá;
+11. quy tắc/worker/lifecycle của điểm nóng;
+12. củng cố hệ thống, khả năng giám sát, tài liệu vận hành.
 
 ---
 
-# 35. What Not to Build in P0
+# 35. Những gì KHÔNG Xây dựng trong P0
 
-Do not prematurely introduce:
+Không giới thiệu sớm:
 
-- distributed microservices;
-- event streaming platform solely for pilot;
-- BMS/IoT ingestion;
-- full CMMS;
-- native CRM replacement;
-- full ticket/SLA engine;
-- autonomous root-cause confirmation;
-- Investigation, Confirmed Root Cause, Corrective Action, Preventive Action or full RCA workflow;
-- AI auto-apply;
-- dynamic taxonomy row editor;
-- enterprise-wide fine-grained authorization;
-- semantic clustering/anomaly model before deterministic baseline works.
-
----
-
-# 36. Open Architecture Decisions
-
-These must be resolved before production-limited sign-off:
-
-| Decision             | Impact                                          | Safe P0 default                                             |
-| -------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
-| Pilot sizing         | DB indexes, worker concurrency, file limit, SLO | Do not claim enterprise SLO                                 |
-| Hosting platform     | deployment/HA/backup                            | containerized API+worker + managed PostgreSQL preferred     |
-| Object storage       | import/error artifact retention                 | S3-compatible private bucket                                |
-| SSO provider         | auth integration                                | adapter behind auth module                                  |
-| Job queue technology | async throughput/recovery                       | PostgreSQL-backed queue                                     |
-| AI provider/model    | latency/cost/data boundary                      | adapter + masked text, suggest-only                         |
-| PII retention        | storage/deletion/export                         | deny raw/export by default                                  |
-| Hotspot schedule     | detection delay/cost                            | periodic worker job                                         |
-| Location hierarchy   | hotspot key/query                               | missing location makes item ineligible for location hotspot |
-| Service owner config | hotspot routing                                 | unassigned queue if missing                                 |
+- các microservice phân tán;
+- nền tảng event streaming chỉ phục vụ thử nghiệm;
+- thu thập dữ liệu BMS/IoT;
+- CMMS đầy đủ;
+- giải pháp thay thế CRM gốc;
+- engine xử lý ticket/SLA đầy đủ;
+- xác nhận nguyên nhân gốc rễ tự động;
+- quy trình Điều tra, Xác nhận Nguyên nhân Gốc rễ, Hành động Khắc phục, Hành động Phòng ngừa hoặc RCA đầy đủ;
+- AI tự động áp dụng;
+- trình chỉnh sửa dòng taxonomy động;
+- phân quyền chi tiết toàn doanh nghiệp;
+- mô hình phân cụm ngữ nghĩa/bất thường trước khi baseline định tính hoạt động ổn định.
 
 ---
 
-# 37. P1 Evolution Path
+# 36. Quyết định Kiến trúc Mở
 
-When P0 is stable:
+Những điều này phải được giải quyết trước khi hoàn tất phê duyệt triển khai pilot:
+
+| Quyết định | Tác động | Giá trị mặc định an toàn cho P0 |
+| --- | --- | --- |
+| Quy mô phiên bản thử nghiệm | Index DB, đồng thời của worker, giới hạn tệp, SLO | Không cam kết SLO doanh nghiệp |
+| Nền tảng hosting | triển khai/HA/sao lưu | ưu tiên containerized API+worker + PostgreSQL managed |
+| Lưu trữ đối tượng | lưu trữ artifact import/lỗi | S3-compatible private bucket |
+| Nhà cung cấp SSO | tích hợp xác thực | adapter nằm sau mô-đun auth |
+| Công nghệ job queue | thông lượng/khôi phục bất đồng bộ | hàng chờ dựa trên PostgreSQL |
+| Nhà cung cấp/mô hình AI | độ trễ/chi phí/ranh giới dữ liệu | adapter + văn bản đã che dấu, chỉ gợi ý |
+| Lưu trữ PII | lưu trữ/xóa/xuất dữ liệu | từ chối dữ liệu thô/xuất dữ liệu theo mặc định |
+| Lịch chạy Hotspot | độ trễ phát hiện/chi phí | công việc worker định kỳ |
+| Phân cấp vị trí | key/truy vấn điểm nóng | vị trí thiếu khiến item không đủ điều kiện cho điểm nóng vị trí |
+| Cấu hình chủ sở hữu Dịch vụ | định tuyến điểm nóng | hàng chờ chưa phân công nếu thiếu |
+
+---
+
+# 37. Lộ trình Phát triển P1
+
+Khi P0 đã ổn định:
 
 ```text
 File import
@@ -1552,34 +1552,34 @@ AI suggest-only
 → selected low-risk auto-apply behind calibrated per-field feature flag
 ```
 
-Do not change the domain contracts merely because infrastructure evolves.
+Không thay đổi các hợp đồng tên miền chỉ vì hạ tầng tiến hóa.
 
 ---
 
-# 38. Architecture Principles
+# 38. Các Nguyên tắc Kiến trúc
 
-1. **Stable contract first.**
-2. **One vocabulary source of truth.**
-3. **Append-only evidence, rebuildable projections.**
-4. **Server-side security.**
-5. **Idempotent asynchronous work.**
-6. **Metric consistency from one eligibility contract.**
-7. **No silent fallback.**
-8. **Version everything that changes business meaning.**
-9. **Complete one vertical slice before broadening scope.**
-10. **Keep P0 simple enough to understand and operate.**
+1. **Hợp đồng ổn định là ưu tiên hàng đầu.**
+2. **Một nguồn sự thật duy nhất cho từ vựng.**
+3. **Bằng chứng chỉ ghi nối tiếp, projection có thể tái thiết lập.**
+4. **Bảo mật phía server.**
+5. **Công việc bất đồng bộ bảo toàn thao tác.**
+6. **Tính nhất quán của chỉ số từ một hợp đồng điều kiện hợp lệ.**
+7. **Không có cơ chế fallback âm thầm.**
+8. **Đánh phiên bản mọi thứ làm thay đổi ý nghĩa nghiệp vụ.**
+9. **Hoàn thành trọn vẹn một lát cắt dọc trước khi mở rộng phạm vi.**
+10. **Giữ P0 đủ đơn giản để hiểu và vận hành.**
 
 ---
 
-# 39. Source of Truth
+# 39. Nguồn Thông tin Gốc
 
-This design is based on:
+Thiết kế này dựa trên:
 
 - `docs/PRD.md`
 - `docs/service_taxonomy.md`
 - `docs/Business_Rules.md`
-- current repository dependency baseline in `pyproject.toml`
-- current application separation under `apps/api`, `apps/web`, and `apps/worker`
+- baseline phụ thuộc kho lưu trữ hiện tại trong `pyproject.toml`
+- sự tách biệt ứng dụng hiện tại dưới `apps/api`, `apps/web`, và `apps/worker`
 
-If a design choice changes a business invariant, update `Business_Rules.md`/PRD first.
-If a design choice changes only implementation technology while preserving contracts, record it as an ADR and update this document.
+Nếu một lựa chọn thiết kế thay đổi một bất biến nghiệp vụ, hãy cập nhật `Business_Rules.md`/PRD trước.  
+Nếu một lựa chọn thiết kế chỉ thay đổi công nghệ triển khai trong khi vẫn bảo toàn hợp đồng, hãy ghi lại thành một ADR và cập nhật tài liệu này.
