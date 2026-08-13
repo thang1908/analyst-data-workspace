@@ -1,1 +1,17 @@
-"""FastAPI application dependencies placeholder."""
+"""FastAPI application dependencies."""
+from __future__ import annotations
+
+from collections.abc import AsyncGenerator
+
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from packages.infrastructure.db.repositories.analytics import AnalyticsRepository
+from packages.infrastructure.db.session import get_db_session
+
+
+async def get_analytics_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> AsyncGenerator[AnalyticsRepository, None]:
+    """Provide an analytics repository backed by the governed semantic view."""
+    yield AnalyticsRepository(session)

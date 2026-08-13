@@ -1,159 +1,97 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import TopBar from '../components/layout/TopBar';
 import KPICard, { buildKPICards } from '../components/analytics/KPICard';
 import TrendChart from '../components/analytics/TrendChart';
-import PainPointsList from '../components/analytics/PainPointsList';
-import HotspotTable from '../components/analytics/HotspotTable';
-import {
-  mockKPI,
-  mockJourneyStages,
-  mockTrend,
-  mockPainPoints,
-  mockHotspots,
-  JourneyStage,
-} from '../mock/analyticsData';
-
-// Negative rate → color
-const negColor = (rate: number) => {
-  if (rate >= 40) return 'var(--color-negative)';
-  if (rate >= 25) return 'var(--color-warning)';
-  return 'var(--color-positive)';
-};
+import PainPointsList, { PainPoint } from '../components/analytics/PainPointsList';
+import AnalyticsState from '../components/analytics/AnalyticsState';
+import AnalyticsFilterBar from '../components/analytics/AnalyticsFilterBar';
+import { AnalyticsBreakdownItem, AnalyticsSummary, AnalyticsTrendPoint, getAnalyticsBreakdown, getAnalyticsSummary, getAnalyticsTrend } from '../api/analytics';
+import { useAnalyticsFilters } from '../hooks/useAnalyticsFilters';
 
 const OverviewPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeStage, setActiveStage] = useState<string>('STG-05');
+  const location = useLocation();
+  const { filters, setFilter, resetFilters, activeFilterCount } = useAnalyticsFilters();
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [trend, setTrend] = useState<AnalyticsTrendPoint[]>([]);
+  const [stages, setStages] = useState<AnalyticsBreakdownItem[]>([]);
+  const [issues, setIssues] = useState<PainPoint[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(Boolean(filters));
 
-  const kpiCards = buildKPICards(mockKPI);
+  const loadDashboard = useCallback(async () => {
+    if (!filters) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [nextSummary, nextTrend, nextStages, nextIssues] = await Promise.all([
+        getAnalyticsSummary(filters),
+        getAnalyticsTrend(filters),
+        getAnalyticsBreakdown({ ...filters, customerLifecycleStageCode: undefined, customerLifecycleStepCode: undefined }, 'journey_stage'),
+        getAnalyticsBreakdown(filters, 'issue', 6),
+      ]);
+      setSummary(nextSummary);
+      setTrend(nextTrend);
+      setStages(nextStages);
+      setIssues(nextIssues.map((item) => ({
+        name: item.name,
+        count: item.itemVolume,
+        percentage: item.percentage,
+        negativeRate: item.negativeRate,
+        activeHotspots: item.activeHotspots,
+      })));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Không thể tải dữ liệu analytics.');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => { void loadDashboard(); }, [loadDashboard]);
+
+  const hasData = Boolean(summary && summary.itemVolume > 0);
+  const kpiCards = summary ? buildKPICards({
+    negativeRate: summary.negativeRate * 100,
+    feedbackVolume: summary.itemVolume,
+    unknownRate: summary.unknownRate * 100,
+    activeHotspots: summary.activeHotspots,
+  }) : [];
 
   return (
     <>
       <TopBar title="CX Overview" subtitle="Tổng quan trải nghiệm khách hàng" />
-
       <div className="page-content">
-        {/* Filter Bar */}
-        <div className="filter-bar">
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginRight: 4 }}>Lọc:</span>
-          {['Hành trình ▾', 'Dịch vụ ▾', 'Vị trí ▾', 'Kênh ▾', 'Mức độ ▾'].map(f => (
-            <button key={f} className="filter-chip">{f}</button>
-          ))}
-          <button className="filter-chip active" style={{ marginLeft: 'auto' }}>
-            ✕ Xoá bộ lọc
-          </button>
-        </div>
-
-        {/* KPI Grid */}
-        <div className="kpi-grid">
-          {kpiCards.map((card) => (
-            <KPICard key={card.type} {...card} />
-          ))}
-        </div>
-
-        {/* Customer Journey Stages */}
-        <div className="section-header">
-          <span className="section-title">Customer Journey</span>
-          <button className="section-action" onClick={() => navigate('/customer-journey')}>
-            Xem chi tiết →
-          </button>
-        </div>
-
-        <div className="journey-stages animate-in">
-          {mockJourneyStages.map((stage: JourneyStage, idx) => (
-            <div
-              key={stage.code}
-              className={`journey-stage-item${activeStage === stage.code ? ' active' : ''}`}
-              onClick={() => {
-                setActiveStage(stage.code);
-                navigate('/customer-journey');
-              }}
-            >
-              <div className="journey-stage-name">{stage.name}</div>
-              <div
-                className="journey-stage-neg"
-                style={{ color: negColor(stage.negativeRate) }}
-              >
-                {stage.negativeRate}%
-              </div>
-              <div className="journey-stage-vol">
-                {stage.feedbackCount.toLocaleString()} phản hồi
-              </div>
-
-              {/* Negative bar */}
-              <div className="neg-bar-bg" style={{ marginTop: 8 }}>
-                <div
-                  className="neg-bar-fill"
-                  style={{
-                    width: `${stage.negativeRate}%`,
-                    background: negColor(stage.negativeRate),
-                    opacity: 0.7,
-                  }}
-                />
-              </div>
-
-              {idx < mockJourneyStages.length - 1 && (
-                <div className="journey-stage-connector">›</div>
-              )}
+        <AnalyticsFilterBar filters={filters} activeFilterCount={activeFilterCount} onChange={setFilter} onReset={resetFilters} />
+        {loading && <AnalyticsState title="Đang tải dashboard" message="Đang truy vấn dữ liệu theo bộ lọc đã chọn…" />}
+        {!loading && error && <AnalyticsState title="Chưa kết nối được Analytics API" message={error} onRetry={() => void loadDashboard()} />}
+        {!loading && !error && !hasData && <AnalyticsState title="Không có kết quả" message="Không có feedback đủ điều kiện khớp bộ lọc hiện tại." onRetry={resetFilters} />}
+        {!loading && !error && hasData && (
+          <>
+            <div className="kpi-grid">{kpiCards.map((card) => <KPICard key={card.type} {...card} />)}</div>
+            <div className="section-header"><span className="section-title">Hành trình khách hàng</span><button className="section-action" onClick={() => navigate(`/customer-journey${location.search}`)}>Xem chi tiết →</button></div>
+            <div className="journey-stages animate-in">
+              {stages.map((stage, index) => (
+                <button key={stage.code} className="journey-stage-item" onClick={() => {
+                  const nextQuery = new URLSearchParams(location.search);
+                  nextQuery.set('customer_lifecycle_stage_code', stage.code);
+                  nextQuery.delete('customer_lifecycle_step_code');
+                  navigate(`/customer-journey?${nextQuery.toString()}`);
+                }}>
+                  <div className="journey-stage-name">{stage.name}</div>
+                  <div className="journey-stage-neg" style={{ color: 'var(--text-accent)' }}>{(stage.negativeRate * 100).toFixed(1)}%</div>
+                  <div className="journey-stage-vol">{stage.itemVolume.toLocaleString()} phản hồi</div>
+                  <div className="neg-bar-bg" style={{ marginTop: 8 }}><div className="neg-bar-fill" style={{ width: `${stage.negativeRate * 100}%`, background: 'var(--text-accent)', opacity: 0.7 }} /></div>
+                  {index < stages.length - 1 && <div className="journey-stage-connector">›</div>}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* Trend + Pain Points */}
-        <div className="two-col-grid">
-          <div className="card animate-in">
-            <div className="section-header">
-              <span className="section-title">Experience Trend</span>
-              <button className="section-action">Toàn màn hình ↗</button>
+            <div className="two-col-grid">
+              <div className="card animate-in"><div className="section-header"><span className="section-title">Xu hướng trải nghiệm</span></div>{trend.length ? <TrendChart data={trend} /> : <AnalyticsState message="Chưa có xu hướng trong bộ lọc này." />}</div>
+              <div className="card animate-in"><div className="section-header"><span className="section-title">Vấn đề nổi bật</span><button className="section-action" onClick={() => navigate(`/service-pain-points${location.search}`)}>Xem tất cả →</button></div>{issues.length ? <PainPointsList data={issues} onItemClick={() => navigate(`/service-pain-points${location.search}`)} /> : <AnalyticsState message="Chưa có vấn đề trong bộ lọc này." />}</div>
             </div>
-            <TrendChart data={mockTrend} />
-          </div>
-
-          <div className="card animate-in">
-            <div className="section-header">
-              <span className="section-title">Top Pain Points</span>
-              <button
-                className="section-action"
-                onClick={() => navigate('/service-pain-points')}
-              >
-                Xem tất cả →
-              </button>
-            </div>
-            <PainPointsList
-              data={mockPainPoints.slice(0, 6)}
-              onItemClick={() => navigate('/service-pain-points')}
-            />
-          </div>
-        </div>
-
-        {/* Emerging Hotspots */}
-        <div className="card animate-in" style={{ marginBottom: 32 }}>
-          <div className="section-header">
-            <span className="section-title">
-              🔥 Emerging Hotspots
-              <span style={{
-                marginLeft: 8,
-                fontSize: 10,
-                fontWeight: 700,
-                background: 'rgba(248,113,113,0.15)',
-                color: 'var(--color-negative)',
-                padding: '2px 7px',
-                borderRadius: 99,
-              }}>
-                {mockHotspots.length} active
-              </span>
-            </span>
-            <button
-              className="section-action"
-              onClick={() => navigate('/hotspot')}
-            >
-              Điều tra →
-            </button>
-          </div>
-          <HotspotTable
-            data={mockHotspots}
-            onRowClick={() => navigate('/hotspot')}
-          />
-        </div>
+          </>
+        )}
       </div>
     </>
   );

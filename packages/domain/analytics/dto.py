@@ -31,6 +31,7 @@ class SummaryDTO:
     positive_rate: float
     negative_rate: float
     sentiment_unknown_rate: float
+    active_hotspots: int = 0
 
     @property
     def unknown_rate(self) -> float:
@@ -78,6 +79,9 @@ class TrendPointDTO:
 
     time_bucket: TimeBucket
     volume: int
+    negative_rate: float = 0.0
+    unknown_rate: float = 0.0
+    active_hotspots: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,6 +91,9 @@ class BreakdownItemDTO:
     dimension_key: str
     count: int
     percentage: float
+    dimension_name: str | None = None
+    negative_rate: float = 0.0
+    active_hotspots: int = 0
 
     @classmethod
     def from_count(
@@ -108,3 +115,12 @@ class BreakdownItemDTO:
             count=count,
             percentage=count / total if total else 0.0,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class FilterOptionDTO:
+    """A selectable analytics filter value with a human-readable label."""
+
+    code: str
+    name: str
+    id: str | None = None

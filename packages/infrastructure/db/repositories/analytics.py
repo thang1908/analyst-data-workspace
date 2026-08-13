@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.application.analytics.analytics_service import AnalyticsFilters
-from packages.domain.analytics.dto import BreakdownItemDTO, SummaryDTO, TrendPointDTO
+from packages.domain.analytics.dto import BreakdownItemDTO, FilterOptionDTO, SummaryDTO, TrendPointDTO
 from packages.domain.shared.enums import (
     AnalyticEligibility,
     ClassificationState,
@@ -21,6 +21,7 @@ from packages.infrastructure.db.queries.analytics_queries import (
     AFFECTED_CHANNEL_BREAKDOWN_SQL,
     BREAKDOWN_DIMENSIONS,
     BREAKDOWN_SQL,
+    FILTER_OPTIONS_SQL,
     SUMMARY_SQL,
     TREND_SQL,
 )
@@ -72,6 +73,7 @@ class AnalyticsRepository:
             positive_rate=float(row["positive_rate"] or 0.0),
             negative_rate=float(row["negative_rate"] or 0.0),
             sentiment_unknown_rate=float(row["sentiment_unknown_rate"] or 0.0),
+            active_hotspots=int(row.get("active_hotspots") or 0),
         )
 
     async def get_trend(
@@ -88,7 +90,13 @@ class AnalyticsRepository:
             {**params, "grain": grain},
         )
         return [
-            TrendPointDTO(time_bucket=row["time_bucket"], volume=int(row["volume"]))
+            TrendPointDTO(
+                time_bucket=row["time_bucket"],
+                volume=int(row["volume"]),
+                negative_rate=float(row.get("negative_rate") or 0.0),
+                unknown_rate=float(row.get("unknown_rate") or 0.0),
+                active_hotspots=int(row.get("active_hotspots") or 0),
+            )
             for row in result.mappings().all()
         ]
 
@@ -101,7 +109,7 @@ class AnalyticsRepository:
         if dimension == "affected_channel":
             return await self._get_affected_channel_breakdown(filters)
         try:
-            dimension_column = BREAKDOWN_DIMENSIONS[dimension]
+            dimension_definition = BREAKDOWN_DIMENSIONS[dimension]
         except KeyError as exc:
             supported = ", ".join(
                 key for key in BREAKDOWN_DIMENSIONS if key != "stage"
@@ -112,7 +120,8 @@ class AnalyticsRepository:
         result = await self._session.execute(
             text(
                 BREAKDOWN_SQL.format(
-                    dimension_column=dimension_column,
+                    dimension_code_expression=dimension_definition.code_expression,
+                    dimension_name_expression=dimension_definition.name_expression,
                     where_clause=where_clause,
                 )
             ),
@@ -123,6 +132,9 @@ class AnalyticsRepository:
                 dimension_key=str(row["dimension_key"]),
                 count=int(row["count"]),
                 percentage=float(row["percentage"]),
+                dimension_name=row.get("dimension_name"),
+                negative_rate=float(row.get("negative_rate") or 0.0),
+                active_hotspots=int(row.get("active_hotspots") or 0),
             )
             for row in result.mappings().all()
         ]
@@ -141,6 +153,9 @@ class AnalyticsRepository:
                 dimension_key=str(row["dimension_key"]),
                 count=int(row["count"]),
                 percentage=float(row["percentage"]),
+                dimension_name=row.get("dimension_name"),
+                negative_rate=float(row.get("negative_rate") or 0.0),
+                active_hotspots=int(row.get("active_hotspots") or 0),
             )
             for row in result.mappings().all()
         ]
@@ -161,7 +176,7 @@ class AnalyticsRepository:
             'INCLUDED' AS analytic_eligibility,
             current_decision_id,
             classification_state
-        FROM {ANALYTICS_VIEW}
+        FROM {ANALYTICS_VIEW} AS item
         WHERE {where_clause}
         """
         result = await self._session.execute(text(items_sql), params)
@@ -175,24 +190,78 @@ class AnalyticsRepository:
             for row in result.mappings().all()
         ]
 
+    async def get_filter_options(
+        self, filters: AnalyticsFilters
+    ) -> dict[str, list[FilterOptionDTO]]:
+        """Return data-backed options so UI labels always come from taxonomy."""
+        where_clause, params = self._filter_query(filters)
+        result = await self._session.execute(
+            text(FILTER_OPTIONS_SQL.format(where_clause=where_clause)), params
+        )
+        options: dict[str, list[FilterOptionDTO]] = {
+            "source_systems": [],
+            "locations": [],
+        }
+        for row in result.mappings().all():
+            target = "source_systems" if row["option_type"] == "source_system" else "locations"
+            options[target].append(
+                FilterOptionDTO(
+                    code=str(row["code"]),
+                    name=str(row["name"]),
+                    id=row.get("id"),
+                )
+            )
+
+        dimension_options = {
+            "intake_channels": "intake_channel",
+            "affected_channels": "affected_channel",
+            "journey_stages": "journey_stage",
+            "journey_steps": "journey_step",
+            "service_request_steps": "service_request_step",
+            "services": "service",
+            "issues": "issue",
+        }
+        for target, dimension in dimension_options.items():
+            options[target] = [
+                FilterOptionDTO(
+                    code=item.dimension_key,
+                    name=item.dimension_name or item.dimension_key,
+                )
+                for item in await self.get_breakdown(filters, dimension)
+                if item.dimension_key != "UNKNOWN"
+            ]
+        options["sentiments"] = [
+            FilterOptionDTO("POSITIVE", "Tích cực"),
+            FilterOptionDTO("NEUTRAL", "Trung tính"),
+            FilterOptionDTO("NEGATIVE", "Tiêu cực"),
+            FilterOptionDTO("UNKNOWN", "Chưa xác định"),
+        ]
+        options["severities"] = [
+            FilterOptionDTO("SEV-1", "Nghiêm trọng"),
+            FilterOptionDTO("SEV-2", "Cao"),
+            FilterOptionDTO("SEV-3", "Trung bình"),
+            FilterOptionDTO("SEV-4", "Thấp"),
+        ]
+        return options
+
     @staticmethod
     def _filter_query(filters: AnalyticsFilters) -> tuple[str, dict[str, Any]]:
         """Compile only semantic-view backed filters into bound SQL parameters."""
-        clauses = ["project_id = :project_id"]
+        clauses = ["item.project_id = :project_id"]
         params: dict[str, Any] = {"project_id": filters.project_id}
 
         if filters.date_from is not None:
-            clauses.append("reported_at >= :date_from")
+            clauses.append("item.reported_at >= :date_from")
             params["date_from"] = filters.date_from
         if filters.date_to is not None:
-            clauses.append("reported_at < (:date_to + INTERVAL '1 day')")
+            clauses.append("item.reported_at < (:date_to + INTERVAL '1 day')")
             params["date_to"] = filters.date_to
         if filters.affected_channel_code is not None:
-            clauses.append(":affected_channel_code = ANY(affected_channel_codes)")
+            clauses.append(":affected_channel_code = ANY(item.affected_channel_codes)")
             params["affected_channel_code"] = filters.affected_channel_code
         if filters.location_scope is not None:
             clauses.append("""
-            location_id IN (
+            item.location_id IN (
                 WITH RECURSIVE location_scope_tree AS (
                     SELECT location_id
                     FROM location
@@ -211,6 +280,6 @@ class AnalyticsRepository:
         for field_name, column_name in _FILTER_COLUMNS.items():
             value = getattr(filters, field_name)
             if value is not None:
-                clauses.append(f"{column_name} = :{field_name}")
+                clauses.append(f"item.{column_name} = :{field_name}")
                 params[field_name] = str(value)
         return " AND ".join(clauses), params

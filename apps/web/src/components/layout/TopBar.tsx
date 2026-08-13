@@ -6,6 +6,7 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
+  const isConfigured = Boolean(import.meta.env.VITE_ANALYTICS_PROJECT_ID?.trim());
   return (
     <header className="topbar">
       <div className="topbar-title">
@@ -17,18 +18,9 @@ const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
         )}
       </div>
 
-      <select className="topbar-select">
-        <option>Vinhomes Symphony ▼</option>
-        <option>Vinhomes Ocean Park</option>
-        <option>Vinhomes Smart City</option>
-      </select>
-
-      <select className="topbar-select">
-        <option>Last 30 days</option>
-        <option>Last 7 days</option>
-        <option>Last 90 days</option>
-        <option>This year</option>
-      </select>
+      <span className="topbar-context" title="Project được lấy từ VITE_ANALYTICS_PROJECT_ID">
+        {isConfigured ? 'Project analytics' : 'Chưa cấu hình project'}
+      </span>
 
       <input
         className="topbar-search"

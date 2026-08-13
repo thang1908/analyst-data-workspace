@@ -1,5 +1,11 @@
 import React from 'react';
-import { KPIData } from '../../mock/analyticsData';
+
+export interface KPIData {
+  negativeRate: number;
+  feedbackVolume: number;
+  unknownRate: number;
+  activeHotspots: number;
+}
 
 interface KPICardProps {
   type: 'negative' | 'volume' | 'hotspot' | 'unknown';
@@ -46,25 +52,23 @@ const KPICard: React.FC<KPICardProps> = ({
 
 export default KPICard;
 
-// Helper to build KPI cards from mock data
+// Helper to build KPI cards from governed analytics metrics.
+const percentage = (value: number) => `${value.toFixed(1)}%`;
+
 export const buildKPICards = (data: KPIData) => [
   {
     type: 'negative' as const,
     label: 'NEGATIVE RATE',
     icon: '↓',
-    value: `${data.negativeRate}%`,
-    delta: data.negativeRateDelta,
-    deltaLabel: ' pts',
-    subtitle: 'So với kỳ trước',
+    value: percentage(data.negativeRate),
+    subtitle: 'Trong bộ lọc hiện tại',
   },
   {
     type: 'volume' as const,
     label: 'FEEDBACK VOLUME',
     icon: '◎',
     value: data.feedbackVolume.toLocaleString(),
-    delta: data.feedbackVolumeDelta,
-    deltaLabel: '%',
-    subtitle: '30 ngày gần nhất',
+    subtitle: 'Phản hồi đủ điều kiện',
   },
   {
     type: 'hotspot' as const,
@@ -72,15 +76,13 @@ export const buildKPICards = (data: KPIData) => [
     icon: '🔥',
     value: String(data.activeHotspots),
     delta: undefined,
-    subtitle: `${data.criticalHotspots} critical cần xử lý ngay`,
+    subtitle: data.activeHotspots ? 'Cần được theo dõi' : 'Không có hotspot đang hoạt động',
   },
   {
     type: 'unknown' as const,
-    label: 'UNKNOWN RATE',
+    label: 'SENTIMENT UNKNOWN RATE',
     icon: '◈',
-    value: `${data.unknownRate}%`,
-    delta: data.unknownRateDelta,
-    deltaLabel: ' pts',
-    subtitle: 'Chưa phân loại',
+    value: percentage(data.unknownRate),
+    subtitle: 'Phản hồi chưa xác định được cảm xúc',
   },
 ];
