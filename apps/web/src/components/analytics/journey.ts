@@ -10,12 +10,17 @@ export const mergeTaxonomyBreakdown = (
   breakdown: AnalyticsBreakdownItem[],
 ): AnalyticsBreakdownItem[] => {
   const metricsByCode = new Map(breakdown.map((item) => [item.code, item]));
-  return taxonomy.map((option) => metricsByCode.get(option.code) ?? {
-    code: option.code,
-    name: option.name,
-    itemVolume: 0,
-    percentage: 0,
-    negativeRate: 0,
-    activeHotspots: 0,
+  return taxonomy.map((option) => {
+    const metrics = metricsByCode.get(option.code);
+    return {
+      code: option.code,
+      // The active taxonomy owns display labels. Metrics can originate from
+      // an older release, while the stable code keeps the meaning unchanged.
+      name: option.name,
+      itemVolume: metrics?.itemVolume ?? 0,
+      percentage: metrics?.percentage ?? 0,
+      negativeRate: metrics?.negativeRate ?? 0,
+      activeHotspots: metrics?.activeHotspots ?? 0,
+    };
   });
 };

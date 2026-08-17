@@ -111,6 +111,8 @@ Vận hành là stage thứ sáu, dùng cho record mô tả hoạt động quả
 | RES-07 | Gửi yêu cầu / phản ánh / sự cố |
 | RES-08 | Thực hiện thay đổi liên quan căn hộ |
 
+Từ release **3.0.1**, Dashboard dùng nhãn ngắn để dễ quét nhưng giữ nguyên code và định nghĩa: `RES-03` là **Ra vào & di chuyển**, `RES-07` là **Yêu cầu & phản ánh**. Bản 3.0.0 vẫn được giữ nguyên cho các quyết định lịch sử.
+
 ### 2.7 Customer Lifecycle — Vận hành
 
 | Code | Bước vận hành | Nội dung chính |
@@ -182,6 +184,8 @@ CRM, ERP, BMS, CMMS, contact-center platform và sensor feed là source_system, 
 | SV-08 | An ninh, PCCC & khẩn cấp / Security, Fire & Emergency | Intrusion, theft, disturbance, security response, fire system, egress, evacuation và continuity |
 | SV-09 | Vệ sinh, môi trường & cảnh quan / Cleaning, Environment & Grounds | Cleaning, hygiene, waste, pest, landscaping và environmental nuisance |
 | SV-10 | Khác / Other | Nội dung rõ nhưng không thuộc SV-01..SV-09 |
+
+Trên Dashboard, release 3.0.1 dùng nhãn gọn cho các điểm chạm: `SV-01` **Thông tin & giao dịch**, `SV-05` **Ra vào & bãi xe**, `SV-07` **Kỹ thuật & tài sản chung** và `SV-08` **An ninh & khẩn cấp**. Code, định nghĩa và ranh giới dịch vụ không thay đổi.
 
 ---
 
