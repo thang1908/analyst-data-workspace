@@ -212,3 +212,70 @@ WHERE {{where_clause}}
 GROUP BY 1, 2, 3, 4
 ORDER BY option_type, name, code
 """
+
+# Taxonomy-controlled dimensions must not disappear just because the current
+# analytics slice has zero matching feedback.  Source systems and locations
+# remain data-backed above; they are project-specific rather than canonical
+# taxonomy values.
+TAXONOMY_FILTER_OPTIONS_SQL: Final = """
+WITH published_taxonomy AS (
+    SELECT taxonomy_release_id
+    FROM taxonomy_release
+    WHERE status = 'PUBLISHED'
+      AND (effective_from IS NULL OR effective_from <= NOW())
+      AND (effective_to IS NULL OR effective_to > NOW())
+    ORDER BY effective_from DESC NULLS LAST, published_at DESC NULLS LAST, created_at DESC
+    LIMIT 1
+)
+SELECT 'journey_stage' AS option_type, stage.stage_code AS code,
+       stage.name_vi AS name, NULL::text AS id, stage.sort_order AS sort_order
+FROM customer_lifecycle_stage AS stage
+JOIN published_taxonomy AS taxonomy
+  ON taxonomy.taxonomy_release_id = stage.taxonomy_release_id
+WHERE stage.active
+UNION ALL
+SELECT 'journey_step' AS option_type, step.step_code AS code,
+       step.name_vi AS name, NULL::text AS id,
+       stage.sort_order * 100 + step.sort_order AS sort_order
+FROM customer_lifecycle_step AS step
+JOIN customer_lifecycle_stage AS stage
+  ON stage.customer_lifecycle_stage_id = step.customer_lifecycle_stage_id
+JOIN published_taxonomy AS taxonomy
+  ON taxonomy.taxonomy_release_id = step.taxonomy_release_id
+WHERE step.active AND stage.active
+  AND (CAST(:taxonomy_stage_code AS text) IS NULL OR stage.stage_code = CAST(:taxonomy_stage_code AS text))
+UNION ALL
+SELECT 'service_request_step' AS option_type, step.step_code AS code,
+       step.name_vi AS name, NULL::text AS id, step.sort_order AS sort_order
+FROM service_request_step AS step
+JOIN published_taxonomy AS taxonomy
+  ON taxonomy.taxonomy_release_id = step.taxonomy_release_id
+WHERE step.active
+UNION ALL
+SELECT 'service' AS option_type, service.service_code AS code,
+       service.name_vi AS name, NULL::text AS id, 0 AS sort_order
+FROM service
+JOIN published_taxonomy AS taxonomy
+  ON taxonomy.taxonomy_release_id = service.taxonomy_release_id
+WHERE service.active
+UNION ALL
+SELECT 'issue' AS option_type, issue.issue_code AS code,
+       issue.name_vi AS name, NULL::text AS id, 0 AS sort_order
+FROM issue
+JOIN service ON service.service_id = issue.service_id
+JOIN published_taxonomy AS taxonomy
+  ON taxonomy.taxonomy_release_id = issue.taxonomy_release_id
+WHERE issue.active AND service.active
+  AND (CAST(:taxonomy_service_code AS text) IS NULL OR service.service_code = CAST(:taxonomy_service_code AS text))
+UNION ALL
+SELECT 'intake_channel' AS option_type, channel.channel_code AS code,
+       channel.name_vi AS name, NULL::text AS id, 0 AS sort_order
+FROM interaction_channel AS channel
+WHERE channel.active
+UNION ALL
+SELECT 'affected_channel' AS option_type, channel.channel_code AS code,
+       channel.name_vi AS name, NULL::text AS id, 0 AS sort_order
+FROM interaction_channel AS channel
+WHERE channel.active
+ORDER BY option_type, sort_order, name, code
+"""

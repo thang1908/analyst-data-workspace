@@ -174,6 +174,30 @@ async def test_affected_channel_breakdown_unnests_codes_from_the_semantic_view()
 
 
 @pytest.mark.asyncio
+async def test_filter_options_get_canonical_dimensions_from_taxonomy_not_feedback_volume() -> None:
+    session = _session_returning([])
+
+    await AnalyticsRepository(session).get_filter_options(
+        AnalyticsFilters(
+            project_id=uuid4(),
+            customer_lifecycle_stage_code="RES",
+            service_code="SV-07",
+        )
+    )
+
+    assert session.execute.await_count == 2
+    taxonomy_statement, taxonomy_params = session.execute.await_args_list[1].args
+    assert "customer_lifecycle_stage" in taxonomy_statement.text
+    assert "customer_lifecycle_step" in taxonomy_statement.text
+    assert "FROM service" in taxonomy_statement.text
+    assert "FROM issue" in taxonomy_statement.text
+    assert taxonomy_params == {
+        "taxonomy_stage_code": "RES",
+        "taxonomy_service_code": "SV-07",
+    }
+
+
+@pytest.mark.asyncio
 async def test_list_items_adapts_semantic_view_rows_to_the_application_port() -> None:
     item_id = uuid4()
     decision_id = uuid4()
