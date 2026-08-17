@@ -610,6 +610,28 @@ html, body {
   margin-bottom: 24px;
 }
 
+.dashboard-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-scroll-panel { min-height: 0; padding: 18px 0 0; }
+.dashboard-scroll-panel .section-header { padding: 0 18px; margin-bottom: 12px; }
+.dashboard-scroll-panel .section-header > div { display: grid; gap: 4px; }
+.dashboard-scroll-panel p, .dashboard-helper { color: var(--text-muted); font-size: 12px; }
+.panel-count { color: var(--text-muted); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.dashboard-scroll-list { height: 380px; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid var(--border-subtle); }
+.dashboard-metric-row { width: 100%; display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 13px 18px; border: 0; border-bottom: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); font: inherit; text-align: left; cursor: pointer; }
+.dashboard-metric-row:hover { background: var(--bg-hover); }
+.dashboard-metric-row.selected { background: rgba(220,38,38,0.05); box-shadow: inset 3px 0 0 var(--text-accent); }
+.dashboard-metric-row > span:first-child { min-width: 0; display: grid; gap: 3px; }
+.dashboard-metric-row strong { color: var(--text-primary); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dashboard-metric-row small { color: var(--text-muted); font-size: 11px; }
+.dashboard-row-metric { display: grid; gap: 3px; justify-items: end; flex: none; }
+.dashboard-row-metric strong { color: var(--text-accent); }
+
 /* ─── Card ───────────────────────────────────────────────── */
 .card {
   background: var(--bg-card);
@@ -865,5 +887,6 @@ html, body {
   .analytics-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .journey-stages { overflow-x: auto; }
   .journey-stage-item { min-width: 150px; }
-  .two-col-grid, .kpi-grid { grid-template-columns: 1fr; }
+  .two-col-grid, .kpi-grid, .dashboard-detail-grid { grid-template-columns: 1fr; }
+  .dashboard-scroll-list { height: 320px; }
 }
