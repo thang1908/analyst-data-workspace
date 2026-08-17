@@ -12,14 +12,12 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: 'TỔNG QUAN',
     items: [
-      { label: 'CX Overview', icon: '⬡', path: '/overview' },
+      { label: 'CX Dashboard', icon: '⬡', path: '/overview' },
     ],
   },
   {
     title: 'TRẢI NGHIỆM KHÁCH HÀNG',
     items: [
-      { label: 'Customer Journey', icon: '↗', path: '/customer-journey' },
-      { label: 'Service & Pain Points', icon: '⚡', path: '/service-pain-points' },
       { label: 'Hotspot & Root Cause', icon: '🔥', path: '/hotspot' },
     ],
   },

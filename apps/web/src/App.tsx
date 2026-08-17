@@ -1,10 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './index.css';
 import Sidebar from './components/layout/Sidebar';
 import OverviewPage from './pages/OverviewPage';
-import CustomerJourneyPage from './pages/CustomerJourneyPage';
-import ServicePainPointsPage from './pages/ServicePainPointsPage';
 import ImportWizardPage from './pages/import/ImportWizardPage';
 
 // Placeholder page for routes not yet built
@@ -19,6 +17,11 @@ const ComingSoon: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
+const LegacyDashboardRedirect: React.FC = () => {
+  const location = useLocation();
+  return <Navigate to={`/overview${location.search}`} replace />;
+};
+
 const App: React.FC = () => {
   return (
     <BrowserRouter>
@@ -28,8 +31,8 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/overview" replace />} />
             <Route path="/overview" element={<OverviewPage />} />
-            <Route path="/customer-journey" element={<CustomerJourneyPage />} />
-            <Route path="/service-pain-points" element={<ServicePainPointsPage />} />
+            <Route path="/customer-journey" element={<LegacyDashboardRedirect />} />
+            <Route path="/service-pain-points" element={<LegacyDashboardRedirect />} />
             <Route path="/hotspot" element={<ComingSoon title="Hotspot & Root Cause" />} />
             <Route path="/feedback" element={<ComingSoon title="Feedback Explorer" />} />
             <Route path="/review" element={<ComingSoon title="Review Queue" />} />
