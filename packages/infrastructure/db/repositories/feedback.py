@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from dataclasses import dataclass
+from datetime import date
 from typing import Any
 from uuid import UUID
 
@@ -11,6 +13,44 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.domain.feedback import Feedback, FeedbackDomainError, FeedbackItem, FeedbackSplitResult, SplitSource
 from packages.domain.shared.enums import AnalyticEligibility, FeedbackItemStatus
+
+
+@dataclass(frozen=True, slots=True)
+class FeedbackItemListFilters:
+    project_id: UUID
+    date_from: date | None = None
+    date_to: date | None = None
+    source_system: str | None = None
+    intake_channel_code: str | None = None
+    affected_channel_code: str | None = None
+    location_id: UUID | None = None
+    q: str | None = None
+    limit: int = 50
+    offset: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class FeedbackItemWorkspaceRow:
+    feedback_item_id: UUID
+    feedback_id: UUID
+    reported_at: Any
+    source_system: str
+    content_masked: str
+    location_id: UUID | None
+    location_code: str | None
+    location_name: str | None
+    service_code: str | None
+    service_name_vi: str | None
+    issue_code: str | None
+    issue_name_vi: str | None
+    sentiment: str | None
+    operational_severity: str | None
+    classification_state: str | None
+    projection_version: int | None
+    status: str
+    analytic_eligibility: str
+    parent_item_id: UUID | None
+    affected_channel_codes: tuple[str, ...]
 
 
 class FeedbackRepository:
@@ -94,6 +134,83 @@ class FeedbackRepository:
             created_at=feedback_row["created_at"],
             items=tuple(_as_feedback_item(row, channels_by_item[row["feedback_item_id"]]) for row in item_rows),
         )
+
+    async def list_workspace_items(
+        self, filters: FeedbackItemListFilters
+    ) -> tuple[list[FeedbackItemWorkspaceRow], int]:
+        """List masked workspace rows; raw content is intentionally absent."""
+        where, params = _workspace_where(filters)
+        count_result = await self._session.execute(
+            text(f"""SELECT COUNT(*) FROM feedback_item fi
+                INNER JOIN feedback f ON f.feedback_id = fi.feedback_id
+                LEFT JOIN interaction_channel intake ON intake.interaction_channel_id = f.intake_channel_id
+                WHERE {where}"""),
+            params,
+        )
+        result = await self._session.execute(
+            text(f"""
+                SELECT fi.feedback_item_id, fi.feedback_id, f.reported_at, f.source_system,
+                       fi.item_text_masked AS content_masked, fi.status, fi.analytic_eligibility,
+                       fi.parent_item_id, loc.location_id, loc.location_code, loc.name AS location_name,
+                       service.service_code, service.name_vi AS service_name_vi,
+                       issue.issue_code, issue.name_vi AS issue_name_vi,
+                       cc.sentiment, cc.operational_severity, cc.classification_state,
+                       cc.projection_version,
+                       COALESCE(ARRAY_AGG(DISTINCT affected.channel_code)
+                         FILTER (WHERE affected.channel_code IS NOT NULL), ARRAY[]::text[]) AS affected_channel_codes
+                FROM feedback_item fi
+                INNER JOIN feedback f ON f.feedback_id = fi.feedback_id
+                LEFT JOIN interaction_channel intake ON intake.interaction_channel_id = f.intake_channel_id
+                LEFT JOIN location loc ON loc.location_id = fi.location_id
+                LEFT JOIN classification_current cc ON cc.feedback_item_id = fi.feedback_item_id
+                LEFT JOIN service ON service.service_id = cc.primary_service_id
+                LEFT JOIN issue ON issue.issue_id = cc.issue_id
+                LEFT JOIN feedback_item_affected_channel fiac ON fiac.feedback_item_id = fi.feedback_item_id
+                LEFT JOIN interaction_channel affected ON affected.interaction_channel_id = fiac.interaction_channel_id
+                WHERE {where}
+                GROUP BY fi.feedback_item_id, f.feedback_id, f.reported_at, f.source_system,
+                         fi.item_text_masked, fi.status, fi.analytic_eligibility, fi.parent_item_id,
+                         loc.location_id, loc.location_code, loc.name, service.service_code, service.name_vi,
+                         issue.issue_code, issue.name_vi, cc.sentiment, cc.operational_severity,
+                         cc.classification_state, cc.projection_version
+                ORDER BY f.reported_at DESC, fi.feedback_item_id DESC
+                LIMIT :limit OFFSET :offset
+            """),
+            {**params, "limit": filters.limit, "offset": filters.offset},
+        )
+        return ([_as_workspace_row(row) for row in result.mappings().all()], int(count_result.scalar_one()))
+
+    async def get_workspace_item(self, feedback_item_id: UUID) -> FeedbackItemWorkspaceRow | None:
+        """Return one masked workspace item, including its split parent reference."""
+        result = await self._session.execute(
+            text("""
+                SELECT fi.feedback_item_id, fi.feedback_id, f.reported_at, f.source_system,
+                       fi.item_text_masked AS content_masked, fi.status, fi.analytic_eligibility,
+                       fi.parent_item_id, loc.location_id, loc.location_code, loc.name AS location_name,
+                       service.service_code, service.name_vi AS service_name_vi, issue.issue_code,
+                       issue.name_vi AS issue_name_vi, cc.sentiment, cc.operational_severity,
+                       cc.classification_state, cc.projection_version,
+                       COALESCE(ARRAY_AGG(DISTINCT affected.channel_code)
+                         FILTER (WHERE affected.channel_code IS NOT NULL), ARRAY[]::text[]) AS affected_channel_codes
+                FROM feedback_item fi
+                INNER JOIN feedback f ON f.feedback_id = fi.feedback_id
+                LEFT JOIN location loc ON loc.location_id = fi.location_id
+                LEFT JOIN classification_current cc ON cc.feedback_item_id = fi.feedback_item_id
+                LEFT JOIN service ON service.service_id = cc.primary_service_id
+                LEFT JOIN issue ON issue.issue_id = cc.issue_id
+                LEFT JOIN feedback_item_affected_channel fiac ON fiac.feedback_item_id = fi.feedback_item_id
+                LEFT JOIN interaction_channel affected ON affected.interaction_channel_id = fiac.interaction_channel_id
+                WHERE fi.feedback_item_id = :feedback_item_id
+                GROUP BY fi.feedback_item_id, f.feedback_id, f.reported_at, f.source_system,
+                         fi.item_text_masked, fi.status, fi.analytic_eligibility, fi.parent_item_id,
+                         loc.location_id, loc.location_code, loc.name, service.service_code, service.name_vi,
+                         issue.issue_code, issue.name_vi, cc.sentiment, cc.operational_severity,
+                         cc.classification_state, cc.projection_version
+            """),
+            {"feedback_item_id": feedback_item_id},
+        )
+        row = result.mappings().one_or_none()
+        return _as_workspace_row(row) if row else None
 
     async def apply_split(
         self,
@@ -249,4 +366,51 @@ def _as_feedback_item(row: Any, affected_channel_ids: list[UUID]) -> FeedbackIte
         split_at=row["split_at"],
         created_at=row["created_at"],
         created_by=row["created_by"],
+    )
+
+
+def _workspace_where(filters: FeedbackItemListFilters) -> tuple[str, dict[str, Any]]:
+    clauses = ["f.project_id = :project_id"]
+    params: dict[str, Any] = {"project_id": filters.project_id}
+    if filters.date_from is not None:
+        clauses.append("f.reported_at >= :date_from")
+        params["date_from"] = filters.date_from
+    if filters.date_to is not None:
+        clauses.append("f.reported_at < (:date_to + INTERVAL '1 day')")
+        params["date_to"] = filters.date_to
+    if filters.source_system:
+        clauses.append("f.source_system = :source_system")
+        params["source_system"] = filters.source_system
+    if filters.intake_channel_code:
+        clauses.append("intake.channel_code = :intake_channel_code")
+        params["intake_channel_code"] = filters.intake_channel_code
+    if filters.affected_channel_code:
+        clauses.append("EXISTS (SELECT 1 FROM feedback_item_affected_channel filter_fiac "
+                       "JOIN interaction_channel filter_channel "
+                       "ON filter_channel.interaction_channel_id = filter_fiac.interaction_channel_id "
+                       "WHERE filter_fiac.feedback_item_id = fi.feedback_item_id "
+                       "AND filter_channel.channel_code = :affected_channel_code)")
+        params["affected_channel_code"] = filters.affected_channel_code
+    if filters.location_id:
+        clauses.append("fi.location_id = :location_id")
+        params["location_id"] = filters.location_id
+    if filters.q:
+        clauses.append("fi.item_text_masked ILIKE :q")
+        params["q"] = f"%{filters.q.strip()}%"
+    return " AND ".join(clauses), params
+
+
+def _as_workspace_row(row: Any) -> FeedbackItemWorkspaceRow:
+    return FeedbackItemWorkspaceRow(
+        feedback_item_id=row["feedback_item_id"], feedback_id=row["feedback_id"],
+        reported_at=row["reported_at"], source_system=row["source_system"],
+        content_masked=row["content_masked"], location_id=row["location_id"],
+        location_code=row["location_code"], location_name=row["location_name"],
+        service_code=row["service_code"], service_name_vi=row["service_name_vi"],
+        issue_code=row["issue_code"], issue_name_vi=row["issue_name_vi"],
+        sentiment=row["sentiment"], operational_severity=row["operational_severity"],
+        classification_state=row["classification_state"], projection_version=row["projection_version"],
+        status=row["status"], analytic_eligibility=row["analytic_eligibility"],
+        parent_item_id=row["parent_item_id"],
+        affected_channel_codes=tuple(row["affected_channel_codes"] or ()),
     )

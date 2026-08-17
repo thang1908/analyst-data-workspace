@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from apps.api.routers.import_pipeline import router as import_pipeline_router
 from apps.api.routers.analytics import router as analytics_router
+from apps.api.routers.feedback import router as feedback_router
 from packages.infrastructure.logging import setup_logging
 
 setup_logging()
@@ -27,6 +28,7 @@ app.add_middleware(
 
 app.include_router(import_pipeline_router)
 app.include_router(analytics_router)
+app.include_router(feedback_router)
 app.include_router(import_pipeline_router)
 
 

@@ -14,7 +14,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.domain.feedback import Feedback, SplitItemDraft
-from packages.infrastructure.db.repositories.feedback import FeedbackRepository
+from packages.infrastructure.db.repositories.feedback import FeedbackItemListFilters, FeedbackRepository
 from packages.infrastructure.db.session import engine
 
 if os.getenv("RUN_FEEDBACK_INTEGRATION_TESTS") != "1":
@@ -45,6 +45,18 @@ async def test_feedback_repository_persists_envelope_items_and_split_audit() -> 
             assert loaded.content_raw == feedback.content_raw
             assert loaded.content_masked == "Liên hệ [EMAIL] hoặc [PHONE]: thang máy chậm và app lỗi."
             assert len(loaded.items) == 1
+
+            workspace_rows, total = await repository.list_workspace_items(
+                FeedbackItemListFilters(
+                    project_id=feedback.project_id,
+                    source_system=feedback.source_system,
+                )
+            )
+            assert total == 1
+            assert workspace_rows[0].feedback_item_id == loaded.items[0].feedback_item_id
+            assert workspace_rows[0].content_masked == loaded.content_masked
+            assert "0901234567" not in workspace_rows[0].content_masked
+            assert await repository.get_workspace_item(loaded.items[0].feedback_item_id) is not None
 
             split = loaded.split_item(
                 source_feedback_item_id=loaded.items[0].feedback_item_id,
