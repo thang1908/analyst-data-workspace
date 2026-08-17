@@ -25,16 +25,7 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
     title: 'VẬN HÀNH',
     items: [
       { label: 'Feedback Explorer', icon: '◎', path: '/feedback' },
-      { label: 'Review Queue', icon: '⊞', path: '/review', badge: 128 },
-      { label: 'Imports', icon: '↑', path: '/imports', badge: 1 },
-    ],
-  },
-  {
-    title: 'QUẢN TRỊ',
-    items: [
-      { label: 'Data Quality', icon: '◈', path: '/data-quality' },
-      { label: 'Taxonomy', icon: '⊞', path: '/admin/taxonomy' },
-      { label: 'Audit', icon: '≡', path: '/audit' },
+      { label: 'Imports', icon: '↑', path: '/imports' },
     ],
   },
 ];

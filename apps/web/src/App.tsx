@@ -7,18 +7,6 @@ import ImportWizardPage from './pages/import/ImportWizardPage';
 import FeedbackExplorerPage from './pages/feedback/FeedbackExplorerPage';
 import HotspotPage from './pages/hotspot/HotspotPage';
 
-// Placeholder page for routes not yet built
-const ComingSoon: React.FC<{ title: string }> = ({ title }) => (
-  <div style={{
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    height: '100%', gap: 12, color: 'var(--text-muted)',
-  }}>
-    <div style={{ fontSize: 48 }}>🚧</div>
-    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-secondary)' }}>{title}</div>
-    <div style={{ fontSize: 13 }}>Tính năng đang được phát triển</div>
-  </div>
-);
-
 const LegacyDashboardRedirect: React.FC = () => {
   const location = useLocation();
   return <Navigate to={`/overview${location.search}`} replace />;
@@ -38,12 +26,8 @@ const App: React.FC = () => {
             <Route path="/hotspot" element={<HotspotPage />} />
             <Route path="/hotspots" element={<Navigate to="/hotspot" replace />} />
             <Route path="/feedback" element={<FeedbackExplorerPage />} />
-            <Route path="/review" element={<ComingSoon title="Review Queue" />} />
             <Route path="/import" element={<ImportWizardPage />} />
             <Route path="/imports" element={<Navigate to="/import" replace />} />
-            <Route path="/data-quality" element={<ComingSoon title="Data Quality" />} />
-            <Route path="/admin/taxonomy" element={<ComingSoon title="Taxonomy Admin" />} />
-            <Route path="/audit" element={<ComingSoon title="Audit Log" />} />
             <Route path="*" element={<Navigate to="/overview" replace />} />
           </Routes>
         </div>

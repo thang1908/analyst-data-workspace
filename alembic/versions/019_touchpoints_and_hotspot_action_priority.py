@@ -404,6 +404,7 @@ def upgrade() -> None:
     op.create_index("ix_cc_touchpoint", "classification_current", ["touchpoint_id"])
 
     # 5. Update analytics_feedback_item_v1 view
+    op.execute("DROP VIEW IF EXISTS analytics_feedback_item_v1 CASCADE;")
     op.execute(_VIEW_SQL_V2)
 
     # 6. Seed Touchpoints and Step-Touchpoint-Service Mappings
