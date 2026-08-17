@@ -24,6 +24,9 @@ BREAKDOWN_DIMENSIONS: Final[Mapping[str, BreakdownDimensionDefinition]] = Mappin
         "journey_step": BreakdownDimensionDefinition(
             "item.customer_lifecycle_step_code", "item.customer_lifecycle_step_name_vi"
         ),
+        "touchpoint": BreakdownDimensionDefinition(
+            "item.touchpoint_code", "item.touchpoint_name_vi"
+        ),
         "service_request_step": BreakdownDimensionDefinition(
             "item.service_request_step_code", "item.service_request_step_name_vi"
         ),
@@ -244,6 +247,27 @@ JOIN published_taxonomy AS taxonomy
   ON taxonomy.taxonomy_release_id = step.taxonomy_release_id
 WHERE step.active AND stage.active
   AND (CAST(:taxonomy_stage_code AS text) IS NULL OR stage.stage_code = CAST(:taxonomy_stage_code AS text))
+UNION ALL
+SELECT 'touchpoint' AS option_type, tp.touchpoint_code AS code,
+       tp.name_vi AS name, tp.touchpoint_id::text AS id,
+       stage.sort_order * 10000 + step.sort_order * 100 + tp.sort_order AS sort_order
+FROM touchpoint AS tp
+JOIN customer_lifecycle_step AS step
+  ON step.customer_lifecycle_step_id = tp.customer_lifecycle_step_id
+JOIN customer_lifecycle_stage AS stage
+  ON stage.customer_lifecycle_stage_id = step.customer_lifecycle_stage_id
+JOIN published_taxonomy AS taxonomy
+  ON taxonomy.taxonomy_release_id = tp.taxonomy_release_id
+WHERE tp.active AND step.active AND stage.active
+  AND (CAST(:taxonomy_step_code AS text) IS NULL OR step.step_code = CAST(:taxonomy_step_code AS text))
+  AND (CAST(:taxonomy_stage_code AS text) IS NULL OR stage.stage_code = CAST(:taxonomy_stage_code AS text))
+  AND (CAST(:taxonomy_service_code AS text) IS NULL OR EXISTS (
+      SELECT 1 FROM touchpoint_service_map tsm
+      JOIN service svc ON svc.service_id = tsm.service_id
+      WHERE tsm.touchpoint_id = tp.touchpoint_id
+        AND svc.service_code = CAST(:taxonomy_service_code AS text)
+        AND tsm.active = true
+  ))
 UNION ALL
 SELECT 'service_request_step' AS option_type, step.step_code AS code,
        step.name_vi AS name, NULL::text AS id, step.sort_order AS sort_order

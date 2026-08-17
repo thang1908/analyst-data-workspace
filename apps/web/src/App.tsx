@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import OverviewPage from './pages/OverviewPage';
 import ImportWizardPage from './pages/import/ImportWizardPage';
 import FeedbackExplorerPage from './pages/feedback/FeedbackExplorerPage';
+import HotspotPage from './pages/hotspot/HotspotPage';
 
 // Placeholder page for routes not yet built
 const ComingSoon: React.FC<{ title: string }> = ({ title }) => (
@@ -34,7 +35,8 @@ const App: React.FC = () => {
             <Route path="/overview" element={<OverviewPage />} />
             <Route path="/customer-journey" element={<LegacyDashboardRedirect />} />
             <Route path="/service-pain-points" element={<LegacyDashboardRedirect />} />
-            <Route path="/hotspot" element={<ComingSoon title="Hotspot & Root Cause" />} />
+            <Route path="/hotspot" element={<HotspotPage />} />
+            <Route path="/hotspots" element={<Navigate to="/hotspot" replace />} />
             <Route path="/feedback" element={<FeedbackExplorerPage />} />
             <Route path="/review" element={<ComingSoon title="Review Queue" />} />
             <Route path="/import" element={<ImportWizardPage />} />

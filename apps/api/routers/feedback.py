@@ -29,21 +29,54 @@ CorrelationId = Annotated[str | None, Header(alias="X-Correlation-ID")]
 
 @router.get("", response_model=FeedbackItemListResponse, operation_id="listFeedbackItems")
 async def list_feedback_items(
-    repository: FeedbackRepositoryDep, project_id: UUID, date_from: date | None = None,
-    date_to: date | None = None, source_system: str | None = None,
-    intake_channel_code: str | None = None, affected_channel_code: str | None = None,
-    location_id: UUID | None = None, q: str | None = None,
-    limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0),
+    repository: FeedbackRepositoryDep,
+    project_id: UUID,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    source_system: str | None = None,
+    intake_channel_code: str | None = None,
+    affected_channel_code: str | None = None,
+    location_id: UUID | None = None,
+    service_code: str | None = None,
+    issue_code: str | None = None,
+    sentiment: str | None = None,
+    operational_severity: str | None = None,
+    customer_lifecycle_stage_code: str | None = None,
+    customer_lifecycle_step_code: str | None = None,
+    touchpoint_code: str | None = None,
+    hotspot_id: UUID | None = None,
+    q: str | None = None,
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
 ) -> FeedbackItemListResponse:
     if date_from and date_to and date_from > date_to:
         raise HTTPException(status_code=422, detail="date_from must not be later than date_to")
-    rows, total = await repository.list_workspace_items(FeedbackItemListFilters(
-        project_id=project_id, date_from=date_from, date_to=date_to,
-        source_system=source_system, intake_channel_code=intake_channel_code,
-        affected_channel_code=affected_channel_code, location_id=location_id, q=q,
-        limit=limit, offset=offset,
-    ))
-    return FeedbackItemListResponse(data=[_item_data(row) for row in rows], meta=FeedbackItemListMeta(total=total, limit=limit, offset=offset))
+    rows, total = await repository.list_workspace_items(
+        FeedbackItemListFilters(
+            project_id=project_id,
+            date_from=date_from,
+            date_to=date_to,
+            source_system=source_system,
+            intake_channel_code=intake_channel_code,
+            affected_channel_code=affected_channel_code,
+            location_id=location_id,
+            service_code=service_code,
+            issue_code=issue_code,
+            sentiment=sentiment,
+            operational_severity=operational_severity,
+            customer_lifecycle_stage_code=customer_lifecycle_stage_code,
+            customer_lifecycle_step_code=customer_lifecycle_step_code,
+            touchpoint_code=touchpoint_code,
+            hotspot_id=hotspot_id,
+            q=q,
+            limit=limit,
+            offset=offset,
+        )
+    )
+    return FeedbackItemListResponse(
+        data=[_item_data(row) for row in rows],
+        meta=FeedbackItemListMeta(total=total, limit=limit, offset=offset),
+    )
 
 
 @router.get("/{feedback_item_id}", response_model=FeedbackItemDetailResponse, operation_id="getFeedbackItem")

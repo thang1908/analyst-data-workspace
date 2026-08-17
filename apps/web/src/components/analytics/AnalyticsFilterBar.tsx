@@ -76,6 +76,7 @@ const AnalyticsFilterBar: React.FC<AnalyticsFilterBarProps> = ({ filters, active
           <FilterSelect label="Kênh bị ảnh hưởng" value={filters.affectedChannelCode} options={options?.affectedChannels ?? []} onChange={(value) => onChange('affectedChannelCode', value)} />
           <FilterSelect label="Phạm vi vị trí" value={filters.locationScope} options={options?.locations ?? []} onChange={(value) => onChange('locationScope', value)} />
           <FilterSelect label="Bước hành trình" value={filters.customerLifecycleStepCode} options={options?.journeySteps ?? []} onChange={(value) => onChange('customerLifecycleStepCode', value)} />
+          <FilterSelect label="Điểm chạm (Touchpoint)" value={filters.touchpointCode} options={options?.touchpoints ?? []} onChange={(value) => onChange('touchpointCode', value)} />
           <FilterSelect label="Bước yêu cầu dịch vụ" value={filters.serviceRequestStepCode} options={options?.serviceRequestSteps ?? []} onChange={(value) => onChange('serviceRequestStepCode', value)} />
           <FilterSelect label="Cảm xúc" value={filters.sentiment} options={options?.sentiments ?? []} onChange={(value) => onChange('sentiment', value)} />
           <FilterSelect label="Mức độ" value={filters.operationalSeverity} options={options?.severities ?? []} onChange={(value) => onChange('operationalSeverity', value)} />

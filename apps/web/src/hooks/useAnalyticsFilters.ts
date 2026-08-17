@@ -14,6 +14,7 @@ const queryNames: Record<FilterField, string> = {
   locationScope: 'location_scope',
   customerLifecycleStageCode: 'customer_lifecycle_stage_code',
   customerLifecycleStepCode: 'customer_lifecycle_step_code',
+  touchpointCode: 'touchpoint_code',
   serviceRequestStepCode: 'service_request_step_code',
   serviceCode: 'service_code',
   issueCode: 'issue_code',
@@ -42,7 +43,13 @@ export const useAnalyticsFilters = () => {
       const next = new URLSearchParams(current);
       if (value) next.set(queryNames[field], value);
       else next.delete(queryNames[field]);
-      if (field === 'customerLifecycleStageCode') next.delete(queryNames.customerLifecycleStepCode);
+      if (field === 'customerLifecycleStageCode') {
+        next.delete(queryNames.customerLifecycleStepCode);
+        next.delete(queryNames.touchpointCode);
+      }
+      if (field === 'customerLifecycleStepCode') {
+        next.delete(queryNames.touchpointCode);
+      }
       if (field === 'serviceCode') next.delete(queryNames.issueCode);
       return next;
     });

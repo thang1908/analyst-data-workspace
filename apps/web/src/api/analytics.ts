@@ -9,6 +9,7 @@ export interface AnalyticsFilters {
   locationScope?: string;
   customerLifecycleStageCode?: string;
   customerLifecycleStepCode?: string;
+  touchpointCode?: string;
   serviceRequestStepCode?: string;
   serviceCode?: string;
   issueCode?: string;
@@ -55,6 +56,7 @@ export interface AnalyticsFilterOptions {
   locations: AnalyticsFilterOption[];
   journeyStages: AnalyticsFilterOption[];
   journeySteps: AnalyticsFilterOption[];
+  touchpoints: AnalyticsFilterOption[];
   serviceRequestSteps: AnalyticsFilterOption[];
   services: AnalyticsFilterOption[];
   issues: AnalyticsFilterOption[];
@@ -101,6 +103,7 @@ interface ApiFilterOptions {
   locations: ApiFilterOption[];
   journey_stages: ApiFilterOption[];
   journey_steps: ApiFilterOption[];
+  touchpoints?: ApiFilterOption[];
   service_request_steps: ApiFilterOption[];
   services: ApiFilterOption[];
   issues: ApiFilterOption[];
@@ -182,6 +185,7 @@ const filterParams = (filters: AnalyticsFilters): URLSearchParams => {
     locationScope: 'location_scope',
     customerLifecycleStageCode: 'customer_lifecycle_stage_code',
     customerLifecycleStepCode: 'customer_lifecycle_step_code',
+    touchpointCode: 'touchpoint_code',
     serviceRequestStepCode: 'service_request_step_code',
     serviceCode: 'service_code',
     issueCode: 'issue_code',
@@ -269,16 +273,17 @@ export const getAnalyticsFilterOptions = async (
   const response = await request<ApiEnvelope<ApiFilterOptions>>('/filter-options', filterParams(filters));
   const data = response.data;
   return {
-    sourceSystems: data.source_systems.map(toFilterOption),
-    intakeChannels: data.intake_channels.map(toFilterOption),
-    affectedChannels: data.affected_channels.map(toFilterOption),
-    locations: data.locations.map(toFilterOption),
-    journeyStages: data.journey_stages.map(toFilterOption),
-    journeySteps: data.journey_steps.map(toFilterOption),
-    serviceRequestSteps: data.service_request_steps.map(toFilterOption),
-    services: data.services.map(toFilterOption),
-    issues: data.issues.map(toFilterOption),
-    sentiments: data.sentiments.map(toFilterOption),
-    severities: data.severities.map(toFilterOption),
+    sourceSystems: (data.source_systems ?? []).map(toFilterOption),
+    intakeChannels: (data.intake_channels ?? []).map(toFilterOption),
+    affectedChannels: (data.affected_channels ?? []).map(toFilterOption),
+    locations: (data.locations ?? []).map(toFilterOption),
+    journeyStages: (data.journey_stages ?? []).map(toFilterOption),
+    journeySteps: (data.journey_steps ?? []).map(toFilterOption),
+    touchpoints: (data.touchpoints ?? []).map(toFilterOption),
+    serviceRequestSteps: (data.service_request_steps ?? []).map(toFilterOption),
+    services: (data.services ?? []).map(toFilterOption),
+    issues: (data.issues ?? []).map(toFilterOption),
+    sentiments: (data.sentiments ?? []).map(toFilterOption),
+    severities: (data.severities ?? []).map(toFilterOption),
   };
 };

@@ -24,6 +24,14 @@ class FeedbackItemListFilters:
     intake_channel_code: str | None = None
     affected_channel_code: str | None = None
     location_id: UUID | None = None
+    service_code: str | None = None
+    issue_code: str | None = None
+    sentiment: str | None = None
+    operational_severity: str | None = None
+    customer_lifecycle_stage_code: str | None = None
+    customer_lifecycle_step_code: str | None = None
+    touchpoint_code: str | None = None
+    hotspot_id: UUID | None = None
     q: str | None = None
     limit: int = 50
     offset: int = 0
@@ -144,6 +152,9 @@ class FeedbackRepository:
             text(f"""SELECT COUNT(*) FROM feedback_item fi
                 INNER JOIN feedback f ON f.feedback_id = fi.feedback_id
                 LEFT JOIN interaction_channel intake ON intake.interaction_channel_id = f.intake_channel_id
+                LEFT JOIN classification_current cc ON cc.feedback_item_id = fi.feedback_item_id
+                LEFT JOIN service ON service.service_id = cc.primary_service_id
+                LEFT JOIN issue ON issue.issue_id = cc.issue_id
                 WHERE {where}"""),
             params,
         )
@@ -394,6 +405,30 @@ def _workspace_where(filters: FeedbackItemListFilters) -> tuple[str, dict[str, A
     if filters.location_id:
         clauses.append("fi.location_id = :location_id")
         params["location_id"] = filters.location_id
+    if filters.service_code:
+        clauses.append("service.service_code = :service_code")
+        params["service_code"] = filters.service_code
+    if filters.issue_code:
+        clauses.append("issue.issue_code = :issue_code")
+        params["issue_code"] = filters.issue_code
+    if filters.sentiment:
+        clauses.append("cc.sentiment = :sentiment")
+        params["sentiment"] = filters.sentiment
+    if filters.operational_severity:
+        clauses.append("cc.operational_severity = :operational_severity")
+        params["operational_severity"] = filters.operational_severity
+    if filters.customer_lifecycle_stage_code:
+        clauses.append("EXISTS (SELECT 1 FROM customer_lifecycle_stage filter_cls WHERE filter_cls.customer_lifecycle_stage_id = cc.customer_lifecycle_stage_id AND filter_cls.stage_code = :stage_code)")
+        params["stage_code"] = filters.customer_lifecycle_stage_code
+    if filters.customer_lifecycle_step_code:
+        clauses.append("EXISTS (SELECT 1 FROM customer_lifecycle_step filter_clst WHERE filter_clst.customer_lifecycle_step_id = cc.customer_lifecycle_step_id AND filter_clst.step_code = :step_code)")
+        params["step_code"] = filters.customer_lifecycle_step_code
+    if filters.touchpoint_code:
+        clauses.append("EXISTS (SELECT 1 FROM touchpoint filter_tp WHERE filter_tp.touchpoint_id = cc.touchpoint_id AND filter_tp.touchpoint_code = :touchpoint_code)")
+        params["touchpoint_code"] = filters.touchpoint_code
+    if filters.hotspot_id:
+        clauses.append("EXISTS (SELECT 1 FROM feedback_item_hotspot filter_fih WHERE filter_fih.feedback_item_id = fi.feedback_item_id AND filter_fih.hotspot_id = :hotspot_id)")
+        params["hotspot_id"] = filters.hotspot_id
     if filters.q:
         clauses.append("fi.item_text_masked ILIKE :q")
         params["q"] = f"%{filters.q.strip()}%"

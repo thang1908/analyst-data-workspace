@@ -7,7 +7,7 @@ import os
 from dataclasses import replace
 from tempfile import SpooledTemporaryFile
 from time import perf_counter
-from typing import Any, BinaryIO, Iterable, Iterator, Mapping
+from typing import Any, BinaryIO, Iterable, Iterator, Mapping, TypeVar
 from uuid import UUID
 
 from openpyxl import load_workbook
@@ -168,6 +168,10 @@ def _stream_xlsx_rows(source: BinaryIO) -> Iterator[dict[str, str]]:
         workbook.close()
 
 
-def _batches[T](items: list[T], size: int) -> Iterator[list[T]]:
+T = TypeVar("T")
+
+
+def _batches(items: list[T], size: int) -> Iterator[list[T]]:
     for start in range(0, len(items), size):
         yield items[start : start + size]
+

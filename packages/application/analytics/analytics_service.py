@@ -25,6 +25,7 @@ class AnalyticsFilters:
     location_scope: UUID | None = None
     customer_lifecycle_stage_code: str | None = None
     customer_lifecycle_step_code: str | None = None
+    touchpoint_code: str | None = None
     service_request_step_code: str | None = None
     service_code: str | None = None
     issue_code: str | None = None

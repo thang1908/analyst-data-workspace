@@ -193,6 +193,7 @@ async def test_filter_options_get_canonical_dimensions_from_taxonomy_not_feedbac
     assert "FROM issue" in taxonomy_statement.text
     assert taxonomy_params == {
         "taxonomy_stage_code": "RES",
+        "taxonomy_step_code": None,
         "taxonomy_service_code": "SV-07",
     }
 

@@ -85,6 +85,7 @@ class AnalyticsFilterOptions(APIModel):
     locations: list[FilterOption]
     journey_stages: list[FilterOption]
     journey_steps: list[FilterOption]
+    touchpoints: list[FilterOption] = Field(default_factory=list)
     service_request_steps: list[FilterOption]
     services: list[FilterOption]
     issues: list[FilterOption]

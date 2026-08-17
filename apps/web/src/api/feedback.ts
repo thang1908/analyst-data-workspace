@@ -34,6 +34,14 @@ export interface FeedbackListFilters {
   intakeChannelCode?: string;
   affectedChannelCode?: string;
   locationId?: string;
+  serviceCode?: string;
+  issueCode?: string;
+  sentiment?: string;
+  operationalSeverity?: string;
+  customerLifecycleStageCode?: string;
+  customerLifecycleStepCode?: string;
+  touchpointCode?: string;
+  hotspotId?: string;
   query?: string;
   limit?: number;
   offset?: number;
@@ -73,7 +81,7 @@ interface ApiListResponse {
   meta: { total: number; limit: number; offset: number };
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 export const feedbackProjectId = import.meta.env.VITE_ANALYTICS_PROJECT_ID?.trim();
 
 const toItem = (item: ApiFeedbackItem): FeedbackWorkspaceItem => ({
@@ -100,8 +108,20 @@ const toItem = (item: ApiFeedbackItem): FeedbackWorkspaceItem => ({
 export const listFeedbackItems = async (filters: FeedbackListFilters): Promise<FeedbackListResult> => {
   const params = new URLSearchParams({ project_id: filters.projectId, limit: String(filters.limit ?? 100), offset: String(filters.offset ?? 0) });
   const fields: Record<Exclude<keyof FeedbackListFilters, 'projectId' | 'limit' | 'offset' | 'query'>, string> = {
-    dateFrom: 'date_from', dateTo: 'date_to', sourceSystem: 'source_system',
-    intakeChannelCode: 'intake_channel_code', affectedChannelCode: 'affected_channel_code', locationId: 'location_id',
+    dateFrom: 'date_from',
+    dateTo: 'date_to',
+    sourceSystem: 'source_system',
+    intakeChannelCode: 'intake_channel_code',
+    affectedChannelCode: 'affected_channel_code',
+    locationId: 'location_id',
+    serviceCode: 'service_code',
+    issueCode: 'issue_code',
+    sentiment: 'sentiment',
+    operationalSeverity: 'operational_severity',
+    customerLifecycleStageCode: 'customer_lifecycle_stage_code',
+    customerLifecycleStepCode: 'customer_lifecycle_step_code',
+    touchpointCode: 'touchpoint_code',
+    hotspotId: 'hotspot_id',
   };
   for (const [field, apiName] of Object.entries(fields)) {
     const value = filters[field as keyof typeof fields];

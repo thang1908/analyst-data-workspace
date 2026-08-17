@@ -35,6 +35,7 @@ _FILTER_COLUMNS: Final = {
     "location_id": "location_id",
     "customer_lifecycle_stage_code": "customer_lifecycle_stage_code",
     "customer_lifecycle_step_code": "customer_lifecycle_step_code",
+    "touchpoint_code": "touchpoint_code",
     "service_request_step_code": "service_request_step_code",
     "service_code": "service_code",
     "issue_code": "issue_code",
@@ -206,6 +207,7 @@ class AnalyticsRepository:
             "locations": [],
             "journey_stages": [],
             "journey_steps": [],
+            "touchpoints": [],
             "service_request_steps": [],
             "services": [],
             "issues": [],
@@ -224,6 +226,7 @@ class AnalyticsRepository:
             text(TAXONOMY_FILTER_OPTIONS_SQL),
             {
                 "taxonomy_stage_code": filters.customer_lifecycle_stage_code,
+                "taxonomy_step_code": filters.customer_lifecycle_step_code,
                 "taxonomy_service_code": filters.service_code,
             },
         )
@@ -232,6 +235,7 @@ class AnalyticsRepository:
             "affected_channel": "affected_channels",
             "journey_stage": "journey_stages",
             "journey_step": "journey_steps",
+            "touchpoint": "touchpoints",
             "service_request_step": "service_request_steps",
             "service": "services",
             "issue": "issues",

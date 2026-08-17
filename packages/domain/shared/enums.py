@@ -99,6 +99,18 @@ class HotspotStatus(StrEnum):
     REOPENED = "REOPENED"
 
 
+class ActionPriority(StrEnum):
+    IMMEDIATE = "IMMEDIATE"
+    URGENT = "URGENT"
+    PLANNED = "PLANNED"
+    MONITOR = "MONITOR"
+
+
+class MappingType(StrEnum):
+    PRIMARY = "PRIMARY"
+    SECONDARY = "SECONDARY"
+
+
 class ReviewAction(StrEnum):
     ACCEPT = "ACCEPT"
     CORRECT = "CORRECT"
@@ -107,3 +119,4 @@ class ReviewAction(StrEnum):
     MARK_NOT_APPLICABLE = "MARK_NOT_APPLICABLE"
     SPLIT_REQUIRED = "SPLIT_REQUIRED"
     SKIP = "SKIP"
+

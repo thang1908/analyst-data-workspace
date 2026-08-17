@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from packages.infrastructure.db.repositories.import_job import ImportJobRepository
 from packages.infrastructure.db.repositories.analytics import AnalyticsRepository
 from packages.infrastructure.db.repositories.feedback import FeedbackRepository
+from packages.infrastructure.db.repositories.hotspot import HotspotRepository
+from packages.infrastructure.db.repositories.taxonomy import TaxonomyRepository
 from packages.infrastructure.db.session import get_db_session
 from packages.infrastructure.queue.postgres_queue import AsyncJobQueue
 from packages.infrastructure.storage.s3 import S3StorageAdapter, StoragePort
@@ -41,3 +43,16 @@ async def get_feedback_repository(
     session: AsyncSession = Depends(get_db_session),
 ) -> AsyncGenerator[FeedbackRepository, None]:
     yield FeedbackRepository(session)
+
+
+async def get_taxonomy_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> AsyncGenerator[TaxonomyRepository, None]:
+    yield TaxonomyRepository(session)
+
+
+async def get_hotspot_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> AsyncGenerator[HotspotRepository, None]:
+    yield HotspotRepository(session)
+

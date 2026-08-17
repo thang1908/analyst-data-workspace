@@ -1,0 +1,70 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import TopBar from '../../components/layout/TopBar';
+import { HotspotActionQueue } from '../../components/hotspot/HotspotActionQueue';
+import { HotspotItemData, listHotspots } from '../../api/hotspots';
+import { useAnalyticsFilters } from '../../hooks/useAnalyticsFilters';
+import AnalyticsFilterBar from '../../components/analytics/AnalyticsFilterBar';
+import AnalyticsState from '../../components/analytics/AnalyticsState';
+
+export const HotspotPage: React.FC = () => {
+  const { filters, setFilter, resetFilters, activeFilterCount } = useAnalyticsFilters();
+  const [hotspots, setHotspots] = useState<HotspotItemData[]>([]);
+  const [loading, setLoading] = useState(Boolean(filters));
+  const [error, setError] = useState<string | null>(null);
+
+  const loadHotspots = useCallback(async () => {
+    if (!filters?.projectId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listHotspots({
+        projectId: filters.projectId,
+        serviceCode: filters.serviceCode,
+        issueCode: filters.issueCode,
+        locationId: filters.locationId,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+      });
+      setHotspots(res.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể tải danh sách điểm nóng.');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    void loadHotspots();
+  }, [loadHotspots]);
+
+  return (
+    <>
+      <TopBar
+        title="Quản lý Điểm nóng (Hotspot Operations)"
+        subtitle="Hàng đợi ưu tiên xử lý và chuyển trạng thái điểm nóng vận hành"
+      />
+      <div className="page-content">
+        <AnalyticsFilterBar
+          filters={filters}
+          activeFilterCount={activeFilterCount}
+          onChange={setFilter}
+          onReset={resetFilters}
+        />
+        {error ? (
+          <AnalyticsState title="Lỗi tải dữ liệu" message={error} onRetry={() => void loadHotspots()} />
+        ) : (
+          filters && (
+            <HotspotActionQueue
+              projectId={filters.projectId}
+              hotspots={hotspots}
+              loading={loading}
+              onRefresh={() => void loadHotspots()}
+            />
+          )
+        )}
+      </div>
+    </>
+  );
+};
+
+export default HotspotPage;

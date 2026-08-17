@@ -56,6 +56,9 @@ const FeedbackFilters: React.FC<FeedbackFiltersProps> = ({ filters, activeFilter
         <SelectFilter label="Vấn đề" value={filters.issueCode} options={options?.issues ?? []} onChange={(value) => onChange('issueCode', value)} />
       </div>
       {advanced && <div className="feedback-filter-grid feedback-filter-advanced">
+        <SelectFilter label="Hành trình" value={filters.customerLifecycleStageCode} options={options?.journeyStages ?? []} onChange={(value) => onChange('customerLifecycleStageCode', value)} />
+        <SelectFilter label="Bước hành trình" value={filters.customerLifecycleStepCode} options={options?.journeySteps ?? []} onChange={(value) => onChange('customerLifecycleStepCode', value)} />
+        <SelectFilter label="Điểm chạm" value={filters.touchpointCode} options={options?.touchpoints ?? []} onChange={(value) => onChange('touchpointCode', value)} />
         <SelectFilter label="Cảm xúc" value={filters.sentiment} options={options?.sentiments ?? []} onChange={(value) => onChange('sentiment', value)} />
         <SelectFilter label="Mức độ" value={filters.operationalSeverity} options={options?.severities ?? []} onChange={(value) => onChange('operationalSeverity', value)} />
         <SelectFilter label="Nguồn dữ liệu" value={filters.sourceSystem} options={options?.sourceSystems ?? []} onChange={(value) => onChange('sourceSystem', value)} />

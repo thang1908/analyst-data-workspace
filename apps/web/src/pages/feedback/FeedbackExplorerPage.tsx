@@ -34,27 +34,34 @@ const FeedbackExplorerPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      const hotspotId = searchParams.get('hotspot_id') ?? undefined;
       const result = await listFeedbackItems({
-        projectId: filters.projectId, dateFrom: filters.dateFrom, dateTo: filters.dateTo,
-        sourceSystem: filters.sourceSystem, intakeChannelCode: filters.intakeChannelCode,
-        affectedChannelCode: filters.affectedChannelCode, locationId: filters.locationId, query,
+        projectId: filters.projectId,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        sourceSystem: filters.sourceSystem,
+        intakeChannelCode: filters.intakeChannelCode,
+        affectedChannelCode: filters.affectedChannelCode,
+        locationId: filters.locationId,
+        serviceCode: filters.serviceCode,
+        issueCode: filters.issueCode,
+        sentiment: filters.sentiment,
+        operationalSeverity: filters.operationalSeverity,
+        customerLifecycleStageCode: filters.customerLifecycleStageCode,
+        customerLifecycleStepCode: filters.customerLifecycleStepCode,
+        touchpointCode: filters.touchpointCode,
+        hotspotId,
+        query,
       });
-      const clientFiltered = result.items.filter((item) => {
-        const current = item.currentClassification;
-        return (!filters.serviceCode || current.service?.code === filters.serviceCode)
-          && (!filters.issueCode || current.issue?.code === filters.issueCode)
-          && (!filters.sentiment || current.sentiment === filters.sentiment)
-          && (!filters.operationalSeverity || current.operationalSeverity === filters.operationalSeverity);
-      });
-      setItems(clientFiltered);
+      setItems(result.items);
       setTotal(result.total);
-      setSelectedId((current) => clientFiltered.some((item) => item.feedbackItemId === current) ? current : clientFiltered[0]?.feedbackItemId);
+      setSelectedId((current) => result.items.some((item) => item.feedbackItemId === current) ? current : result.items[0]?.feedbackItemId);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Không thể tải feedback.');
     } finally {
       setLoading(false);
     }
-  }, [filters, query]);
+  }, [filters, query, searchParams]);
 
   useEffect(() => { void loadItems(); }, [loadItems]);
 

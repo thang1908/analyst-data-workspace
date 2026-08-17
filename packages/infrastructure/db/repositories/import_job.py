@@ -5,7 +5,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping, TypeVar
 from uuid import UUID
 
 from sqlalchemy import text
@@ -499,6 +499,10 @@ def _mask_content(value: str) -> str:
     return re.sub(r"(?<!\d)(?:\+?84|0)\d{8,10}(?!\d)", "[PHONE]", value)
 
 
-def _batches[T](items: list[T], size: int) -> Iterable[list[T]]:
+T = TypeVar("T")
+
+
+def _batches(items: list[T], size: int) -> Iterable[list[T]]:
     for start in range(0, len(items), size):
         yield items[start : start + size]
+
