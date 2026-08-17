@@ -1,6 +1,7 @@
 import React from 'react';
 
 export interface PainPoint {
+  code: string;
   name: string;
   count: number;
   percentage: number;
@@ -18,7 +19,7 @@ const PainPointsList: React.FC<PainPointsListProps> = ({ data, onItemClick }) =>
     <div>
       {data.map((item, index) => (
         <div
-          key={item.name}
+          key={item.code}
           className="pain-point-item"
           onClick={() => onItemClick?.(item)}
         >

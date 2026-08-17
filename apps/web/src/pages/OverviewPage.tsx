@@ -39,8 +39,10 @@ const OverviewPage: React.FC = () => {
       setStages(mergeTaxonomyBreakdown(taxonomy.journeyStages, nextStages));
       setSteps(mergeTaxonomyBreakdown(taxonomy.journeySteps, nextSteps));
       setServices(mergeTaxonomyBreakdown(taxonomy.services, nextServices));
+      const issueNames = new Map(taxonomy.issues.map((issue) => [issue.code, issue.name]));
       setIssues(nextIssues.map((item) => ({
-        name: item.name,
+        code: item.code,
+        name: issueNames.get(item.code) ?? item.name,
         count: item.itemVolume,
         percentage: item.percentage,
         negativeRate: item.negativeRate,

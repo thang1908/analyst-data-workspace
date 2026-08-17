@@ -31,16 +31,23 @@ if os.getenv("RUN_ANALYTICS_INTEGRATION_TESTS") != "1":
 
 _REFERENCE_IDS_SQL = text("""
 SELECT
-    (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.0')
+    (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.1')
         AS taxonomy_release_id,
     (SELECT customer_lifecycle_stage_id FROM customer_lifecycle_stage
-     WHERE stage_code = 'RES') AS stage_id,
+     WHERE taxonomy_release_id = (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.1')
+       AND stage_code = 'RES') AS stage_id,
     (SELECT customer_lifecycle_step_id FROM customer_lifecycle_step
-     WHERE step_code = 'RES-03') AS lifecycle_step_id,
+     WHERE taxonomy_release_id = (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.1')
+       AND step_code = 'RES-03') AS lifecycle_step_id,
     (SELECT service_request_step_id FROM service_request_step
-     WHERE step_code = 'SRV-05') AS service_request_step_id,
-    (SELECT service_id FROM service WHERE service_code = 'SV-07') AS service_id,
-    (SELECT issue_id FROM issue WHERE issue_code = 'IS-07-01') AS issue_id,
+     WHERE taxonomy_release_id = (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.1')
+       AND step_code = 'SRV-05') AS service_request_step_id,
+    (SELECT service_id FROM service
+     WHERE taxonomy_release_id = (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.1')
+       AND service_code = 'SV-07') AS service_id,
+    (SELECT issue_id FROM issue
+     WHERE taxonomy_release_id = (SELECT taxonomy_release_id FROM taxonomy_release WHERE version = '3.0.1')
+       AND issue_code = 'IS-07-01') AS issue_id,
     (SELECT interaction_channel_id FROM interaction_channel
      WHERE channel_code = 'CH-APP') AS intake_channel_id,
     (SELECT interaction_channel_id FROM interaction_channel
@@ -124,7 +131,7 @@ async def _seed_eligible_items(
     project_id: UUID,
 ) -> UUID:
     reference_ids = (await session.execute(_REFERENCE_IDS_SQL)).mappings().one()
-    assert all(reference_ids.values()), "taxonomy 3.0.0 seed data is required"
+    assert all(reference_ids.values()), "published taxonomy 3.0.1 seed data is required"
 
     scope_location_id = uuid4()
     item_location_id = uuid4()
@@ -251,6 +258,9 @@ async def test_analytics_repository_queries_real_postgres_under_100ms() -> None:
             assert len(filter_options["journey_stages"]) == 6
             assert len(filter_options["journey_steps"]) == 36
             assert {option.code for option in filter_options["journey_stages"]} >= {"A", "RES", "OPS"}
+            assert next(option.name for option in filter_options["journey_steps"] if option.code == "RES-03") == "Ra vào & di chuyển"
+            assert next(option.name for option in filter_options["services"] if option.code == "SV-07") == "Kỹ thuật & tài sản chung"
+            assert next(option.name for option in filter_options["issues"] if option.code == "IS-07-01") == "Hệ thống suy giảm"
         finally:
             await session.close()
             await transaction.rollback()
