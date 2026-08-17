@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { AnalyticsBreakdownItem } from '../../api/analytics';
-import { ExternalLink, Layers, Flame, BarChart3, X, Sparkles } from 'lucide-react';
+import { ExternalLink, Layers, Flame, BarChart3, X, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Journey3DMatrixProps {
   stages: AnalyticsBreakdownItem[];
@@ -46,6 +46,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
 }) => {
   const [metricMode, setMetricMode] = useState<MetricMode>('volume');
   const [hoveredStep, setHoveredStep] = useState<AnalyticsBreakdownItem | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Calculate max values for proportional height calculation
   const maxVolume = useMemo(() => {
@@ -161,6 +162,16 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
     }
   };
 
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 300;
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <div className="card journey-3d-wrapper animate-in" style={{ padding: 20, marginBottom: 24, overflow: 'hidden' }}>
       {/* Top Header & Interactive Controls */}
@@ -172,16 +183,58 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
               Bản đồ Dòng chảy Hành trình Trực quan 3D (Customer Journey Flow)
             </span>
             <span className="badge-modern" style={{ background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
-              6 Giai đoạn • 36 Bước 3D
+              6 Giai đoạn liên tục • 36 Bước 3D
             </span>
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-            Mỗi ô đại diện cho một giai đoạn; chiều cao cột 3D thể hiện trực quan khối lượng phản ánh hoặc tỷ lệ tiêu cực. Nhấp vào cột để xem chi tiết.
+            Kéo trượt sang ngang để xem toàn bộ 6 giai đoạn hành trình. Chiều cao cột 3D phản ánh trực tiếp khối lượng phản ánh hoặc tỷ lệ tiêu cực.
           </p>
         </div>
 
-        {/* Action Controls */}
+        {/* Action Controls & Scroll Arrows */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Scroll Navigation Buttons */}
+          <div style={{ display: 'inline-flex', gap: 4, background: '#f8fafc', padding: 2, borderRadius: 8, border: '1px solid #e2e8f0' }}>
+            <button
+              onClick={() => handleScroll('left')}
+              title="Cuộn sang trái"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 28,
+                height: 28,
+                borderRadius: 6,
+                border: 'none',
+                background: '#ffffff',
+                color: '#475569',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={() => handleScroll('right')}
+              title="Cuộn sang phải"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 28,
+                height: 28,
+                borderRadius: 6,
+                border: 'none',
+                background: '#ffffff',
+                color: '#475569',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+
           {/* Metric Toggle */}
           <div style={{ display: 'inline-flex', background: '#f1f5f9', padding: 3, borderRadius: 8, border: '1px solid #e2e8f0' }}>
             <button
@@ -270,240 +323,275 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
             <span style={{ width: 10, height: 10, borderRadius: 2, background: '#3b82f6' }} /> &lt; 20% (Tốt)
           </span>
         </div>
-        <div style={{ color: '#64748b' }}>
-          Dòng thời gian: <strong style={{ color: '#0f172a' }}>Nhận thức ➔ Vận hành</strong>
+        <div style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span>Dòng thời gian:</span>
+          <strong style={{ color: '#0f172a' }}>1. Nhận thức ➔ 2. Xem xét ➔ 3. Giao dịch ➔ 4. Nhận nhà ➔ 5. Cư trú ➔ 6. Vận hành</strong>
         </div>
       </div>
 
-      {/* 6 Stage Flow Matrix (Responsive 6-column Grid) */}
-      <div className="journey-3d-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+      {/* 6 Stage Horizontal Flow Row (Single Line with Horizontal Scroll) */}
+      <div
+        ref={scrollContainerRef}
+        className="journey-3d-scroll-row"
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'stretch',
+          gap: 14,
+          overflowX: 'auto',
+          paddingBottom: 12,
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {stageGroups.map(({ config, stage, steps: stageSteps }, sIdx) => {
           const isStageSelected = selectedStageCode === config.code;
           const stageNegPercent = (stage.negativeRate * 100).toFixed(1);
 
           return (
-            <div
-              key={config.code}
-              style={{
-                background: isStageSelected ? '#fef2f2' : '#ffffff',
-                borderRadius: 10,
-                border: isStageSelected ? '2px solid #ef4444' : '1px solid #e2e8f0',
-                boxShadow: isStageSelected ? '0 4px 14px rgba(239,68,68,0.15)' : '0 2px 6px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-              }}
-            >
-              {/* Stage Header */}
-              <div
-                onClick={() => onSelectStage(isStageSelected ? undefined : config.code)}
-                style={{
-                  padding: '10px 12px',
-                  borderBottom: '1px solid #f1f5f9',
-                  cursor: 'pointer',
-                  background: isStageSelected ? 'rgba(239,68,68,0.05)' : '#fafafa',
-                  borderTopLeftRadius: 9,
-                  borderTopRightRadius: 9,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: config.themeColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {sIdx + 1}. {config.name} ({config.code})
-                  </span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: Number(stageNegPercent) >= 40 ? '#dc2626' : '#2563eb' }}>
-                    {stageNegPercent}%
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
-                  <span>{stage.itemVolume.toLocaleString()} feedback</span>
-                  <span>{stageSteps.length} bước</span>
-                </div>
-                {/* Micro Progress Bar */}
-                <div style={{ width: '100%', height: 3, background: '#e2e8f0', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      width: `${stage.negativeRate * 100}%`,
-                      height: '100%',
-                      background: Number(stageNegPercent) >= 40 ? '#ef4444' : config.themeColor,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* 3D Isometric Bar Matrix for this Stage */}
+            <React.Fragment key={config.code}>
               <div
                 style={{
-                  padding: '16px 8px 8px',
-                  minHeight: 160,
+                  flex: '0 0 250px',
+                  minWidth: 250,
+                  maxWidth: 270,
+                  background: isStageSelected ? '#fef2f2' : '#ffffff',
+                  borderRadius: 10,
+                  border: isStageSelected ? '2px solid #ef4444' : '1px solid #e2e8f0',
+                  boxShadow: isStageSelected ? '0 4px 14px rgba(239,68,68,0.15)' : '0 2px 6px rgba(0,0,0,0.03)',
                   display: 'flex',
-                  alignItems: 'flex-end',
-                  justifyContent: 'space-around',
+                  flexDirection: 'column',
+                  transition: 'all 0.2s ease',
                   position: 'relative',
-                  background: 'linear-gradient(180deg, rgba(248,250,252,0.6) 0%, rgba(241,245,249,0.9) 100%)',
-                  borderBottomLeftRadius: 9,
-                  borderBottomRightRadius: 9,
                 }}
               >
-                {/* 3D Ground Baseline */}
+                {/* Stage Header */}
+                <div
+                  onClick={() => onSelectStage(isStageSelected ? undefined : config.code)}
+                  style={{
+                    padding: '10px 12px',
+                    borderBottom: '1px solid #f1f5f9',
+                    cursor: 'pointer',
+                    background: isStageSelected ? 'rgba(239,68,68,0.05)' : '#fafafa',
+                    borderTopLeftRadius: 9,
+                    borderTopRightRadius: 9,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: config.themeColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {sIdx + 1}. {config.name} ({config.code})
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: Number(stageNegPercent) >= 40 ? '#dc2626' : '#2563eb' }}>
+                      {stageNegPercent}%
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
+                    <span>{stage.itemVolume.toLocaleString()} feedback</span>
+                    <span>{stageSteps.length} bước</span>
+                  </div>
+                  {/* Micro Progress Bar */}
+                  <div style={{ width: '100%', height: 3, background: '#e2e8f0', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        width: `${stage.negativeRate * 100}%`,
+                        height: '100%',
+                        background: Number(stageNegPercent) >= 40 ? '#ef4444' : config.themeColor,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* 3D Isometric Bar Matrix for this Stage */}
                 <div
                   style={{
-                    position: 'absolute',
-                    bottom: 24,
-                    left: 6,
-                    right: 6,
-                    height: 1,
-                    background: '#cbd5e1',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    padding: '16px 8px 8px',
+                    minHeight: 160,
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-around',
+                    position: 'relative',
+                    background: 'linear-gradient(180deg, rgba(248,250,252,0.6) 0%, rgba(241,245,249,0.9) 100%)',
+                    borderBottomLeftRadius: 9,
+                    borderBottomRightRadius: 9,
                   }}
-                />
+                >
+                  {/* 3D Ground Baseline */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 24,
+                      left: 6,
+                      right: 6,
+                      height: 1,
+                      background: '#cbd5e1',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    }}
+                  />
 
-                {stageSteps.map((step) => {
-                  const height = computeHeight(step);
-                  const colors = getColumnColors(step.negativeRate, step.itemVolume);
-                  const isStepSelected = selectedStepCode === step.code;
-                  const isHovered = hoveredStep?.code === step.code;
-                  const shortCode = step.code.replace(/^[A-Z]+-?/, '');
+                  {stageSteps.map((step) => {
+                    const height = computeHeight(step);
+                    const colors = getColumnColors(step.negativeRate, step.itemVolume);
+                    const isStepSelected = selectedStepCode === step.code;
+                    const isHovered = hoveredStep?.code === step.code;
+                    const shortCode = step.code.replace(/^[A-Z]+-?/, '');
 
-                  return (
-                    <div
-                      key={step.code}
-                      onMouseEnter={() => setHoveredStep(step)}
-                      onMouseLeave={() => setHoveredStep(null)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectStep(isStepSelected ? undefined : step.code);
-                        if (!isStepSelected) {
-                          onSelectStage(config.code);
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        zIndex: isStepSelected || isHovered ? 10 : 2,
-                        padding: '0 2px',
-                        transform: isHovered ? 'scale(1.08) translateY(-4px)' : 'none',
-                        transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                      }}
-                    >
-                      {/* Floating Tooltip when hovered */}
-                      {isHovered && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            bottom: height + 35,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            background: '#0f172a',
-                            color: '#ffffff',
-                            padding: '6px 10px',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            whiteSpace: 'nowrap',
-                            boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
-                            pointerEvents: 'none',
-                            zIndex: 30,
-                          }}
-                        >
-                          <div style={{ fontWeight: 700, color: '#f8fafc' }}>
-                            {step.code}: {step.name}
-                          </div>
-                          <div style={{ display: 'flex', gap: 8, marginTop: 2, color: '#94a3b8' }}>
-                            <span>Vol: <strong style={{ color: '#fff' }}>{step.itemVolume.toLocaleString()}</strong></span>
-                            <span>Tiêu cực: <strong style={{ color: '#f87171' }}>{(step.negativeRate * 100).toFixed(1)}%</strong></span>
-                          </div>
-                          {/* Triangle arrow */}
+                    return (
+                      <div
+                        key={step.code}
+                        onMouseEnter={() => setHoveredStep(step)}
+                        onMouseLeave={() => setHoveredStep(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectStep(isStepSelected ? undefined : step.code);
+                          if (!isStepSelected) {
+                            onSelectStage(config.code);
+                          }
+                        }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          cursor: 'pointer',
+                          position: 'relative',
+                          zIndex: isStepSelected || isHovered ? 10 : 2,
+                          padding: '0 2px',
+                          transform: isHovered ? 'scale(1.08) translateY(-4px)' : 'none',
+                          transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        }}
+                      >
+                        {/* Floating Tooltip when hovered */}
+                        {isHovered && (
                           <div
                             style={{
                               position: 'absolute',
-                              top: '100%',
+                              bottom: height + 35,
                               left: '50%',
-                              marginLeft: -4,
-                              borderWidth: 4,
-                              borderStyle: 'solid',
-                              borderColor: '#0f172a transparent transparent transparent',
+                              transform: 'translateX(-50%)',
+                              background: '#0f172a',
+                              color: '#ffffff',
+                              padding: '6px 10px',
+                              borderRadius: 6,
+                              fontSize: 11,
+                              whiteSpace: 'nowrap',
+                              boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+                              pointerEvents: 'none',
+                              zIndex: 30,
+                            }}
+                          >
+                            <div style={{ fontWeight: 700, color: '#f8fafc' }}>
+                              {step.code}: {step.name}
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, marginTop: 2, color: '#94a3b8' }}>
+                              <span>Vol: <strong style={{ color: '#fff' }}>{step.itemVolume.toLocaleString()}</strong></span>
+                              <span>Tiêu cực: <strong style={{ color: '#f87171' }}>{(step.negativeRate * 100).toFixed(1)}%</strong></span>
+                            </div>
+                            {/* Triangle arrow */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: '50%',
+                                marginLeft: -4,
+                                borderWidth: 4,
+                                borderStyle: 'solid',
+                                borderColor: '#0f172a transparent transparent transparent',
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        {/* 3D Column Bar */}
+                        <div
+                          style={{
+                            width: stageSteps.length > 6 ? 14 : 18,
+                            height: height,
+                            position: 'relative',
+                            marginBottom: 4,
+                            transition: 'height 0.4s ease',
+                          }}
+                        >
+                          {/* 3D Top Cap */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: -6,
+                              left: 0,
+                              width: '100%',
+                              height: 8,
+                              background: colors.top,
+                              borderRadius: '3px 3px 0 0',
+                              transform: 'skewX(-15deg)',
+                              boxShadow: isStepSelected ? `0 0 10px ${colors.top}` : 'none',
+                              border: isStepSelected ? '1px solid #ffffff' : 'none',
+                            }}
+                          />
+
+                          {/* 3D Front Face */}
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              background: colors.front,
+                              borderRadius: '0 0 2px 2px',
+                              boxShadow: isStepSelected
+                                ? `0 0 12px ${colors.glow}, inset 0 0 6px rgba(255,255,255,0.4)`
+                                : `0 3px 6px rgba(0,0,0,0.12)`,
+                              border: isStepSelected ? '1px solid #ffffff' : 'none',
+                            }}
+                          />
+
+                          {/* 3D Right Side Shadow Edge */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: -3,
+                              right: -4,
+                              width: 4,
+                              height: '100%',
+                              background: colors.side,
+                              borderRadius: '0 2px 2px 0',
+                              transform: 'skewY(-20deg)',
+                              opacity: 0.85,
                             }}
                           />
                         </div>
-                      )}
 
-                      {/* 3D Column Bar */}
-                      <div
-                        style={{
-                          width: stageSteps.length > 6 ? 14 : 18,
-                          height: height,
-                          position: 'relative',
-                          marginBottom: 4,
-                          transition: 'height 0.4s ease',
-                        }}
-                      >
-                        {/* 3D Top Cap */}
-                        <div
+                        {/* Step Code label at the bottom */}
+                        <span
                           style={{
-                            position: 'absolute',
-                            top: -6,
-                            left: 0,
-                            width: '100%',
-                            height: 8,
-                            background: colors.top,
-                            borderRadius: '3px 3px 0 0',
-                            transform: 'skewX(-15deg)',
-                            boxShadow: isStepSelected ? `0 0 10px ${colors.top}` : 'none',
-                            border: isStepSelected ? '1px solid #ffffff' : 'none',
+                            fontSize: 10,
+                            fontWeight: isStepSelected ? 800 : 600,
+                            color: isStepSelected ? '#dc2626' : '#64748b',
+                            marginTop: 4,
+                            textDecoration: isStepSelected ? 'underline' : 'none',
                           }}
-                        />
-
-                        {/* 3D Front Face */}
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            background: colors.front,
-                            borderRadius: '0 0 2px 2px',
-                            boxShadow: isStepSelected
-                              ? `0 0 12px ${colors.glow}, inset 0 0 6px rgba(255,255,255,0.4)`
-                              : `0 3px 6px rgba(0,0,0,0.12)`,
-                            border: isStepSelected ? '1px solid #ffffff' : 'none',
-                          }}
-                        />
-
-                        {/* 3D Right Side Shadow Edge */}
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: -3,
-                            right: -4,
-                            width: 4,
-                            height: '100%',
-                            background: colors.side,
-                            borderRadius: '0 2px 2px 0',
-                            transform: 'skewY(-20deg)',
-                            opacity: 0.85,
-                          }}
-                        />
+                        >
+                          {shortCode || step.code}
+                        </span>
                       </div>
-
-                      {/* Step Code label at the bottom */}
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: isStepSelected ? 800 : 600,
-                          color: isStepSelected ? '#dc2626' : '#64748b',
-                          marginTop: 4,
-                          textDecoration: isStepSelected ? 'underline' : 'none',
-                        }}
-                      >
-                        {shortCode || step.code}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+
+              {/* Flow Connector Arrow between stages */}
+              {sIdx < stageGroups.length - 1 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#94a3b8',
+                    flexShrink: 0,
+                    padding: '0 2px',
+                  }}
+                >
+                  <ChevronRight size={20} />
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>
