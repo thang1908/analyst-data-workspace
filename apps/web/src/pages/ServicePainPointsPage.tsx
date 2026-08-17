@@ -4,7 +4,8 @@ import TopBar from '../components/layout/TopBar';
 import PainPointsList, { PainPoint } from '../components/analytics/PainPointsList';
 import AnalyticsState from '../components/analytics/AnalyticsState';
 import AnalyticsFilterBar from '../components/analytics/AnalyticsFilterBar';
-import { AnalyticsBreakdownItem, getAnalyticsBreakdown } from '../api/analytics';
+import { mergeTaxonomyBreakdown } from '../components/analytics/journey';
+import { AnalyticsBreakdownItem, getAnalyticsBreakdown, getAnalyticsFilterOptions } from '../api/analytics';
 import { useAnalyticsFilters } from '../hooks/useAnalyticsFilters';
 
 const COLORS = ['#dc2626', '#ea580c', '#d97706', '#65a30d', '#16a34a', '#0891b2', '#2563eb', '#7c3aed'];
@@ -26,11 +27,12 @@ const ServicePainPointsPage: React.FC = () => {
     if (!filters) return;
     setLoading(true); setError(null);
     try {
-      const [nextServices, nextIssues] = await Promise.all([
+      const [nextServices, nextIssues, taxonomy] = await Promise.all([
         getAnalyticsBreakdown({ ...filters, serviceCode: undefined, issueCode: undefined }, 'service'),
         getAnalyticsBreakdown(filters, 'issue'),
+        getAnalyticsFilterOptions({ ...filters, serviceCode: undefined, issueCode: undefined }),
       ]);
-      setServices(nextServices);
+      setServices(mergeTaxonomyBreakdown(taxonomy.services, nextServices));
       setIssues(nextIssues.map((item) => ({ name: item.name, count: item.itemVolume, percentage: item.percentage, negativeRate: item.negativeRate, activeHotspots: item.activeHotspots })));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Không thể tải dữ liệu dịch vụ.');

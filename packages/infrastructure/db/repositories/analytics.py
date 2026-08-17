@@ -23,6 +23,7 @@ from packages.infrastructure.db.queries.analytics_queries import (
     BREAKDOWN_SQL,
     FILTER_OPTIONS_SQL,
     SUMMARY_SQL,
+    TAXONOMY_FILTER_OPTIONS_SQL,
     TREND_SQL,
 )
 
@@ -200,7 +201,14 @@ class AnalyticsRepository:
         )
         options: dict[str, list[FilterOptionDTO]] = {
             "source_systems": [],
+            "intake_channels": [],
+            "affected_channels": [],
             "locations": [],
+            "journey_stages": [],
+            "journey_steps": [],
+            "service_request_steps": [],
+            "services": [],
+            "issues": [],
         }
         for row in result.mappings().all():
             target = "source_systems" if row["option_type"] == "source_system" else "locations"
@@ -212,24 +220,30 @@ class AnalyticsRepository:
                 )
             )
 
-        dimension_options = {
-            "intake_channels": "intake_channel",
-            "affected_channels": "affected_channel",
-            "journey_stages": "journey_stage",
-            "journey_steps": "journey_step",
-            "service_request_steps": "service_request_step",
-            "services": "service",
-            "issues": "issue",
+        taxonomy_result = await self._session.execute(
+            text(TAXONOMY_FILTER_OPTIONS_SQL),
+            {
+                "taxonomy_stage_code": filters.customer_lifecycle_stage_code,
+                "taxonomy_service_code": filters.service_code,
+            },
+        )
+        taxonomy_option_targets = {
+            "intake_channel": "intake_channels",
+            "affected_channel": "affected_channels",
+            "journey_stage": "journey_stages",
+            "journey_step": "journey_steps",
+            "service_request_step": "service_request_steps",
+            "service": "services",
+            "issue": "issues",
         }
-        for target, dimension in dimension_options.items():
-            options[target] = [
+        for row in taxonomy_result.mappings().all():
+            options[taxonomy_option_targets[row["option_type"]]].append(
                 FilterOptionDTO(
-                    code=item.dimension_key,
-                    name=item.dimension_name or item.dimension_key,
+                    code=str(row["code"]),
+                    name=str(row["name"]),
+                    id=row.get("id"),
                 )
-                for item in await self.get_breakdown(filters, dimension)
-                if item.dimension_key != "UNKNOWN"
-            ]
+            )
         options["sentiments"] = [
             FilterOptionDTO("POSITIVE", "Tích cực"),
             FilterOptionDTO("NEUTRAL", "Trung tính"),

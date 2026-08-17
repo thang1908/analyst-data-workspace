@@ -6,7 +6,8 @@ import TrendChart from '../components/analytics/TrendChart';
 import PainPointsList, { PainPoint } from '../components/analytics/PainPointsList';
 import AnalyticsState from '../components/analytics/AnalyticsState';
 import AnalyticsFilterBar from '../components/analytics/AnalyticsFilterBar';
-import { AnalyticsBreakdownItem, AnalyticsSummary, AnalyticsTrendPoint, getAnalyticsBreakdown, getAnalyticsSummary, getAnalyticsTrend } from '../api/analytics';
+import { mergeTaxonomyBreakdown } from '../components/analytics/journey';
+import { AnalyticsBreakdownItem, AnalyticsSummary, AnalyticsTrendPoint, getAnalyticsBreakdown, getAnalyticsFilterOptions, getAnalyticsSummary, getAnalyticsTrend } from '../api/analytics';
 import { useAnalyticsFilters } from '../hooks/useAnalyticsFilters';
 
 const OverviewPage: React.FC = () => {
@@ -25,15 +26,16 @@ const OverviewPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const [nextSummary, nextTrend, nextStages, nextIssues] = await Promise.all([
+      const [nextSummary, nextTrend, nextStages, nextIssues, taxonomy] = await Promise.all([
         getAnalyticsSummary(filters),
         getAnalyticsTrend(filters),
         getAnalyticsBreakdown({ ...filters, customerLifecycleStageCode: undefined, customerLifecycleStepCode: undefined }, 'journey_stage'),
         getAnalyticsBreakdown(filters, 'issue', 6),
+        getAnalyticsFilterOptions({ ...filters, customerLifecycleStageCode: undefined, customerLifecycleStepCode: undefined }),
       ]);
       setSummary(nextSummary);
       setTrend(nextTrend);
-      setStages(nextStages);
+      setStages(mergeTaxonomyBreakdown(taxonomy.journeyStages, nextStages));
       setIssues(nextIssues.map((item) => ({
         name: item.name,
         count: item.itemVolume,
@@ -65,9 +67,9 @@ const OverviewPage: React.FC = () => {
         <AnalyticsFilterBar filters={filters} activeFilterCount={activeFilterCount} onChange={setFilter} onReset={resetFilters} />
         {loading && <AnalyticsState title="Đang tải dashboard" message="Đang truy vấn dữ liệu theo bộ lọc đã chọn…" />}
         {!loading && error && <AnalyticsState title="Chưa kết nối được Analytics API" message={error} onRetry={() => void loadDashboard()} />}
-        {!loading && !error && !hasData && <AnalyticsState title="Không có kết quả" message="Không có feedback đủ điều kiện khớp bộ lọc hiện tại." onRetry={resetFilters} />}
-        {!loading && !error && hasData && (
+        {!loading && !error && summary && (
           <>
+            {!hasData && <AnalyticsState title="Chưa có feedback khớp bộ lọc" message="Các chỉ số và hành trình vẫn được hiển thị với giá trị 0." onRetry={resetFilters} />}
             <div className="kpi-grid">{kpiCards.map((card) => <KPICard key={card.type} {...card} />)}</div>
             <div className="section-header"><span className="section-title">Hành trình khách hàng</span><button className="section-action" onClick={() => navigate(`/customer-journey${location.search}`)}>Xem chi tiết →</button></div>
             <div className="journey-stages animate-in">

@@ -242,6 +242,15 @@ async def test_analytics_repository_queries_real_postgres_under_100ms() -> None:
                     (expected_key, 4, 1.0)
                 ]
                 assert breakdown_duration < 0.1
+
+            filter_options = await repository.get_filter_options(
+                AnalyticsFilters(project_id=project_id)
+            )
+            # Only RES feedback was seeded, but the published taxonomy remains
+            # available to keep the UI structure stable at zero volume.
+            assert len(filter_options["journey_stages"]) == 6
+            assert len(filter_options["journey_steps"]) == 36
+            assert {option.code for option in filter_options["journey_stages"]} >= {"A", "RES", "OPS"}
         finally:
             await session.close()
             await transaction.rollback()
