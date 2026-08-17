@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import TopBar from '../components/layout/TopBar';
 import KPICard, { buildKPICards } from '../components/analytics/KPICard';
 import TrendChart from '../components/analytics/TrendChart';
@@ -10,6 +11,8 @@ import { AnalyticsBreakdownItem, AnalyticsSummary, AnalyticsTrendPoint, getAnaly
 import { useAnalyticsFilters } from '../hooks/useAnalyticsFilters';
 
 const OverviewPage: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { filters, setFilter, resetFilters, activeFilterCount } = useAnalyticsFilters();
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [trend, setTrend] = useState<AnalyticsTrendPoint[]>([]);
@@ -105,7 +108,7 @@ const OverviewPage: React.FC = () => {
             </div>
             <div className="two-col-grid">
               <div className="card animate-in"><div className="section-header"><span className="section-title">Xu hướng trải nghiệm</span></div>{trend.length ? <TrendChart data={trend} /> : <AnalyticsState message="Chưa có xu hướng trong bộ lọc này." />}</div>
-              <div className="card animate-in"><div className="section-header"><span className="section-title">Vấn đề nổi bật</span></div>{issues.length ? <PainPointsList data={issues} /> : <AnalyticsState message="Chưa có vấn đề trong bộ lọc này." />}</div>
+              <div className="card animate-in"><div className="section-header"><span className="section-title">Vấn đề nổi bật</span></div>{issues.length ? <PainPointsList data={issues} onItemClick={(item) => { const next = new URLSearchParams(location.search); next.set('issue_code', item.code); navigate(`/feedback?${next.toString()}`); }} /> : <AnalyticsState message="Chưa có vấn đề trong bộ lọc này." />}</div>
             </div>
           </>
         )}
