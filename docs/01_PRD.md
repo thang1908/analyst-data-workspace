@@ -2,6 +2,11 @@
 
 # CX Journey, Service & Root Cause Intelligence Platform
 
+> **Bổ sung vận hành (2026-08-17):** Đặc tả canonical cho touchpoint, action priority
+> của hotspot, data/AI quality và so sánh MoM/YoY nằm tại
+> [`08_Operating_Dashboard_Spec.md`](./08_Operating_Dashboard_Spec.md). Tài liệu này
+> làm rõ phạm vi P0/P1, không thay đổi các bất biến nghiệp vụ trong PRD.
+
 **Phiên bản:** 1.3
 **Trạng thái:** Pilot Build Baseline / Căn chỉnh theo Taxonomy 3.0.0 / Đang chờ Quyết định từ Stakeholder chỉ định
 **Lĩnh vực:** Bất động sản / Trải nghiệm khách hàng (CX) & Vận hành Nhà ở

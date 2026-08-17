@@ -2,6 +2,10 @@
 
 # Nền tảng Phân tích Trải nghiệm Khách hàng, Dịch vụ & Nguyên nhân Gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
+> **Bổ sung vận hành (2026-08-17):** Dashboard phải tuân theo cấu trúc stage → step
+> → touchpoint → service → issue, các empty state taxonomy và hotspot action priority
+> được định nghĩa tại [`08_Operating_Dashboard_Spec.md`](./08_Operating_Dashboard_Spec.md).
+
 **Version:** 2.1  
 **Status:** P0 CX-First UI/UX Baseline  
 **Scope:** Desktop-first CX Intelligence Platform  
