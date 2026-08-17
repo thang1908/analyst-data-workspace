@@ -7,6 +7,7 @@ import PainPointsList, { PainPoint } from '../components/analytics/PainPointsLis
 import AnalyticsState from '../components/analytics/AnalyticsState';
 import AnalyticsFilterBar from '../components/analytics/AnalyticsFilterBar';
 import { HotspotActionQueue } from '../components/hotspot/HotspotActionQueue';
+import { Journey3DMatrix } from '../components/analytics/Journey3DMatrix';
 import { mergeTaxonomyBreakdown } from '../components/analytics/journey';
 import {
   AnalyticsBreakdownItem,
@@ -177,185 +178,37 @@ const OverviewPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Customer Journey Stages */}
-            <div className="section-header">
-              <div>
-                <span className="section-title">Hành trình khách hàng (Customer Journey)</span>
-                <span className="dashboard-helper">
-                  6 giai đoạn chuẩn hóa — Nhấp chọn để xem các bước và điểm chạm chi tiết
-                </span>
-              </div>
-              <button
-                className="section-action"
-                onClick={() =>
-                  handleDrilldownToExplorer(
-                    filters?.customerLifecycleStageCode
-                      ? { customer_lifecycle_stage_code: filters.customerLifecycleStageCode }
-                      : {}
-                  )
-                }
-              >
-                <ExternalLink size={14} /> Xem feedback hành trình
-              </button>
-            </div>
+            {/* 3D Visual Journey Matrix Flow */}
+            <Journey3DMatrix
+              stages={stages}
+              steps={steps}
+              touchpoints={touchpoints}
+              services={services}
+              selectedStageCode={filters?.customerLifecycleStageCode}
+              selectedStepCode={filters?.customerLifecycleStepCode}
+              onSelectStage={(code) => setFilter('customerLifecycleStageCode', code)}
+              onSelectStep={(code) => setFilter('customerLifecycleStepCode', code)}
+              onDrilldown={(extraParams) => handleDrilldownToExplorer(extraParams)}
+            />
 
-            <div className="journey-stages animate-in">
-              {stages.map((stage) => (
-                <button
-                  key={stage.code}
-                  className={`journey-stage-item${
-                    filters?.customerLifecycleStageCode === stage.code ? ' active' : ''
-                  }`}
-                  onClick={() => {
-                    setFilter(
-                      'customerLifecycleStageCode',
-                      filters?.customerLifecycleStageCode === stage.code ? undefined : stage.code
-                    );
-                  }}
-                >
-                  <div className="journey-stage-name">{stage.name}</div>
-                  <div className="journey-stage-neg" style={{ color: 'var(--text-accent)' }}>
-                    {(stage.negativeRate * 100).toFixed(1)}%
-                  </div>
-                  <div className="journey-stage-vol">{stage.itemVolume.toLocaleString()} phản hồi</div>
-                  <div className="neg-bar-bg" style={{ marginTop: 8 }}>
-                    <div
-                      className="neg-bar-fill"
-                      style={{
-                        width: `${stage.negativeRate * 100}%`,
-                        background: 'var(--text-accent)',
-                        opacity: 0.7,
-                      }}
-                    />
-                  </div>
-                </button>
-              ))}
-            </div>
+            {/* Hotspot Action Priority Queue Section */}
+            {filters && (
+              <HotspotActionQueue
+                projectId={filters.projectId}
+                hotspots={hotspots}
+                loading={hotspotsLoading}
+                onRefresh={() => void loadHotspotsData()}
+              />
+            )}
 
-            {/* Journey Details: Steps & Touchpoints & Services (3-column breakdown) */}
-            <div className="dashboard-detail-grid-three">
-              {/* Steps */}
-              <section className="card dashboard-scroll-panel animate-in">
-                <div className="section-header">
-                  <div>
-                    <span className="section-title">Bước hành trình</span>
-                    <p>
-                      {filters?.customerLifecycleStageCode
-                        ? `Các bước của ${filters.customerLifecycleStageCode}`
-                        : 'Tất cả bước hành trình'}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className="panel-count">{steps.length} bước</span>
-                    {filters?.customerLifecycleStepCode && (
-                      <button
-                        className="section-action"
-                        style={{ padding: '2px 8px', fontSize: 12 }}
-                        onClick={() =>
-                          handleDrilldownToExplorer({
-                            customer_lifecycle_step_code: filters.customerLifecycleStepCode!,
-                          })
-                        }
-                        title="Xem phản hồi của bước này"
-                      >
-                        <ExternalLink size={12} /> Bằng chứng
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="dashboard-scroll-list" aria-label="Danh sách bước hành trình">
-                  {steps.map((step) => (
-                    <button
-                      key={step.code}
-                      className={`dashboard-metric-row${
-                        filters?.customerLifecycleStepCode === step.code ? ' selected' : ''
-                      }`}
-                      onClick={() =>
-                        setFilter(
-                          'customerLifecycleStepCode',
-                          filters?.customerLifecycleStepCode === step.code ? undefined : step.code
-                        )
-                      }
-                    >
-                      <span>
-                        <strong>{step.name}</strong>
-                        <small>{step.itemVolume.toLocaleString()} phản hồi</small>
-                      </span>
-                      <span className="dashboard-row-metric">
-                        <strong>{(step.negativeRate * 100).toFixed(1)}%</strong>
-                        <small>tiêu cực</small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              {/* Touchpoints */}
-              <section className="card dashboard-scroll-panel animate-in">
-                <div className="section-header">
-                  <div>
-                    <span className="section-title">Điểm chạm (Touchpoints)</span>
-                    <p>
-                      {filters?.customerLifecycleStepCode
-                        ? `Điểm chạm thuộc ${filters.customerLifecycleStepCode}`
-                        : 'Điểm chạm theo bộ lọc'}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className="panel-count">{touchpoints.length} điểm chạm</span>
-                    {filters?.touchpointCode && (
-                      <button
-                        className="section-action"
-                        style={{ padding: '2px 8px', fontSize: 12 }}
-                        onClick={() =>
-                          handleDrilldownToExplorer({
-                            touchpoint_code: filters.touchpointCode!,
-                          })
-                        }
-                        title="Xem phản hồi của điểm chạm này"
-                      >
-                        <ExternalLink size={12} /> Bằng chứng
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="dashboard-scroll-list" aria-label="Danh sách điểm chạm">
-                  {touchpoints.length === 0 ? (
-                    <div className="empty-panel-text">Không có điểm chạm tương ứng</div>
-                  ) : (
-                    touchpoints.map((tp) => (
-                      <button
-                        key={tp.code}
-                        className={`dashboard-metric-row${
-                          filters?.touchpointCode === tp.code ? ' selected' : ''
-                        }`}
-                        onClick={() =>
-                          setFilter(
-                            'touchpointCode',
-                            filters?.touchpointCode === tp.code ? undefined : tp.code
-                          )
-                        }
-                      >
-                        <span>
-                          <strong>{tp.name}</strong>
-                          <small>{tp.code} • {tp.itemVolume.toLocaleString()} phản hồi</small>
-                        </span>
-                        <span className="dashboard-row-metric">
-                          <strong>{(tp.negativeRate * 100).toFixed(1)}%</strong>
-                          <small>tiêu cực</small>
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </section>
-
-              {/* Services */}
-              <section className="card dashboard-scroll-panel animate-in">
+            {/* 2-Column Grid: 10 Services & Pain Points */}
+            <div className="two-col-grid">
+              {/* 10 Services List */}
+              <section className="card animate-in">
                 <div className="section-header">
                   <div>
                     <span className="section-title">10 Dịch vụ vận hành</span>
-                    <p>Lọc theo dịch vụ để xem cụ thể vấn đề</p>
+                    <p className="dashboard-helper">Nhấp vào dịch vụ để lọc vấn đề và bằng chứng liên quan</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className="panel-count">{services.length} dịch vụ</span>
@@ -375,7 +228,7 @@ const OverviewPage: React.FC = () => {
                     )}
                   </div>
                 </div>
-                <div className="dashboard-scroll-list" aria-label="Danh sách dịch vụ">
+                <div className="dashboard-scroll-list" style={{ maxHeight: 340 }} aria-label="Danh sách dịch vụ">
                   {services.map((service) => (
                     <button
                       key={service.code}
@@ -394,38 +247,17 @@ const OverviewPage: React.FC = () => {
                         <small>{service.itemVolume.toLocaleString()} phản hồi</small>
                       </span>
                       <span className="dashboard-row-metric">
-                        <strong>{(service.negativeRate * 100).toFixed(1)}%</strong>
+                        <strong style={{ color: service.negativeRate >= 0.4 ? '#dc2626' : '#2563eb' }}>
+                          {(service.negativeRate * 100).toFixed(1)}%
+                        </strong>
                         <small>tiêu cực</small>
                       </span>
                     </button>
                   ))}
                 </div>
               </section>
-            </div>
 
-            {/* Hotspot Action Priority Queue Section */}
-            {filters && (
-              <HotspotActionQueue
-                projectId={filters.projectId}
-                hotspots={hotspots}
-                loading={hotspotsLoading}
-                onRefresh={() => void loadHotspotsData()}
-              />
-            )}
-
-            {/* Trend Chart & Highlighted Issues */}
-            <div className="two-col-grid">
-              <div className="card animate-in">
-                <div className="section-header">
-                  <span className="section-title">Xu hướng trải nghiệm & tỷ lệ tiêu cực</span>
-                </div>
-                {trend.length ? (
-                  <TrendChart data={trend} />
-                ) : (
-                  <AnalyticsState message="Chưa có xu hướng trong bộ lọc này." />
-                )}
-              </div>
-
+              {/* Highlighted Issues / Pain Points */}
               <div className="card animate-in">
                 <div className="section-header">
                   <div>
@@ -444,6 +276,21 @@ const OverviewPage: React.FC = () => {
                   <AnalyticsState message="Chưa có vấn đề trong bộ lọc này." />
                 )}
               </div>
+            </div>
+
+            {/* Trend Chart */}
+            <div className="card animate-in" style={{ marginTop: 24 }}>
+              <div className="section-header">
+                <div>
+                  <span className="section-title">Xu hướng trải nghiệm & tỷ lệ tiêu cực</span>
+                  <p className="dashboard-helper">Biểu đồ khối lượng phản ánh và biến động tỷ lệ tiêu cực theo thời gian</p>
+                </div>
+              </div>
+              {trend.length ? (
+                <TrendChart data={trend} />
+              ) : (
+                <AnalyticsState message="Chưa có xu hướng trong bộ lọc này." />
+              )}
             </div>
           </>
         )}
