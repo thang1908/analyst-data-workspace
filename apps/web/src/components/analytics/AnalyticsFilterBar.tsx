@@ -21,13 +21,21 @@ const FilterSelect: React.FC<{
   label: string;
   value?: string;
   options: AnalyticsFilterOption[];
+  valueKey?: 'code' | 'id';
   onChange: (value: string | undefined) => void;
-}> = ({ label, value, options, onChange }) => (
+}> = ({ label, value, options, valueKey = 'code', onChange }) => (
   <label className="analytics-filter-control">
     <span>{label}</span>
     <select value={value ?? ''} onChange={(event) => onChange(event.target.value || undefined)}>
       <option value="">Tất cả</option>
-      {options.map((option) => <option key={`${option.id ?? option.code}`} value={option.id ?? option.code}>{option.name}</option>)}
+      {options.map((option) => {
+        const optionVal = valueKey === 'id' ? (option.id ?? option.code) : option.code;
+        return (
+          <option key={`${option.id ?? option.code}`} value={optionVal}>
+            {option.name}
+          </option>
+        );
+      })}
     </select>
   </label>
 );
@@ -67,14 +75,14 @@ const AnalyticsFilterBar: React.FC<AnalyticsFilterBarProps> = ({ filters, active
         <FilterSelect label="Hành trình" value={filters.customerLifecycleStageCode} options={options?.journeyStages ?? []} onChange={(value) => onChange('customerLifecycleStageCode', value)} />
         <FilterSelect label="Dịch vụ" value={filters.serviceCode} options={options?.services ?? []} onChange={(value) => onChange('serviceCode', value)} />
         <FilterSelect label="Vấn đề" value={filters.issueCode} options={options?.issues ?? []} onChange={(value) => onChange('issueCode', value)} />
-        <FilterSelect label="Vị trí" value={filters.locationId} options={options?.locations ?? []} onChange={(value) => onChange('locationId', value)} />
+        <FilterSelect label="Vị trí" value={filters.locationId} options={options?.locations ?? []} valueKey="id" onChange={(value) => onChange('locationId', value)} />
       </div>
       {advanced && (
         <div className="analytics-filter-grid analytics-filter-advanced">
           <FilterSelect label="Nguồn dữ liệu" value={filters.sourceSystem} options={options?.sourceSystems ?? []} onChange={(value) => onChange('sourceSystem', value)} />
           <FilterSelect label="Kênh tiếp nhận" value={filters.intakeChannelCode} options={options?.intakeChannels ?? []} onChange={(value) => onChange('intakeChannelCode', value)} />
           <FilterSelect label="Kênh bị ảnh hưởng" value={filters.affectedChannelCode} options={options?.affectedChannels ?? []} onChange={(value) => onChange('affectedChannelCode', value)} />
-          <FilterSelect label="Phạm vi vị trí" value={filters.locationScope} options={options?.locations ?? []} onChange={(value) => onChange('locationScope', value)} />
+          <FilterSelect label="Phạm vi vị trí" value={filters.locationScope} options={options?.locations ?? []} valueKey="id" onChange={(value) => onChange('locationScope', value)} />
           <FilterSelect label="Bước hành trình" value={filters.customerLifecycleStepCode} options={options?.journeySteps ?? []} onChange={(value) => onChange('customerLifecycleStepCode', value)} />
           <FilterSelect label="Điểm chạm (Touchpoint)" value={filters.touchpointCode} options={options?.touchpoints ?? []} onChange={(value) => onChange('touchpointCode', value)} />
           <FilterSelect label="Bước yêu cầu dịch vụ" value={filters.serviceRequestStepCode} options={options?.serviceRequestSteps ?? []} onChange={(value) => onChange('serviceRequestStepCode', value)} />

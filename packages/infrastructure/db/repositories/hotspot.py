@@ -36,8 +36,8 @@ class HotspotListFilters:
     issue_code: str | None = None
     location_id: UUID | None = None
     operational_severity: str | None = None
-    date_from: datetime | None = None
-    date_to: datetime | None = None
+    date_from: Any | None = None
+    date_to: Any | None = None
     limit: int = 50
     offset: int = 0
 
@@ -134,11 +134,11 @@ class HotspotRepository:
         if filters.operational_severity:
             clauses.append("h.operational_severity = :operational_severity")
             params["operational_severity"] = filters.operational_severity
-        if filters.date_from:
+        if filters.date_from is not None:
             clauses.append("h.last_seen_at >= :date_from")
             params["date_from"] = filters.date_from
-        if filters.date_to:
-            clauses.append("h.last_seen_at <= :date_to")
+        if filters.date_to is not None:
+            clauses.append("h.last_seen_at < (:date_to + INTERVAL '1 day')")
             params["date_to"] = filters.date_to
 
         where_clause = " AND ".join(clauses)
@@ -463,6 +463,8 @@ class HotspotRepository:
                 SELECT taxonomy_release_id
                 FROM taxonomy_release
                 WHERE status = 'PUBLISHED'
+                  AND (effective_from IS NULL OR effective_from <= NOW())
+                  AND (effective_to IS NULL OR effective_to > NOW())
                 ORDER BY effective_from DESC NULLS LAST, published_at DESC NULLS LAST, created_at DESC
                 LIMIT 1
             """)
@@ -506,7 +508,7 @@ class HotspotRepository:
                     ) VALUES (
                         :rule_id, :project_id, 'Standard Deterministic Clustering Rule', :rule_version,
                         :rel_id, 1440, :threshold_count, 'BUILDING',
-                        '{"dimensions": ["service", "issue", "location"]}', 'v1',
+                        CAST(:dimension_config_json AS jsonb), 'v1',
                         true, :created_by, NOW()
                     )
                 """),
@@ -516,6 +518,7 @@ class HotspotRepository:
                     "rule_version": rule_version,
                     "rel_id": rel_id,
                     "threshold_count": threshold_count,
+                    "dimension_config_json": json.dumps({"dimensions": ["service", "issue", "location"]}),
                     "created_by": system_actor,
                 },
             )
@@ -684,5 +687,67 @@ class HotspotRepository:
 
             synced_hotspot_ids.append(h_id)
 
-        items, _ = await self.list_hotspots(HotspotListFilters(project_id=project_id, limit=len(synced_hotspot_ids) or 50))
-        return items
+        if not synced_hotspot_ids:
+            return []
+
+        result = await self._session.execute(
+            text("""
+                SELECT h.hotspot_id, h.project_id, h.dimension_key,
+                       h.service_id, svc.service_code, svc.name_vi AS service_name_vi,
+                       h.issue_id, iss.issue_code, iss.name_vi AS issue_name_vi,
+                       h.location_id, loc.location_code, loc.name AS location_name,
+                       h.status, h.action_priority, h.operational_severity,
+                       h.evidence_count, h.assigned_user_id, h.assigned_team_key,
+                       h.first_seen_at, h.last_seen_at, h.resolved_at,
+                       h.resolution_summary, h.window_start, h.window_end,
+                       h.version, h.created_at, h.updated_at
+                FROM hotspot h
+                JOIN service svc ON svc.service_id = h.service_id
+                JOIN issue iss ON iss.issue_id = h.issue_id
+                LEFT JOIN location loc ON loc.location_id = h.location_id
+                WHERE h.hotspot_id = ANY(:synced_ids)
+                ORDER BY
+                    CASE h.action_priority
+                        WHEN 'IMMEDIATE' THEN 1
+                        WHEN 'URGENT' THEN 2
+                        WHEN 'PLANNED' THEN 3
+                        WHEN 'MONITOR' THEN 4
+                        ELSE 5
+                    END,
+                    h.evidence_count DESC,
+                    h.last_seen_at DESC
+            """),
+            {"synced_ids": synced_hotspot_ids},
+        )
+        return [
+            HotspotListItem(
+                hotspot_id=row["hotspot_id"],
+                project_id=row["project_id"],
+                dimension_key=row["dimension_key"],
+                service_id=row["service_id"],
+                service_code=row["service_code"],
+                service_name_vi=row["service_name_vi"],
+                issue_id=row["issue_id"],
+                issue_code=row["issue_code"],
+                issue_name_vi=row["issue_name_vi"],
+                location_id=row["location_id"],
+                location_code=row["location_code"],
+                location_name=row["location_name"],
+                status=row["status"],
+                action_priority=row["action_priority"],
+                operational_severity=row["operational_severity"],
+                evidence_count=row["evidence_count"],
+                assigned_user_id=row["assigned_user_id"],
+                assigned_team_key=row["assigned_team_key"],
+                first_seen_at=row["first_seen_at"],
+                last_seen_at=row["last_seen_at"],
+                resolved_at=row["resolved_at"],
+                resolution_summary=row["resolution_summary"],
+                window_start=row["window_start"],
+                window_end=row["window_end"],
+                version=row["version"],
+                created_at=row["created_at"],
+                updated_at=row["updated_at"],
+            )
+            for row in result.mappings().all()
+        ]

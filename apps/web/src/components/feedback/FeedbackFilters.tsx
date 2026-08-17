@@ -14,12 +14,25 @@ interface FeedbackFiltersProps {
   onReset: () => void;
 }
 
-const SelectFilter: React.FC<{ label: string; value?: string; options: AnalyticsFilterOption[]; onChange: (value: string | undefined) => void }> = ({ label, value, options, onChange }) => (
+const SelectFilter: React.FC<{
+  label: string;
+  value?: string;
+  options: AnalyticsFilterOption[];
+  valueKey?: 'code' | 'id';
+  onChange: (value: string | undefined) => void;
+}> = ({ label, value, options, valueKey = 'code', onChange }) => (
   <label className="analytics-filter-control">
     <span>{label}</span>
     <select value={value ?? ''} onChange={(event) => onChange(event.target.value || undefined)}>
       <option value="">Tất cả</option>
-      {options.map((option) => <option key={`${option.id ?? option.code}`} value={option.id ?? option.code}>{option.name}</option>)}
+      {options.map((option) => {
+        const optionVal = valueKey === 'id' ? (option.id ?? option.code) : option.code;
+        return (
+          <option key={`${option.id ?? option.code}`} value={optionVal}>
+            {option.name}
+          </option>
+        );
+      })}
     </select>
   </label>
 );
@@ -63,7 +76,7 @@ const FeedbackFilters: React.FC<FeedbackFiltersProps> = ({ filters, activeFilter
         <SelectFilter label="Mức độ" value={filters.operationalSeverity} options={options?.severities ?? []} onChange={(value) => onChange('operationalSeverity', value)} />
         <SelectFilter label="Nguồn dữ liệu" value={filters.sourceSystem} options={options?.sourceSystems ?? []} onChange={(value) => onChange('sourceSystem', value)} />
         <SelectFilter label="Kênh bị ảnh hưởng" value={filters.affectedChannelCode} options={options?.affectedChannels ?? []} onChange={(value) => onChange('affectedChannelCode', value)} />
-        <SelectFilter label="Vị trí" value={filters.locationId} options={options?.locations ?? []} onChange={(value) => onChange('locationId', value)} />
+        <SelectFilter label="Vị trí" value={filters.locationId} options={options?.locations ?? []} valueKey="id" onChange={(value) => onChange('locationId', value)} />
       </div>}
     </section>
   );

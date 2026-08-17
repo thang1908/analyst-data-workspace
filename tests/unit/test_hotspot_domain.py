@@ -185,3 +185,20 @@ def test_lifecycle_state_machine_invalid_transitions() -> None:
     # REOPENED requires a reason
     with pytest.raises(InvalidStateTransitionError):
         validate_hotspot_transition(HotspotStatus.RESOLVED, HotspotStatus.REOPENED, reason="")
+
+    # RESOLVED/DISMISSED -> INVESTIGATING requires a reason
+    with pytest.raises(InvalidStateTransitionError):
+        validate_hotspot_transition(HotspotStatus.RESOLVED, HotspotStatus.INVESTIGATING, reason="")
+
+    with pytest.raises(InvalidStateTransitionError):
+        validate_hotspot_transition(HotspotStatus.DISMISSED, HotspotStatus.INVESTIGATING, reason="")
+
+    # But with a reason it succeeds
+    validate_hotspot_transition(HotspotStatus.RESOLVED, HotspotStatus.INVESTIGATING, reason="New reports received")
+    validate_hotspot_transition(HotspotStatus.DISMISSED, HotspotStatus.INVESTIGATING, reason="Recurrence observed")
+
+    # Self-update of RESOLVED hotspot with resolution_summary works without reopen reason
+    validate_hotspot_transition(HotspotStatus.RESOLVED, HotspotStatus.RESOLVED, resolution_summary="Updated fix details")
+
+    # Self-update of DISMISSED hotspot with reason works
+    validate_hotspot_transition(HotspotStatus.DISMISSED, HotspotStatus.DISMISSED, reason="Updated dismissal rationale")

@@ -1,7 +1,7 @@
 """Hotspot and Action Priority Queue HTTP API endpoints."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Annotated
 from uuid import UUID, uuid4
 
@@ -119,11 +119,16 @@ async def list_hotspots(
     issue_code: str | None = None,
     location_id: UUID | None = None,
     severity: str | None = None,
-    date_from: datetime | None = None,
-    date_to: datetime | None = None,
+    date_from: date | datetime | None = None,
+    date_to: date | datetime | None = None,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ) -> HotspotListResponse:
+    if date_from is not None and date_to is not None and date_from > date_to:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="date_from must not be later than date_to",
+        )
     items, total = await repository.list_hotspots(
         HotspotListFilters(
             project_id=project_id,

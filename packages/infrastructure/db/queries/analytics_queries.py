@@ -249,7 +249,7 @@ WHERE step.active AND stage.active
   AND (CAST(:taxonomy_stage_code AS text) IS NULL OR stage.stage_code = CAST(:taxonomy_stage_code AS text))
 UNION ALL
 SELECT 'touchpoint' AS option_type, tp.touchpoint_code AS code,
-       tp.name_vi AS name, tp.touchpoint_id::text AS id,
+       tp.name_vi AS name, NULL::text AS id,
        stage.sort_order * 10000 + step.sort_order * 100 + tp.sort_order AS sort_order
 FROM touchpoint AS tp
 JOIN customer_lifecycle_step AS step

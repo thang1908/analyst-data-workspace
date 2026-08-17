@@ -108,3 +108,46 @@ async def test_mutate_hotspot_not_found() -> None:
             to_status="ACKNOWLEDGED",
             actor_user_id=uuid4(),
         )
+
+
+@pytest.mark.asyncio
+async def test_detect_and_sync_hotspots_returns_empty_when_no_published_release() -> None:
+    session = AsyncMock()
+    rel_res = MagicMock()
+    rel_res.scalar_one_or_none.return_value = None
+    session.execute = AsyncMock(return_value=rel_res)
+
+    repo = HotspotRepository(session)
+    items = await repo.detect_and_sync_hotspots(
+        project_id=uuid4(),
+        window_start=datetime.now(timezone.utc),
+        window_end=datetime.now(timezone.utc),
+    )
+    assert items == []
+
+
+@pytest.mark.asyncio
+async def test_detect_and_sync_hotspots_returns_empty_when_no_items_meet_threshold() -> None:
+    session = AsyncMock()
+    rel_res = MagicMock()
+    rel_res.scalar_one_or_none.return_value = uuid4()
+
+    safety_res = MagicMock()
+    safety_res.fetchall.return_value = []
+
+    rule_res = MagicMock()
+    rule_res.scalar_one_or_none.return_value = uuid4()
+
+    items_res = MagicMock()
+    items_res.mappings.return_value.all.return_value = []  # No feedback items
+
+    session.execute = AsyncMock(side_effect=[rel_res, safety_res, rule_res, items_res])
+
+    repo = HotspotRepository(session)
+    items = await repo.detect_and_sync_hotspots(
+        project_id=uuid4(),
+        window_start=datetime.now(timezone.utc),
+        window_end=datetime.now(timezone.utc),
+        threshold_count=3,
+    )
+    assert items == []

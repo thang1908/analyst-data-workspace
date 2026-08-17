@@ -194,6 +194,32 @@ def test_acknowledge_and_assign_and_resolve_mutations() -> None:
         )
         assert res_res.status_code == 200
         assert res_res.json()["data"]["hotspot"]["status"] == "RESOLVED"
+
+        # Reopen from resolved
+        res_reopen = client.post(
+            f"/api/v1/hotspots/{stub.hotspot_id}/reopen",
+            json={"expected_version": 4, "reason": "Issue resurfaced in tower B"},
+        )
+        assert res_reopen.status_code == 200
+        assert res_reopen.json()["data"]["hotspot"]["status"] == "INVESTIGATING"
+
+        # Dismiss
+        res_dismiss = client.post(
+            f"/api/v1/hotspots/{stub.hotspot_id}/dismiss",
+            json={"expected_version": 5, "reason": "External power outage false alarm"},
+        )
+        assert res_dismiss.status_code == 200
+        assert res_dismiss.json()["data"]["hotspot"]["status"] == "DISMISSED"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_hotspot_not_found_returns_404() -> None:
+    client, _ = _client()
+    non_existent = uuid4()
+    try:
+        res = client.get(f"/api/v1/hotspots/{non_existent}")
+        assert res.status_code == 404
     finally:
         app.dependency_overrides.clear()
 
@@ -210,3 +236,15 @@ def test_detect_hotspots_endpoint() -> None:
 
     assert res.status_code == 200
     assert len(res.json()["data"]) == 1
+
+
+def test_list_hotspots_invalid_date_range_returns_422() -> None:
+    client, stub = _client()
+    try:
+        res = client.get(
+            f"/api/v1/hotspots?project_id={stub.project_id}&date_from=2026-08-20&date_to=2026-08-10"
+        )
+        assert res.status_code == 422
+    finally:
+        app.dependency_overrides.clear()
+

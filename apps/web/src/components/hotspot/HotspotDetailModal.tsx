@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   CheckCircle,
@@ -32,6 +32,7 @@ export const HotspotDetailModal: React.FC<HotspotDetailModalProps> = ({
   onRefresh,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
   const [actionType, setActionType] = useState<string | null>(null);
   const [reason, setReason] = useState('');
@@ -91,7 +92,11 @@ export const HotspotDetailModal: React.FC<HotspotDetailModalProps> = ({
     }
   };
 
-  const drillDownUrl = `/feedback?service_code=${encodeURIComponent(hotspot.service.code ?? '')}&issue_code=${encodeURIComponent(hotspot.issue.code ?? '')}&hotspot_id=${encodeURIComponent(hotspot.hotspot_id)}`;
+  const nextParams = new URLSearchParams(location.search);
+  if (hotspot.service.code) nextParams.set('service_code', hotspot.service.code);
+  if (hotspot.issue.code) nextParams.set('issue_code', hotspot.issue.code);
+  nextParams.set('hotspot_id', hotspot.hotspot_id);
+  const drillDownUrl = `/feedback?${nextParams.toString()}`;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>

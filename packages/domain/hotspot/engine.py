@@ -145,7 +145,11 @@ def validate_hotspot_transition(
     ):
         raise InvalidStateTransitionError("A resolution summary or reason is required to resolve a hotspot.")
 
-    if dst == HotspotStatus.REOPENED and (not reason or not reason.strip()):
+    is_reopening = (dst == HotspotStatus.REOPENED) or (
+        src in (HotspotStatus.RESOLVED, HotspotStatus.DISMISSED)
+        and dst in (HotspotStatus.INVESTIGATING, HotspotStatus.REOPENED)
+    )
+    if is_reopening and (not reason or not reason.strip()):
         raise InvalidStateTransitionError("A reason is required to reopen a hotspot.")
 
 

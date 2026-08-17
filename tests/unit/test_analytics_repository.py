@@ -189,6 +189,7 @@ async def test_filter_options_get_canonical_dimensions_from_taxonomy_not_feedbac
     taxonomy_statement, taxonomy_params = session.execute.await_args_list[1].args
     assert "customer_lifecycle_stage" in taxonomy_statement.text
     assert "customer_lifecycle_step" in taxonomy_statement.text
+    assert "FROM touchpoint" in taxonomy_statement.text
     assert "FROM service" in taxonomy_statement.text
     assert "FROM issue" in taxonomy_statement.text
     assert taxonomy_params == {

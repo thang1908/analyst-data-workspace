@@ -82,7 +82,10 @@ const OverviewPage: React.FC = () => {
           { ...filters, customerLifecycleStepCode: undefined, touchpointCode: undefined },
           'journey_step'
         ),
-        getAnalyticsBreakdown(filters, 'touchpoint'),
+        getAnalyticsBreakdown(
+          { ...filters, touchpointCode: undefined },
+          'touchpoint'
+        ),
         getAnalyticsBreakdown({ ...filters, serviceCode: undefined, issueCode: undefined }, 'service'),
         getAnalyticsBreakdown(filters, 'issue', 8),
         getAnalyticsFilterOptions(filters),
@@ -242,7 +245,23 @@ const OverviewPage: React.FC = () => {
                         : 'Tất cả bước hành trình'}
                     </p>
                   </div>
-                  <span className="panel-count">{steps.length} bước</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="panel-count">{steps.length} bước</span>
+                    {filters?.customerLifecycleStepCode && (
+                      <button
+                        className="section-action"
+                        style={{ padding: '2px 8px', fontSize: 12 }}
+                        onClick={() =>
+                          handleDrilldownToExplorer({
+                            customer_lifecycle_step_code: filters.customerLifecycleStepCode!,
+                          })
+                        }
+                        title="Xem phản hồi của bước này"
+                      >
+                        <ExternalLink size={12} /> Bằng chứng
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="dashboard-scroll-list" aria-label="Danh sách bước hành trình">
                   {steps.map((step) => (
@@ -282,7 +301,23 @@ const OverviewPage: React.FC = () => {
                         : 'Điểm chạm theo bộ lọc'}
                     </p>
                   </div>
-                  <span className="panel-count">{touchpoints.length} điểm chạm</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="panel-count">{touchpoints.length} điểm chạm</span>
+                    {filters?.touchpointCode && (
+                      <button
+                        className="section-action"
+                        style={{ padding: '2px 8px', fontSize: 12 }}
+                        onClick={() =>
+                          handleDrilldownToExplorer({
+                            touchpoint_code: filters.touchpointCode!,
+                          })
+                        }
+                        title="Xem phản hồi của điểm chạm này"
+                      >
+                        <ExternalLink size={12} /> Bằng chứng
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="dashboard-scroll-list" aria-label="Danh sách điểm chạm">
                   {touchpoints.length === 0 ? (
@@ -322,7 +357,23 @@ const OverviewPage: React.FC = () => {
                     <span className="section-title">10 Dịch vụ vận hành</span>
                     <p>Lọc theo dịch vụ để xem cụ thể vấn đề</p>
                   </div>
-                  <span className="panel-count">{services.length} dịch vụ</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="panel-count">{services.length} dịch vụ</span>
+                    {filters?.serviceCode && (
+                      <button
+                        className="section-action"
+                        style={{ padding: '2px 8px', fontSize: 12 }}
+                        onClick={() =>
+                          handleDrilldownToExplorer({
+                            service_code: filters.serviceCode!,
+                          })
+                        }
+                        title="Xem phản hồi của dịch vụ này"
+                      >
+                        <ExternalLink size={12} /> Bằng chứng
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="dashboard-scroll-list" aria-label="Danh sách dịch vụ">
                   {services.map((service) => (

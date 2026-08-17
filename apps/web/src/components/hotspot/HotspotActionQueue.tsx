@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   AlertOctagon,
   AlertTriangle,
@@ -35,12 +35,21 @@ export const HotspotActionQueue: React.FC<HotspotActionQueueProps> = ({
   onRefresh,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [priorityFilter, setPriorityFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
   const [selectedHotspot, setSelectedHotspot] = useState<HotspotDetailData | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [detectMessage, setDetectMessage] = useState<string | null>(null);
+
+  const getDrillDownUrl = (h: HotspotItemData) => {
+    const next = new URLSearchParams(location.search);
+    if (h.service.code) next.set('service_code', h.service.code);
+    if (h.issue.code) next.set('issue_code', h.issue.code);
+    next.set('hotspot_id', h.hotspot_id);
+    return `/feedback?${next.toString()}`;
+  };
 
   const filteredHotspots = hotspots.filter((h) => {
     if (priorityFilter !== 'ALL' && h.action_priority !== priorityFilter) return false;
@@ -178,7 +187,7 @@ export const HotspotActionQueue: React.FC<HotspotActionQueueProps> = ({
       ) : (
         <div className="hotspot-cards-grid">
           {filteredHotspots.map((h) => {
-            const drillDownUrl = `/feedback?service_code=${encodeURIComponent(h.service.code ?? '')}&issue_code=${encodeURIComponent(h.issue.code ?? '')}&hotspot_id=${encodeURIComponent(h.hotspot_id)}`;
+            const drillDownUrl = getDrillDownUrl(h);
             return (
               <div key={h.hotspot_id} className={`hotspot-card priority-card-${h.action_priority.toLowerCase()}`}>
                 <div className="hotspot-card-header">
