@@ -76,15 +76,10 @@ const ImportWizardPage: React.FC = () => {
         {/* Main Card */}
         <div className="card" style={{ padding: '32px 36px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: 20 }}>
-            <div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
-                Tải lên tệp phản ánh (.CSV)
-              </h2>
-              <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
-                Chọn tệp CSV để nạp dữ liệu vào hệ thống phân tích. Dữ liệu sẽ tự động được làm sạch và hiển thị trên bảng điều khiển.
-              </p>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: 16 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+              Tải lên tệp phản ánh (.CSV)
+            </h2>
 
             <button
               onClick={handleDownloadTemplate}
