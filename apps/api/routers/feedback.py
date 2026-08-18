@@ -122,6 +122,8 @@ async def direct_import_csv(
         if not taxonomy_release_id:
             taxonomy_release_id = UUID("00000000-0000-0000-0000-000000000010")
 
+    default_proj_id = project_id or UUID("00000000-0000-0000-0000-000000000001")
+
     # Fetch services
     services_res = await session.execute(text("SELECT service_id, service_code, name_vi FROM service"))
     services = services_res.mappings().all()
@@ -161,11 +163,17 @@ async def direct_import_csv(
             row.get("building") or row.get("location_code") or ""
         ).strip().lower()
         matched_loc_id = None
+        matched_proj_id = default_proj_id
+
         if loc_name:
             for l in locations:
                 if l["name"] and (loc_name in l["name"].lower() or l["name"].lower() in loc_name):
                     matched_loc_id = l["location_id"]
                     break
+                if l["location_code"] and loc_name == l["location_code"].lower():
+                    matched_loc_id = l["location_id"]
+                    break
+
         if not matched_loc_id and locations:
             matched_loc_id = locations[0]["location_id"]
 
@@ -177,7 +185,12 @@ async def direct_import_csv(
         reported_at = now
         if date_str:
             try:
-                reported_at = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                clean_date = date_str.replace("Z", "").strip()
+                dt = datetime.fromisoformat(clean_date)
+                if dt.tzinfo is None:
+                    reported_at = dt.replace(tzinfo=timezone.utc)
+                else:
+                    reported_at = dt
             except Exception:
                 reported_at = now
 
@@ -256,7 +269,7 @@ async def direct_import_csv(
             """),
             {
                 "feedback_id": feedback_id,
-                "project_id": project_id,
+                "project_id": matched_proj_id,
                 "source_record_key": rec_key,
                 "reported_at": reported_at,
                 "now": now,
@@ -288,6 +301,7 @@ async def direct_import_csv(
 
         # 3. Insert classification_decision
         if taxonomy_release_id and matched_service_id and default_step_id:
+            issue_status = "KNOWN" if matched_issue_id else "NOT_APPLICABLE"
             await session.execute(
                 text("""
                     INSERT INTO classification_decision (
@@ -299,8 +313,8 @@ async def direct_import_csv(
                         decision_source, decision_reason, decided_by, decided_at
                     ) VALUES (
                         :decision_id, :feedback_item_id, 1, :taxonomy_release_id,
-                        'KNOWN', :step_id, 'KNOWN',
-                        'KNOWN', :service_id, 'KNOWN', :issue_id,
+                        'KNOWN', :step_id, 'NOT_APPLICABLE',
+                        'KNOWN', :service_id, :issue_status, :issue_id,
                         :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
                         'SOURCE_TRUSTED', 'Direct CSV Import', UUID('00000000-0000-0000-0000-000000000002'), :reported_at
                     )
@@ -312,6 +326,7 @@ async def direct_import_csv(
                     "taxonomy_release_id": taxonomy_release_id,
                     "step_id": default_step_id,
                     "service_id": matched_service_id,
+                    "issue_status": issue_status,
                     "issue_id": matched_issue_id,
                     "sentiment": sentiment,
                     "severity": severity,
@@ -331,8 +346,8 @@ async def direct_import_csv(
                         last_decision_at, projection_version
                     ) VALUES (
                         :feedback_item_id, :decision_id, 1, :taxonomy_release_id,
-                        'KNOWN', :stage_id, :step_id, 'KNOWN',
-                        'KNOWN', :service_id, 'KNOWN', :issue_id,
+                        'KNOWN', :stage_id, :step_id, 'NOT_APPLICABLE',
+                        'KNOWN', :service_id, :issue_status, :issue_id,
                         :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
                         :reported_at, 1
                     )
@@ -345,6 +360,7 @@ async def direct_import_csv(
                     "stage_id": default_stage_id,
                     "step_id": default_step_id,
                     "service_id": matched_service_id,
+                    "issue_status": issue_status,
                     "issue_id": matched_issue_id,
                     "sentiment": sentiment,
                     "severity": severity,
