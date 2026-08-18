@@ -325,7 +325,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
         </div>
         <div style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span>Dòng thời gian:</span>
-          <strong style={{ color: '#0f172a' }}>1. Nhận thức ➔ 2. Xem xét ➔ 3. Giao dịch ➔ 4. Nhận nhà ➔ 5. Cư trú ➔ 6. Vận hành</strong>
+          <strong style={{ color: '#0f172a' }}>Nhận thức ➔ Xem xét ➔ Giao dịch ➔ Nhận nhà ➔ Cư trú ➔ Vận hành</strong>
         </div>
       </div>
 
@@ -379,7 +379,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: config.themeColor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {sIdx + 1}. {config.name} ({config.code})
+                      {config.name} ({config.code})
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: Number(stageNegPercent) >= 40 ? '#dc2626' : '#2563eb' }}>
                       {stageNegPercent}%
@@ -611,32 +611,19 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                           />
                         </div>
 
-                        {/* Step Code label at the bottom */}
+                        {/* Total Volume Number under 3D Column */}
                         <span
                           style={{
                             fontSize: 10,
-                            fontWeight: isStepSelected ? 800 : 600,
-                            color: isStepSelected ? '#dc2626' : '#64748b',
-                            marginTop: 3,
-                            textDecoration: isStepSelected ? 'underline' : 'none',
-                            lineHeight: 1.1,
-                          }}
-                        >
-                          {shortCode || step.code}
-                        </span>
-
-                        {/* Total Volume Badge under step code */}
-                        <span
-                          style={{
-                            fontSize: 9,
                             fontWeight: 700,
                             color: totalVol > 0 ? (isStepSelected ? '#b91c1c' : '#334155') : '#94a3b8',
-                            marginTop: 2,
+                            marginTop: 4,
                             lineHeight: 1,
                             background: isStepSelected ? '#fecaca' : '#f1f5f9',
-                            padding: '1px 3px',
-                            borderRadius: 3,
+                            padding: '2px 4px',
+                            borderRadius: 4,
                             border: isStepSelected ? '1px solid #f87171' : '1px solid #e2e8f0',
+                            letterSpacing: '-0.2px',
                           }}
                         >
                           {formattedVol}
