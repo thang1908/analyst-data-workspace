@@ -69,16 +69,16 @@ export interface IssueItem {
   sort_order: number;
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+import { getApiBaseUrl } from './config';
 
 export const listCustomerLifecycleStages = async (): Promise<LifecycleStage[]> => {
-  const res = await fetch(`${baseUrl}/api/v1/customer-lifecycle/stages`);
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/customer-lifecycle/stages`);
   if (!res.ok) throw new Error(`Taxonomy API error: ${res.status}`);
   return res.json() as Promise<LifecycleStage[]>;
 };
 
 export const listCustomerLifecycleSteps = async (stageCode?: string): Promise<LifecycleStep[]> => {
-  const url = new URL(`${baseUrl}/api/v1/customer-lifecycle/steps`);
+  const url = new URL(`${getApiBaseUrl()}/api/v1/customer-lifecycle/steps`);
   if (stageCode) url.searchParams.set('stage_code', stageCode);
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Taxonomy API error: ${res.status}`);
@@ -89,7 +89,7 @@ export const listCustomerLifecycleTouchpoints = async (
   stepCode?: string,
   serviceCode?: string
 ): Promise<Touchpoint[]> => {
-  const url = new URL(`${baseUrl}/api/v1/customer-lifecycle/touchpoints`);
+  const url = new URL(`${getApiBaseUrl()}/api/v1/customer-lifecycle/touchpoints`);
   if (stepCode) url.searchParams.set('step_code', stepCode);
   if (serviceCode) url.searchParams.set('service_code', serviceCode);
   const res = await fetch(url.toString());
@@ -98,13 +98,13 @@ export const listCustomerLifecycleTouchpoints = async (
 };
 
 export const listServices = async (): Promise<ServiceItem[]> => {
-  const res = await fetch(`${baseUrl}/api/v1/services`);
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/services`);
   if (!res.ok) throw new Error(`Taxonomy API error: ${res.status}`);
   return res.json() as Promise<ServiceItem[]>;
 };
 
 export const listIssues = async (serviceCode?: string): Promise<IssueItem[]> => {
-  const url = new URL(`${baseUrl}/api/v1/issues`);
+  const url = new URL(`${getApiBaseUrl()}/api/v1/issues`);
   if (serviceCode) url.searchParams.set('service_code', serviceCode);
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Taxonomy API error: ${res.status}`);

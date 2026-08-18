@@ -81,7 +81,8 @@ interface ApiListResponse {
   meta: { total: number; limit: number; offset: number };
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+import { getApiBaseUrl } from './config';
+
 export const feedbackProjectId = import.meta.env.VITE_ANALYTICS_PROJECT_ID?.trim();
 
 const toItem = (item: ApiFeedbackItem): FeedbackWorkspaceItem => ({
@@ -129,7 +130,7 @@ export const listFeedbackItems = async (filters: FeedbackListFilters): Promise<F
   }
   if (filters.query?.trim()) params.set('q', filters.query.trim());
 
-  const response = await fetch(`${baseUrl}/api/v1/feedback-items?${params.toString()}`);
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/feedback-items?${params.toString()}`);
   if (!response.ok) {
     let message = `Feedback API trả về lỗi ${response.status}.`;
     try {
@@ -144,7 +145,7 @@ export const listFeedbackItems = async (filters: FeedbackListFilters): Promise<F
 };
 
 export const getFeedbackItem = async (feedbackItemId: string): Promise<FeedbackWorkspaceItem> => {
-  const response = await fetch(`${baseUrl}/api/v1/feedback-items/${feedbackItemId}`);
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/feedback-items/${feedbackItemId}`);
   if (!response.ok) throw new AnalyticsApiError(`Không tải được feedback item (${response.status}).`, response.status);
   return toItem((await response.json() as { data: ApiFeedbackItem }).data);
 };

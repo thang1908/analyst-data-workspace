@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from './config';
+
 export interface HotspotRef {
   id?: string;
   code?: string;
@@ -83,10 +85,8 @@ export interface HotspotDetailResponse {
   data: HotspotDetailData;
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
-
 export const listHotspots = async (filters: HotspotListFilters): Promise<HotspotListResponse> => {
-  const url = new URL(`${baseUrl}/api/v1/hotspots`);
+  const url = new URL(`${getApiBaseUrl()}/api/v1/hotspots`);
   url.searchParams.set('project_id', filters.projectId);
   if (filters.status) url.searchParams.set('status', filters.status);
   if (filters.actionPriority) url.searchParams.set('action_priority', filters.actionPriority);
@@ -105,7 +105,7 @@ export const listHotspots = async (filters: HotspotListFilters): Promise<Hotspot
 };
 
 export const getHotspot = async (hotspotId: string): Promise<HotspotDetailData> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/${hotspotId}`);
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/${hotspotId}`);
   if (!res.ok) throw new Error(`Hotspot API error: ${res.status}`);
   const json = await res.json() as HotspotDetailResponse;
   return json.data;
@@ -115,7 +115,7 @@ export const acknowledgeHotspot = async (
   hotspotId: string,
   data: { expected_version?: number; reason?: string }
 ): Promise<HotspotDetailData> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/${hotspotId}/acknowledge`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/${hotspotId}/acknowledge`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -129,7 +129,7 @@ export const assignHotspot = async (
   hotspotId: string,
   data: { expected_version?: number; owner_user_id?: string; owner_team_key?: string; reason?: string }
 ): Promise<HotspotDetailData> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/${hotspotId}/assign`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/${hotspotId}/assign`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -143,7 +143,7 @@ export const dismissHotspot = async (
   hotspotId: string,
   data: { expected_version?: number; reason: string }
 ): Promise<HotspotDetailData> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/${hotspotId}/dismiss`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/${hotspotId}/dismiss`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -157,7 +157,7 @@ export const resolveHotspot = async (
   hotspotId: string,
   data: { expected_version?: number; resolution_summary: string; reason?: string }
 ): Promise<HotspotDetailData> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/${hotspotId}/resolve`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/${hotspotId}/resolve`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -171,7 +171,7 @@ export const reopenHotspot = async (
   hotspotId: string,
   data: { expected_version?: number; reason: string }
 ): Promise<HotspotDetailData> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/${hotspotId}/reopen`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/${hotspotId}/reopen`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -186,7 +186,7 @@ export const detectHotspots = async (data: {
   window_days?: number;
   threshold_count?: number;
 }): Promise<HotspotItemData[]> => {
-  const res = await fetch(`${baseUrl}/api/v1/hotspots/detect`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/v1/hotspots/detect`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

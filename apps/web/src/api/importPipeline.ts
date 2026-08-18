@@ -1,4 +1,4 @@
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+import { getApiBaseUrl } from './config';
 
 export const importProjectId =
   import.meta.env.VITE_IMPORT_PROJECT_ID?.trim() ||
@@ -15,7 +15,7 @@ export interface DirectImportResponse {
 export const directImportCsv = async (file: File): Promise<DirectImportResponse> => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await fetch(`${baseUrl}/api/v1/feedback-items/direct-import-csv?project_id=${importProjectId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/feedback-items/direct-import-csv?project_id=${importProjectId}`, {
     method: 'POST',
     body: formData,
   });
