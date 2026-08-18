@@ -177,7 +177,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
       {/* Top Header & Interactive Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <div>
-          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+          <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
             Hành trình khách hàng
           </span>
         </div>

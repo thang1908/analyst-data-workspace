@@ -105,7 +105,7 @@ export const HotspotActionQueue: React.FC<HotspotActionQueueProps> = ({
             <Flame className="flame-icon" size={20} />
           </div>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Hàng đợi điểm nóng</h3>
+            <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, letterSpacing: '-0.2px' }}>Hàng đợi điểm nóng</h3>
           </div>
         </div>
 
