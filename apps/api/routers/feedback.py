@@ -1,11 +1,16 @@
 """Masked Feedback Workspace endpoints."""
 from __future__ import annotations
 
-from datetime import date
-from typing import Annotated
+import csv
+import hashlib
+import io
+import re
+from datetime import date, datetime, timezone
+from typing import Annotated, Any
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile, status
+from sqlalchemy import text
 
 from apps.api.deps import get_feedback_repository
 from apps.api.schemas.feedback import (
@@ -85,6 +90,239 @@ async def get_feedback_item(feedback_item_id: UUID, repository: FeedbackReposito
     if row is None:
         raise HTTPException(status_code=404, detail="Feedback item was not found.")
     return FeedbackItemDetailResponse(data=_item_data(row))
+
+
+@router.post("/direct-import-csv")
+async def direct_import_csv(
+    repository: FeedbackRepositoryDep,
+    file: UploadFile = File(...),
+    project_id: UUID = UUID("00000000-0000-0000-0000-000000000001"),
+) -> dict[str, Any]:
+    """Directly and synchronously import a CSV file into Postgres without S3 or async worker."""
+    raw_bytes = await file.read()
+    if not raw_bytes:
+        raise HTTPException(status_code=422, detail="Tệp CSV rỗng, vui lòng kiểm tra lại.")
+
+    text_content = raw_bytes.decode("utf-8-sig", errors="ignore")
+    reader = csv.DictReader(io.StringIO(text_content))
+    rows = list(reader)
+    if not rows:
+        raise HTTPException(status_code=422, detail="Tệp CSV không có dòng dữ liệu nào.")
+
+    session = repository._session
+
+    # Fetch taxonomy release
+    tax_result = await session.execute(text("SELECT taxonomy_release_id FROM taxonomy_release WHERE status = 'PUBLISHED' LIMIT 1"))
+    taxonomy_release_id = tax_result.scalar_one_or_none()
+    if not taxonomy_release_id:
+        tax_result = await session.execute(text("SELECT taxonomy_release_id FROM taxonomy_release LIMIT 1"))
+        taxonomy_release_id = tax_result.scalar_one_or_none()
+        if not taxonomy_release_id:
+            taxonomy_release_id = UUID("00000000-0000-0000-0000-000000000010")
+
+    # Fetch services
+    services_res = await session.execute(text("SELECT service_id, service_code, name_vi FROM service"))
+    services = services_res.mappings().all()
+    default_service_id = services[0]["service_id"] if services else None
+
+    # Fetch issues
+    issues_res = await session.execute(text("SELECT issue_id, issue_code, name_vi FROM issue"))
+    issues = issues_res.mappings().all()
+    default_issue_id = issues[0]["issue_id"] if issues else None
+
+    # Fetch lifecycle step & stage
+    steps_res = await session.execute(text("SELECT customer_lifecycle_step_id, customer_lifecycle_stage_id FROM customer_lifecycle_step LIMIT 1"))
+    step_row = steps_res.mappings().one_or_none()
+    default_step_id = step_row["customer_lifecycle_step_id"] if step_row else None
+    default_stage_id = step_row["customer_lifecycle_stage_id"] if step_row else None
+
+    # Fetch locations
+    locs_res = await session.execute(text("SELECT location_id, name, location_code FROM location"))
+    locations = locs_res.mappings().all()
+
+    imported_count = 0
+    now = datetime.now(timezone.utc)
+
+    for idx, row in enumerate(rows, start=1):
+        content = (
+            row.get("noi_dung") or row.get("content") or row.get("message") or
+            row.get("feedback") or row.get("noidung") or row.get("review") or ""
+        ).strip()
+        if not content:
+            continue
+
+        # Location matching
+        loc_name = (row.get("khu_do_thi") or row.get("location") or row.get("khudothi") or "").strip().lower()
+        matched_loc_id = None
+        if loc_name:
+            for l in locations:
+                if l["name"] and loc_name in l["name"].lower():
+                    matched_loc_id = l["location_id"]
+                    break
+        if not matched_loc_id and locations:
+            matched_loc_id = locations[0]["location_id"]
+
+        # Date parsing
+        date_str = (row.get("thoi_gian") or row.get("reported_at") or row.get("thoigian") or "").strip()
+        reported_at = now
+        if date_str:
+            try:
+                reported_at = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+            except Exception:
+                reported_at = now
+
+        # Source record key
+        rec_key = (row.get("ma_phan_anh") or row.get("ticket_id") or row.get("id") or f"direct-csv-{uuid4().hex[:12]}").strip()
+
+        # Sentiment heuristics
+        low_content = content.lower()
+        sentiment = "NEUTRAL"
+        severity = "SEV-4"
+        if any(w in low_content for w in ["hỏng", "kẹt", "mùi", "bẩn", "lỗi", "chậm", "kém", "bực", "tắc", "chờ", "ồn", "thất vọng", "không nhận", "rơi", "hôi", "tệ"]):
+            sentiment = "NEGATIVE"
+            severity = "SEV-2"
+        elif any(w in low_content for w in ["tốt", "khen", "nhiệt tình", "nhanh", "hài lòng", "tuyệt vời", "chu đáo", "cảm ơn", "sạch sẽ", "đẹp"]):
+            sentiment = "POSITIVE"
+            severity = "SEV-4"
+
+        # Service heuristics
+        matched_service_id = default_service_id
+        matched_issue_id = default_issue_id
+        for s in services:
+            if s["name_vi"] and any(kw in low_content for kw in s["name_vi"].lower().split()):
+                matched_service_id = s["service_id"]
+                break
+
+        # Mask PII
+        masked_content = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[EMAIL]", content)
+        masked_content = re.sub(r"(?<!\d)(?:\+?84|0)\d{8,10}(?!\d)", "[PHONE]", masked_content)
+        checksum = hashlib.sha256(content.encode()).hexdigest()
+
+        feedback_id = uuid4()
+        feedback_item_id = uuid4()
+        decision_id = uuid4()
+
+        # 1. Insert feedback
+        await session.execute(
+            text("""
+                INSERT INTO feedback (
+                    feedback_id, project_id, source_system, source_record_key,
+                    reported_at, ingested_at, content_raw, content_masked,
+                    source_metadata_json, raw_content_checksum, created_at
+                ) VALUES (
+                    :feedback_id, :project_id, 'direct-csv', :source_record_key,
+                    :reported_at, :now, :content_raw, :content_masked,
+                    '{}'::jsonb, :checksum, :now
+                )
+                ON CONFLICT (source_system, source_record_key) DO NOTHING
+            """),
+            {
+                "feedback_id": feedback_id,
+                "project_id": project_id,
+                "source_record_key": rec_key,
+                "reported_at": reported_at,
+                "now": now,
+                "content_raw": content,
+                "content_masked": masked_content,
+                "checksum": checksum,
+            }
+        )
+
+        # 2. Insert feedback_item
+        await session.execute(
+            text("""
+                INSERT INTO feedback_item (
+                    feedback_item_id, feedback_id, item_index, item_text_masked,
+                    location_id, status, analytic_eligibility
+                ) VALUES (
+                    :feedback_item_id, :feedback_id, 1, :masked_content,
+                    :location_id, 'ACTIVE', 'INCLUDED'
+                )
+                ON CONFLICT (feedback_id, item_index) DO NOTHING
+            """),
+            {
+                "feedback_item_id": feedback_item_id,
+                "feedback_id": feedback_id,
+                "masked_content": masked_content,
+                "location_id": matched_loc_id,
+            }
+        )
+
+        # 3. Insert classification_decision
+        if taxonomy_release_id and matched_service_id and default_step_id:
+            await session.execute(
+                text("""
+                    INSERT INTO classification_decision (
+                        classification_decision_id, feedback_item_id, decision_version, taxonomy_release_id,
+                        customer_lifecycle_value_status, customer_lifecycle_step_id,
+                        service_request_value_status,
+                        primary_service_value_status, primary_service_id, issue_value_status, issue_id,
+                        sentiment, operational_severity, cause_determination_status, classification_state,
+                        decision_source, decision_reason, decided_by, decided_at
+                    ) VALUES (
+                        :decision_id, :feedback_item_id, 1, :taxonomy_release_id,
+                        'KNOWN', :step_id, 'KNOWN',
+                        'KNOWN', :service_id, 'KNOWN', :issue_id,
+                        :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
+                        'SOURCE_TRUSTED', 'Direct CSV Import', UUID('00000000-0000-0000-0000-000000000002'), :reported_at
+                    )
+                    ON CONFLICT (feedback_item_id, decision_version) DO NOTHING
+                """),
+                {
+                    "decision_id": decision_id,
+                    "feedback_item_id": feedback_item_id,
+                    "taxonomy_release_id": taxonomy_release_id,
+                    "step_id": default_step_id,
+                    "service_id": matched_service_id,
+                    "issue_id": matched_issue_id,
+                    "sentiment": sentiment,
+                    "severity": severity,
+                    "reported_at": reported_at,
+                }
+            )
+
+            # 4. Insert classification_current
+            await session.execute(
+                text("""
+                    INSERT INTO classification_current (
+                        feedback_item_id, current_decision_id, current_decision_version, taxonomy_release_id,
+                        customer_lifecycle_value_status, customer_lifecycle_stage_id, customer_lifecycle_step_id,
+                        service_request_value_status,
+                        primary_service_value_status, primary_service_id, issue_value_status, issue_id,
+                        sentiment, operational_severity, cause_determination_status, classification_state,
+                        last_decision_at, projection_version
+                    ) VALUES (
+                        :feedback_item_id, :decision_id, 1, :taxonomy_release_id,
+                        'KNOWN', :stage_id, :step_id, 'KNOWN',
+                        'KNOWN', :service_id, 'KNOWN', :issue_id,
+                        :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
+                        :reported_at, 1
+                    )
+                    ON CONFLICT (feedback_item_id) DO NOTHING
+                """),
+                {
+                    "feedback_item_id": feedback_item_id,
+                    "decision_id": decision_id,
+                    "taxonomy_release_id": taxonomy_release_id,
+                    "stage_id": default_stage_id,
+                    "step_id": default_step_id,
+                    "service_id": matched_service_id,
+                    "issue_id": matched_issue_id,
+                    "sentiment": sentiment,
+                    "severity": severity,
+                    "reported_at": reported_at,
+                }
+            )
+
+        imported_count += 1
+
+    await session.commit()
+    return {
+        "success": True,
+        "total_rows": len(rows),
+        "imported_rows": imported_count,
+        "message": f"Đã nạp thành công {imported_count} phản hồi vào hệ thống!",
+    }
 
 
 @router.post("/{feedback_item_id}/split", response_model=SplitFeedbackItemResponse, status_code=status.HTTP_201_CREATED, operation_id="splitFeedbackItem")
