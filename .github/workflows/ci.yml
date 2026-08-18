@@ -7,43 +7,57 @@ on:
     branches: [ dev, main ]
 
 jobs:
-  lint-and-test:
+  lint-and-unit-tests:
+    name: Python Lint & Unit Tests
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest mypy pydantic fastapi sqlalchemy uvicorn psycopg[binary]
+          pip install -e .
+          pip install pytest pytest-asyncio
 
-      - name: Python Syntax & Type Checks
+      - name: Verify Python Syntax
         run: |
-          python -m py_compile apps/api/src/app.py apps/worker/src/worker.py
+          python -m compileall packages apps/api apps/worker
 
-      - name: Run Unit & Contract Tests
+      - name: Run Unit Tests
+        env:
+          PYTHONPATH: .
         run: |
-          pytest tests/unit/ -v || true
+          pytest tests/unit/ -v
 
   web-build:
+    name: Frontend Typecheck & Build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
 
-      - name: Build Web Bundle
+      - name: Install Node Dependencies
+        working-directory: apps/web
         run: |
-          cd apps/web
           npm ci || npm install
-          npm run build || true
+
+      - name: Build Web Application
+        working-directory: apps/web
+        run: |
+          npm run build

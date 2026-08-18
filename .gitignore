@@ -53,5 +53,7 @@ apps/web/node_modules/
 apps/web/dist/
 apps/web/.next/
 
-# Alembic / Scratch
+# Alembic / Scratch / Subagents
 scratch/
+.agents/
+
