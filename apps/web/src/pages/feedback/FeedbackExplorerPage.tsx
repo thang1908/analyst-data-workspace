@@ -1,24 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, UploadCloud, Download, Filter, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import AnalyticsState from '../../components/analytics/AnalyticsState';
-import FeedbackFilters from '../../components/feedback/FeedbackFilters';
-import FeedbackItemDetail from '../../components/feedback/FeedbackItemDetail';
-import FeedbackItemList from '../../components/feedback/FeedbackItemList';
+import FeedbackDataTable from '../../components/feedback/FeedbackDataTable';
+import FeedbackDetailModal from '../../components/feedback/FeedbackDetailModal';
+import FeedbackSidebarFilters from '../../components/feedback/FeedbackSidebarFilters';
 import { getFeedbackItem, listFeedbackItems, FeedbackWorkspaceItem } from '../../api/feedback';
-import { analyticsConfigurationError } from '../../api/analytics';
+import { analyticsConfigurationError, getAnalyticsSummary, AnalyticsSummary } from '../../api/analytics';
 import { useAnalyticsFilters } from '../../hooks/useAnalyticsFilters';
 
 const FeedbackExplorerPage: React.FC = () => {
+  const navigate = useNavigate();
   const { filters, setFilter, resetFilters, activeFilterCount } = useAnalyticsFilters();
   const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<FeedbackWorkspaceItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [selectedItem, setSelectedItem] = useState<FeedbackWorkspaceItem | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [loading, setLoading] = useState(Boolean(filters));
-  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
   const query = searchParams.get('q') ?? '';
 
   const setQuery = useCallback((value: string) => {
@@ -28,6 +32,22 @@ const FeedbackExplorerPage: React.FC = () => {
       return next;
     });
   }, [setSearchParams]);
+
+  // Load summary metrics for tabs
+  useEffect(() => {
+    if (!filters) return;
+    void getAnalyticsSummary({
+      projectId: filters.projectId,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      sourceSystem: filters.sourceSystem,
+      locationId: filters.locationId,
+      serviceCode: filters.serviceCode,
+      issueCode: filters.issueCode,
+    })
+      .then(setSummary)
+      .catch(() => {});
+  }, [filters?.projectId, filters?.dateFrom, filters?.dateTo, filters?.sourceSystem, filters?.locationId, filters?.serviceCode, filters?.issueCode]);
 
   const loadItems = useCallback(async () => {
     if (!filters) return;
@@ -55,9 +75,8 @@ const FeedbackExplorerPage: React.FC = () => {
       });
       setItems(result.items);
       setTotal(result.total);
-      setSelectedId((current) => result.items.some((item) => item.feedbackItemId === current) ? current : result.items[0]?.feedbackItemId);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Không thể tải feedback.');
+      setError(loadError instanceof Error ? loadError.message : 'Không thể tải danh sách feedback.');
     } finally {
       setLoading(false);
     }
@@ -65,49 +84,349 @@ const FeedbackExplorerPage: React.FC = () => {
 
   useEffect(() => { void loadItems(); }, [loadItems]);
 
-  useEffect(() => {
-    if (!selectedId) { setSelectedItem(null); return; }
-    setDetailLoading(true);
-    void getFeedbackItem(selectedId)
-      .then(setSelectedItem)
-      .catch((detailError) => setError(detailError instanceof Error ? detailError.message : 'Không thể tải chi tiết feedback.'))
-      .finally(() => setDetailLoading(false));
-  }, [selectedId]);
+  const handleSelectItem = (item: FeedbackWorkspaceItem) => {
+    setSelectedItem(item);
+    setIsDetailModalOpen(true);
+  };
 
-  const resultLabel = useMemo(() => {
-    if (items.length === total) return `${total.toLocaleString()} feedback items`;
-    return `${items.length.toLocaleString()} / ${total.toLocaleString()} feedback items`;
-  }, [items.length, total]);
+  // Sentiment counts
+  const totalVolume = summary?.itemVolume ?? total;
+  const negCount = summary ? Math.round(summary.itemVolume * summary.negativeRate) : 0;
+  const posCount = summary ? Math.round(summary.itemVolume * summary.positiveRate) : 0;
+  const neuCount = summary ? Math.max(0, summary.itemVolume - negCount - posCount) : 0;
 
-  return <>
-    <TopBar title="Feedback Explorer" />
-    <main className="page-content feedback-explorer-page">
-      {analyticsConfigurationError && <AnalyticsState title="Chưa cấu hình Analytics" message={analyticsConfigurationError} />}
-      {!analyticsConfigurationError && <>
-        <FeedbackFilters
-          filters={filters}
-          activeFilterCount={activeFilterCount}
-          query={query}
-          onQueryChange={setQuery}
-          onChange={setFilter}
-          onReset={() => { resetFilters(); setQuery(''); }}
-        />
-        <div className="feedback-workspace" aria-label="Feedback Explorer workspace">
-          <section className="card feedback-list-panel">
-            <div className="feedback-panel-heading"><div><span className="section-title">Feedback items</span><p>Bằng chứng khớp bộ lọc hiện tại</p></div><strong>{resultLabel}</strong></div>
-            {loading && <AnalyticsState title="Đang tải feedback" message="Đang truy vấn các bằng chứng đã mask…" />}
-            {!loading && error && <AnalyticsState title="Không tải được feedback" message={error} onRetry={() => void loadItems()} />}
-            {!loading && !error && !items.length && <AnalyticsState title="Không có feedback khớp bộ lọc" message="Hãy nới bộ lọc hoặc thử cụm từ tìm kiếm khác." onRetry={() => { resetFilters(); setQuery(''); }} />}
-            {!loading && !error && Boolean(items.length) && <FeedbackItemList items={items} selectedId={selectedId} onSelect={(item) => setSelectedId(item.feedbackItemId)} />}
-          </section>
-          <aside className="card feedback-detail-panel" aria-live="polite">
-            <div className="feedback-panel-heading"><div><span className="section-title">Chi tiết feedback</span><p>Evidence và phân loại hiện tại</p></div>{detailLoading && <span className="panel-count">Đang tải…</span>}</div>
-            <FeedbackItemDetail item={selectedItem} />
-          </aside>
-        </div>
-      </>}
-    </main>
-  </>;
+  // Handle Export CSV
+  const handleExportCSV = () => {
+    if (!items.length) return;
+    const csvRows = [
+      ['ID', 'Noi dung da mask', 'Khu do thi', 'Dich vu', 'Van de', 'Cam xuc', 'Muc do', 'Kenh', 'Thoi gian'].join(','),
+      ...items.map((it) => [
+        `"${it.feedbackItemId}"`,
+        `"${it.contentMasked.replace(/"/g, '""')}"`,
+        `"${it.location.name || it.location.code || ''}"`,
+        `"${it.currentClassification.service?.nameVi || ''}"`,
+        `"${it.currentClassification.issue?.nameVi || ''}"`,
+        `"${it.currentClassification.sentiment || ''}"`,
+        `"${it.currentClassification.operationalSeverity || ''}"`,
+        `"${it.sourceSystem || ''}"`,
+        `"${it.reportedAt}"`,
+      ].join(',')),
+    ];
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `feedback_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <>
+      <TopBar title="Feedback Explorer" />
+      <main className="page-content" style={{ padding: '16px 24px', maxWidth: 1600, margin: '0 auto' }}>
+        {analyticsConfigurationError && (
+          <AnalyticsState title="Chưa cấu hình Analytics" message={analyticsConfigurationError} />
+        )}
+
+        {!analyticsConfigurationError && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Top Statistics & Action Header */}
+            <div className="card" style={{ padding: '16px 20px', borderRadius: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+                {/* Title & Sentiment Tabs */}
+                <div>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0', letterSpacing: '-0.2px' }}>
+                    Danh sách phản ánh
+                  </h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setFilter('sentiment', undefined)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: !filters?.sentiment ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: !filters?.sentiment ? '#eff6ff' : '#ffffff',
+                        color: !filters?.sentiment ? '#1d4ed8' : '#475569',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <span>Tất cả</span>
+                      <span style={{ background: !filters?.sentiment ? '#2563eb' : '#f1f5f9', color: !filters?.sentiment ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: 10, fontSize: 11 }}>
+                        {totalVolume.toLocaleString()}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setFilter('sentiment', 'NEGATIVE')}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: filters?.sentiment === 'NEGATIVE' ? '2px solid #ef4444' : '1px solid #e2e8f0',
+                        background: filters?.sentiment === 'NEGATIVE' ? '#fef2f2' : '#ffffff',
+                        color: filters?.sentiment === 'NEGATIVE' ? '#b91c1c' : '#475569',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} />
+                        Tiêu cực
+                      </span>
+                      <span style={{ background: filters?.sentiment === 'NEGATIVE' ? '#ef4444' : '#fee2e2', color: filters?.sentiment === 'NEGATIVE' ? '#ffffff' : '#991b1b', padding: '1px 6px', borderRadius: 10, fontSize: 11 }}>
+                        {negCount.toLocaleString()}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setFilter('sentiment', 'NEUTRAL')}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: filters?.sentiment === 'NEUTRAL' ? '2px solid #64748b' : '1px solid #e2e8f0',
+                        background: filters?.sentiment === 'NEUTRAL' ? '#f8fafc' : '#ffffff',
+                        color: filters?.sentiment === 'NEUTRAL' ? '#0f172a' : '#475569',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8' }} />
+                        Trung tính
+                      </span>
+                      <span style={{ background: filters?.sentiment === 'NEUTRAL' ? '#64748b' : '#f1f5f9', color: filters?.sentiment === 'NEUTRAL' ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: 10, fontSize: 11 }}>
+                        {neuCount.toLocaleString()}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setFilter('sentiment', 'POSITIVE')}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: filters?.sentiment === 'POSITIVE' ? '2px solid #22c55e' : '1px solid #e2e8f0',
+                        background: filters?.sentiment === 'POSITIVE' ? '#f0fdf4' : '#ffffff',
+                        color: filters?.sentiment === 'POSITIVE' ? '#15803d' : '#475569',
+                        fontWeight: 700,
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+                        Tích cực
+                      </span>
+                      <span style={{ background: filters?.sentiment === 'POSITIVE' ? '#22c55e' : '#dcfce7', color: filters?.sentiment === 'POSITIVE' ? '#ffffff' : '#166534', padding: '1px 6px', borderRadius: 10, fontSize: 11 }}>
+                        {posCount.toLocaleString()}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Top Right Action Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button
+                    onClick={() => navigate('/imports')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 14px',
+                      borderRadius: 6,
+                      background: '#eff6ff',
+                      color: '#2563eb',
+                      border: '1px solid #bfdbfe',
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <UploadCloud size={15} />
+                    Import dữ liệu
+                  </button>
+
+                  <button
+                    onClick={handleExportCSV}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '8px 14px',
+                      borderRadius: 6,
+                      background: '#ffffff',
+                      color: '#475569',
+                      border: '1px solid #cbd5e1',
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Download size={15} />
+                    Tải bản dữ liệu
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Layout: Left Filters + Right Table */}
+            <div style={{ display: 'grid', gridTemplateColumns: showFilters ? '280px 1fr' : '1fr', gap: 16, alignItems: 'start' }}>
+              {/* Left Sidebar Filter Panel */}
+              {showFilters && (
+                <FeedbackSidebarFilters
+                  filters={filters}
+                  activeFilterCount={activeFilterCount}
+                  onChange={setFilter}
+                  onReset={resetFilters}
+                />
+              )}
+
+              {/* Right Table & Search Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Search Bar & Filter Toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative', flex: 1, minWidth: 260 }}>
+                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm theo nội dung phản ánh..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') setQuery(searchInput);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px 9px 36px',
+                        borderRadius: 8,
+                        border: '1px solid #cbd5e1',
+                        fontSize: 13,
+                        background: '#ffffff',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button
+                      onClick={() => setQuery(searchInput)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 6,
+                        background: '#0f172a',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Tìm kiếm
+                    </button>
+
+                    <button
+                      onClick={() => setShowFilters((v) => !v)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '8px 12px',
+                        borderRadius: 6,
+                        background: showFilters ? '#eff6ff' : '#ffffff',
+                        color: showFilters ? '#2563eb' : '#475569',
+                        border: '1px solid #cbd5e1',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Filter size={14} />
+                      {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
+                    </button>
+
+                    <button
+                      onClick={() => void loadItems()}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        color: '#475569',
+                        cursor: 'pointer',
+                      }}
+                      title="Tải lại danh sách"
+                    >
+                      <RefreshCw size={14} className={loading ? 'spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Table Data View */}
+                {loading && (
+                  <AnalyticsState title="Đang tải danh sách phản ánh" message="Đang truy vấn dữ liệu theo bộ lọc đã chọn…" />
+                )}
+
+                {!loading && error && (
+                  <AnalyticsState title="Không tải được danh sách" message={error} onRetry={() => void loadItems()} />
+                )}
+
+                {!loading && !error && !items.length && (
+                  <AnalyticsState
+                    title="Không tìm thấy phản ánh nào"
+                    message="Hãy thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc."
+                    onRetry={() => {
+                      resetFilters();
+                      setSearchInput('');
+                      setQuery('');
+                    }}
+                  />
+                )}
+
+                {!loading && !error && Boolean(items.length) && (
+                  <>
+                    <FeedbackDataTable
+                      items={items}
+                      selectedId={selectedItem?.feedbackItemId}
+                      onSelect={handleSelectItem}
+                    />
+
+                    {/* Table Footer Info */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 4px', fontSize: 12, color: '#64748b' }}>
+                      <span>Hiển thị <strong>{items.length}</strong> / <strong>{total.toLocaleString()}</strong> phản ánh</span>
+                      <span>Nhấp vào bất kỳ dòng nào để xem chi tiết bằng chứng</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Feedback Detail Modal */}
+        {isDetailModalOpen && (
+          <FeedbackDetailModal
+            item={selectedItem}
+            onClose={() => setIsDetailModalOpen(false)}
+          />
+        )}
+      </main>
+    </>
+  );
 };
 
 export default FeedbackExplorerPage;
