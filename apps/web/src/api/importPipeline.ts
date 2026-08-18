@@ -18,8 +18,14 @@ type ApiJob = {
 };
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/$/, '');
-export const importProjectId = import.meta.env.VITE_IMPORT_PROJECT_ID?.trim();
-export const importActorId = import.meta.env.VITE_IMPORT_ACTOR_ID?.trim();
+export const importProjectId =
+  import.meta.env.VITE_IMPORT_PROJECT_ID?.trim() ||
+  import.meta.env.VITE_ANALYTICS_PROJECT_ID?.trim() ||
+  '00000000-0000-0000-0000-000000000001';
+
+export const importActorId =
+  import.meta.env.VITE_IMPORT_ACTOR_ID?.trim() ||
+  '00000000-0000-0000-0000-000000000002';
 
 const headers = (): HeadersInit => ({ 'X-Actor-ID': importActorId ?? '' });
 const mapJob = (job: ApiJob): ImportJob => ({
