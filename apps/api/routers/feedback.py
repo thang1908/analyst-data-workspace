@@ -144,8 +144,91 @@ async def direct_import_csv(
     locs_res = await session.execute(text("SELECT location_id, name, location_code FROM location"))
     locations = locs_res.mappings().all()
 
-    imported_count = 0
-    now = datetime.now(timezone.utc)
+    feedback_batch: list[dict[str, Any]] = []
+    item_batch: list[dict[str, Any]] = []
+    decision_batch: list[dict[str, Any]] = []
+    current_batch: list[dict[str, Any]] = []
+
+    async def flush_batches() -> None:
+        if feedback_batch:
+            await session.execute(
+                text("""
+                    INSERT INTO feedback (
+                        feedback_id, project_id, source_system, source_record_key,
+                        reported_at, ingested_at, content_raw, content_masked,
+                        source_metadata_json, raw_content_checksum, created_at
+                    ) VALUES (
+                        :feedback_id, :project_id, 'direct-csv', :source_record_key,
+                        :reported_at, :now, :content_raw, :content_masked,
+                        '{}'::jsonb, :checksum, :now
+                    )
+                    ON CONFLICT (source_system, source_record_key) DO NOTHING
+                """),
+                feedback_batch,
+            )
+            feedback_batch.clear()
+
+        if item_batch:
+            await session.execute(
+                text("""
+                    INSERT INTO feedback_item (
+                        feedback_item_id, feedback_id, item_index, item_text_masked,
+                        location_id, status, analytic_eligibility
+                    ) VALUES (
+                        :feedback_item_id, :feedback_id, 1, :masked_content,
+                        :location_id, 'ACTIVE', 'INCLUDED'
+                    )
+                    ON CONFLICT (feedback_id, item_index) DO NOTHING
+                """),
+                item_batch,
+            )
+            item_batch.clear()
+
+        if decision_batch:
+            await session.execute(
+                text("""
+                    INSERT INTO classification_decision (
+                        classification_decision_id, feedback_item_id, decision_version, taxonomy_release_id,
+                        customer_lifecycle_value_status, customer_lifecycle_step_id,
+                        service_request_value_status,
+                        primary_service_value_status, primary_service_id, issue_value_status, issue_id,
+                        sentiment, operational_severity, cause_determination_status, classification_state,
+                        decision_source, decision_reason, decided_by, decided_at
+                    ) VALUES (
+                        :decision_id, :feedback_item_id, 1, :taxonomy_release_id,
+                        'KNOWN', :step_id, 'NOT_APPLICABLE',
+                        'KNOWN', :service_id, :issue_status, :issue_id,
+                        :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
+                        'SOURCE_TRUSTED', 'Direct CSV Import', UUID('00000000-0000-0000-0000-000000000002'), :reported_at
+                    )
+                    ON CONFLICT (feedback_item_id, decision_version) DO NOTHING
+                """),
+                decision_batch,
+            )
+            decision_batch.clear()
+
+        if current_batch:
+            await session.execute(
+                text("""
+                    INSERT INTO classification_current (
+                        feedback_item_id, current_decision_id, current_decision_version, taxonomy_release_id,
+                        customer_lifecycle_value_status, customer_lifecycle_stage_id, customer_lifecycle_step_id,
+                        service_request_value_status,
+                        primary_service_value_status, primary_service_id, issue_value_status, issue_id,
+                        sentiment, operational_severity, cause_determination_status, classification_state,
+                        last_decision_at, projection_version
+                    ) VALUES (
+                        :feedback_item_id, :decision_id, 1, :taxonomy_release_id,
+                        'KNOWN', :stage_id, :step_id, 'NOT_APPLICABLE',
+                        'KNOWN', :service_id, :issue_status, :issue_id,
+                        :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
+                        :reported_at, 1
+                    )
+                    ON CONFLICT (feedback_item_id) DO NOTHING
+                """),
+                current_batch,
+            )
+            current_batch.clear()
 
     for idx, row in enumerate(rows, start=1):
         content = (
@@ -253,124 +336,63 @@ async def direct_import_csv(
         feedback_item_id = uuid4()
         decision_id = uuid4()
 
-        # 1. Insert feedback
-        await session.execute(
-            text("""
-                INSERT INTO feedback (
-                    feedback_id, project_id, source_system, source_record_key,
-                    reported_at, ingested_at, content_raw, content_masked,
-                    source_metadata_json, raw_content_checksum, created_at
-                ) VALUES (
-                    :feedback_id, :project_id, 'direct-csv', :source_record_key,
-                    :reported_at, :now, :content_raw, :content_masked,
-                    '{}'::jsonb, :checksum, :now
-                )
-                ON CONFLICT (source_system, source_record_key) DO NOTHING
-            """),
-            {
-                "feedback_id": feedback_id,
-                "project_id": matched_proj_id,
-                "source_record_key": rec_key,
-                "reported_at": reported_at,
-                "now": now,
-                "content_raw": content,
-                "content_masked": masked_content,
-                "checksum": checksum,
-            }
-        )
+        feedback_batch.append({
+            "feedback_id": feedback_id,
+            "project_id": matched_proj_id,
+            "source_record_key": rec_key,
+            "reported_at": reported_at,
+            "now": now,
+            "content_raw": content,
+            "content_masked": masked_content,
+            "checksum": checksum,
+        })
 
-        # 2. Insert feedback_item
-        await session.execute(
-            text("""
-                INSERT INTO feedback_item (
-                    feedback_item_id, feedback_id, item_index, item_text_masked,
-                    location_id, status, analytic_eligibility
-                ) VALUES (
-                    :feedback_item_id, :feedback_id, 1, :masked_content,
-                    :location_id, 'ACTIVE', 'INCLUDED'
-                )
-                ON CONFLICT (feedback_id, item_index) DO NOTHING
-            """),
-            {
-                "feedback_item_id": feedback_item_id,
-                "feedback_id": feedback_id,
-                "masked_content": masked_content,
-                "location_id": matched_loc_id,
-            }
-        )
+        item_batch.append({
+            "feedback_item_id": feedback_item_id,
+            "feedback_id": feedback_id,
+            "masked_content": masked_content,
+            "location_id": matched_loc_id,
+        })
 
-        # 3. Insert classification_decision
         if taxonomy_release_id and matched_service_id and default_step_id:
             issue_status = "KNOWN" if matched_issue_id else "NOT_APPLICABLE"
-            await session.execute(
-                text("""
-                    INSERT INTO classification_decision (
-                        classification_decision_id, feedback_item_id, decision_version, taxonomy_release_id,
-                        customer_lifecycle_value_status, customer_lifecycle_step_id,
-                        service_request_value_status,
-                        primary_service_value_status, primary_service_id, issue_value_status, issue_id,
-                        sentiment, operational_severity, cause_determination_status, classification_state,
-                        decision_source, decision_reason, decided_by, decided_at
-                    ) VALUES (
-                        :decision_id, :feedback_item_id, 1, :taxonomy_release_id,
-                        'KNOWN', :step_id, 'NOT_APPLICABLE',
-                        'KNOWN', :service_id, :issue_status, :issue_id,
-                        :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
-                        'SOURCE_TRUSTED', 'Direct CSV Import', UUID('00000000-0000-0000-0000-000000000002'), :reported_at
-                    )
-                    ON CONFLICT (feedback_item_id, decision_version) DO NOTHING
-                """),
-                {
-                    "decision_id": decision_id,
-                    "feedback_item_id": feedback_item_id,
-                    "taxonomy_release_id": taxonomy_release_id,
-                    "step_id": default_step_id,
-                    "service_id": matched_service_id,
-                    "issue_status": issue_status,
-                    "issue_id": matched_issue_id,
-                    "sentiment": sentiment,
-                    "severity": severity,
-                    "reported_at": reported_at,
-                }
-            )
+            decision_batch.append({
+                "decision_id": decision_id,
+                "feedback_item_id": feedback_item_id,
+                "taxonomy_release_id": taxonomy_release_id,
+                "step_id": default_step_id,
+                "service_id": matched_service_id,
+                "issue_status": issue_status,
+                "issue_id": matched_issue_id,
+                "sentiment": sentiment,
+                "severity": severity,
+                "reported_at": reported_at,
+            })
 
-            # 4. Insert classification_current
-            await session.execute(
-                text("""
-                    INSERT INTO classification_current (
-                        feedback_item_id, current_decision_id, current_decision_version, taxonomy_release_id,
-                        customer_lifecycle_value_status, customer_lifecycle_stage_id, customer_lifecycle_step_id,
-                        service_request_value_status,
-                        primary_service_value_status, primary_service_id, issue_value_status, issue_id,
-                        sentiment, operational_severity, cause_determination_status, classification_state,
-                        last_decision_at, projection_version
-                    ) VALUES (
-                        :feedback_item_id, :decision_id, 1, :taxonomy_release_id,
-                        'KNOWN', :stage_id, :step_id, 'NOT_APPLICABLE',
-                        'KNOWN', :service_id, :issue_status, :issue_id,
-                        :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
-                        :reported_at, 1
-                    )
-                    ON CONFLICT (feedback_item_id) DO NOTHING
-                """),
-                {
-                    "feedback_item_id": feedback_item_id,
-                    "decision_id": decision_id,
-                    "taxonomy_release_id": taxonomy_release_id,
-                    "stage_id": default_stage_id,
-                    "step_id": default_step_id,
-                    "service_id": matched_service_id,
-                    "issue_status": issue_status,
-                    "issue_id": matched_issue_id,
-                    "sentiment": sentiment,
-                    "severity": severity,
-                    "reported_at": reported_at,
-                }
-            )
+            current_batch.append({
+                "feedback_item_id": feedback_item_id,
+                "decision_id": decision_id,
+                "taxonomy_release_id": taxonomy_release_id,
+                "stage_id": default_stage_id,
+                "step_id": default_step_id,
+                "service_id": matched_service_id,
+                "issue_status": issue_status,
+                "issue_id": matched_issue_id,
+                "sentiment": sentiment,
+                "severity": severity,
+                "reported_at": reported_at,
+            })
 
         imported_count += 1
 
+        # Flush batch every 1000 items to keep memory footprint ultra low and DB execution super fast
+        if len(feedback_batch) >= 1000:
+            await flush_batches()
+
+    # Flush remaining records
+    await flush_batches()
     await session.commit()
+
     return {
         "success": True,
         "total_rows": len(rows),
