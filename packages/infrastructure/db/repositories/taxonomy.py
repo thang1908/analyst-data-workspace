@@ -111,17 +111,19 @@ class TaxonomyRepository:
         rel_id = taxonomy_release_id or await self.get_published_release_id()
         if not rel_id:
             return []
-        result = await self._session.execute(
-            text("""
-                SELECT customer_lifecycle_stage_id AS id, stage_code AS code,
-                       name_vi, name_en, definition, sort_order, active
-                FROM customer_lifecycle_stage
-                WHERE taxonomy_release_id = :rel_id
-                  AND (:active IS NULL OR active = :active)
-                ORDER BY sort_order, stage_code
-            """),
-            {"rel_id": rel_id, "active": active},
-        )
+        query_str = """
+            SELECT customer_lifecycle_stage_id AS id, stage_code AS code,
+                   name_vi, name_en, definition, sort_order, active
+            FROM customer_lifecycle_stage
+            WHERE taxonomy_release_id = :rel_id
+        """
+        params: dict[str, Any] = {"rel_id": rel_id}
+        if active is not None:
+            query_str += " AND active = :active"
+            params["active"] = active
+        query_str += " ORDER BY sort_order, stage_code"
+
+        result = await self._session.execute(text(query_str), params)
         return [
             StageRow(
                 id=row["id"],
@@ -144,22 +146,26 @@ class TaxonomyRepository:
         rel_id = taxonomy_release_id or await self.get_published_release_id()
         if not rel_id:
             return []
-        result = await self._session.execute(
-            text("""
-                SELECT step.customer_lifecycle_step_id AS id, step.step_code AS code,
-                       step.name_vi, step.name_en, step.definition, step.sort_order, step.active,
-                       stage.customer_lifecycle_stage_id AS stage_id, stage.stage_code,
-                       stage.name_vi AS stage_name_vi
-                FROM customer_lifecycle_step step
-                JOIN customer_lifecycle_stage stage
-                  ON stage.customer_lifecycle_stage_id = step.customer_lifecycle_stage_id
-                WHERE step.taxonomy_release_id = :rel_id
-                  AND (:stage_code IS NULL OR stage.stage_code = :stage_code)
-                  AND (:active IS NULL OR step.active = :active)
-                ORDER BY stage.sort_order, step.sort_order, step.step_code
-            """),
-            {"rel_id": rel_id, "stage_code": stage_code, "active": active},
-        )
+        query_str = """
+            SELECT step.customer_lifecycle_step_id AS id, step.step_code AS code,
+                   step.name_vi, step.name_en, step.definition, step.sort_order, step.active,
+                   stage.customer_lifecycle_stage_id AS stage_id, stage.stage_code,
+                   stage.name_vi AS stage_name_vi
+            FROM customer_lifecycle_step step
+            JOIN customer_lifecycle_stage stage
+              ON stage.customer_lifecycle_stage_id = step.customer_lifecycle_stage_id
+            WHERE step.taxonomy_release_id = :rel_id
+        """
+        params: dict[str, Any] = {"rel_id": rel_id}
+        if stage_code:
+            query_str += " AND stage.stage_code = :stage_code"
+            params["stage_code"] = stage_code
+        if active is not None:
+            query_str += " AND step.active = :active"
+            params["active"] = active
+        query_str += " ORDER BY stage.sort_order, step.sort_order, step.step_code"
+
+        result = await self._session.execute(text(query_str), params)
         return [
             StepRow(
                 id=row["id"],
@@ -186,32 +192,36 @@ class TaxonomyRepository:
         rel_id = taxonomy_release_id or await self.get_published_release_id()
         if not rel_id:
             return []
-        result = await self._session.execute(
-            text("""
-                SELECT tp.touchpoint_id AS id, tp.touchpoint_code AS code,
-                       tp.name_vi, tp.name_en, tp.definition, tp.sort_order, tp.active,
-                       step.customer_lifecycle_step_id AS lifecycle_step_id,
-                       step.step_code AS lifecycle_step_code,
-                       step.name_vi AS lifecycle_step_name_vi
-                FROM touchpoint tp
-                JOIN customer_lifecycle_step step
-                  ON step.customer_lifecycle_step_id = tp.customer_lifecycle_step_id
-                WHERE tp.taxonomy_release_id = :rel_id
-                  AND (:step_code IS NULL OR step.step_code = :step_code)
-                  AND (:active IS NULL OR tp.active = :active)
-                  AND (
-                    :service_code IS NULL OR EXISTS (
-                        SELECT 1 FROM touchpoint_service_map tsm
-                        JOIN service svc ON svc.service_id = tsm.service_id
-                        WHERE tsm.touchpoint_id = tp.touchpoint_id
-                          AND svc.service_code = :service_code
-                          AND tsm.active = true
-                    )
-                  )
-                ORDER BY step.sort_order, tp.sort_order, tp.touchpoint_code
-            """),
-            {"rel_id": rel_id, "step_code": step_code, "service_code": service_code, "active": active},
-        )
+        query_str = """
+            SELECT tp.touchpoint_id AS id, tp.touchpoint_code AS code,
+                   tp.name_vi, tp.name_en, tp.definition, tp.sort_order, tp.active,
+                   step.customer_lifecycle_step_id AS lifecycle_step_id,
+                   step.step_code AS lifecycle_step_code,
+                   step.name_vi AS lifecycle_step_name_vi
+            FROM touchpoint tp
+            JOIN customer_lifecycle_step step
+              ON step.customer_lifecycle_step_id = tp.customer_lifecycle_step_id
+            WHERE tp.taxonomy_release_id = :rel_id
+        """
+        params: dict[str, Any] = {"rel_id": rel_id}
+        if step_code:
+            query_str += " AND step.step_code = :step_code"
+            params["step_code"] = step_code
+        if active is not None:
+            query_str += " AND tp.active = :active"
+            params["active"] = active
+        if service_code:
+            query_str += """ AND EXISTS (
+                SELECT 1 FROM touchpoint_service_map tsm
+                JOIN service svc ON svc.service_id = tsm.service_id
+                WHERE tsm.touchpoint_id = tp.touchpoint_id
+                  AND svc.service_code = :service_code
+                  AND tsm.active = true
+            )"""
+            params["service_code"] = service_code
+        query_str += " ORDER BY step.sort_order, tp.sort_order, tp.touchpoint_code"
+
+        result = await self._session.execute(text(query_str), params)
         tp_rows = result.mappings().all()
         if not tp_rows:
             return []
@@ -262,17 +272,19 @@ class TaxonomyRepository:
         rel_id = taxonomy_release_id or await self.get_published_release_id()
         if not rel_id:
             return []
-        result = await self._session.execute(
-            text("""
-                SELECT service_id AS id, service_code AS code, name_vi, name_en,
-                       default_severity, definition, sort_order, active
-                FROM service
-                WHERE taxonomy_release_id = :rel_id
-                  AND (:active IS NULL OR active = :active)
-                ORDER BY sort_order, service_code
-            """),
-            {"rel_id": rel_id, "active": active},
-        )
+        query_str = """
+            SELECT service_id AS id, service_code AS code, name_vi, name_en,
+                   default_severity, definition, sort_order, active
+            FROM service
+            WHERE taxonomy_release_id = :rel_id
+        """
+        params: dict[str, Any] = {"rel_id": rel_id}
+        if active is not None:
+            query_str += " AND active = :active"
+            params["active"] = active
+        query_str += " ORDER BY sort_order, service_code"
+
+        result = await self._session.execute(text(query_str), params)
         return [
             ServiceRow(
                 id=row["id"],
@@ -297,22 +309,28 @@ class TaxonomyRepository:
         rel_id = taxonomy_release_id or await self.get_published_release_id()
         if not rel_id:
             return []
-        result = await self._session.execute(
-            text("""
-                SELECT issue.issue_id AS id, issue.issue_code AS code,
-                       issue.name_vi, issue.name_en, issue.safety_critical,
-                       issue.definition, issue.sort_order, issue.active,
-                       service.service_id, service.service_code, service.name_vi AS service_name_vi
-                FROM issue
-                JOIN service ON service.service_id = issue.service_id
-                WHERE issue.taxonomy_release_id = :rel_id
-                  AND (:service_code IS NULL OR service.service_code = :service_code)
-                  AND (:service_id IS NULL OR service.service_id = :service_id)
-                  AND (:active IS NULL OR issue.active = :active)
-                ORDER BY service.sort_order, issue.sort_order, issue.issue_code
-            """),
-            {"rel_id": rel_id, "service_code": service_code, "service_id": service_id, "active": active},
-        )
+        query_str = """
+            SELECT issue.issue_id AS id, issue.issue_code AS code,
+                   issue.name_vi, issue.name_en, issue.safety_critical,
+                   issue.definition, issue.sort_order, issue.active,
+                   service.service_id, service.service_code, service.name_vi AS service_name_vi
+            FROM issue
+            JOIN service ON service.service_id = issue.service_id
+            WHERE issue.taxonomy_release_id = :rel_id
+        """
+        params: dict[str, Any] = {"rel_id": rel_id}
+        if service_code:
+            query_str += " AND service.service_code = :service_code"
+            params["service_code"] = service_code
+        if service_id:
+            query_str += " AND service.service_id = :service_id"
+            params["service_id"] = service_id
+        if active is not None:
+            query_str += " AND issue.active = :active"
+            params["active"] = active
+        query_str += " ORDER BY service.sort_order, issue.sort_order, issue.issue_code"
+
+        result = await self._session.execute(text(query_str), params)
         return [
             IssueRow(
                 id=row["id"],
@@ -329,3 +347,4 @@ class TaxonomyRepository:
             )
             for row in result.mappings().all()
         ]
+

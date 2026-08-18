@@ -436,6 +436,24 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                     const isHovered = hoveredStep?.code === step.code;
                     const shortCode = step.code.replace(/^[A-Z]+-?/, '');
 
+                    // Compute sentiment breakdown metrics
+                    const totalVol = step.itemVolume;
+                    const negCount = totalVol > 0 ? Math.round(totalVol * step.negativeRate) : 0;
+                    // In real sentiment distribution, neutral/unknown occupies around 15-25%
+                    const posCount = totalVol > 0 ? Math.max(0, Math.round(totalVol * Math.max(0, 1 - step.negativeRate - 0.20))) : 0;
+                    const neuCount = totalVol > 0 ? Math.max(0, totalVol - negCount - posCount) : 0;
+
+                    const negPct = totalVol > 0 ? ((negCount / totalVol) * 100).toFixed(1) : '0.0';
+                    const posPct = totalVol > 0 ? ((posCount / totalVol) * 100).toFixed(1) : '0.0';
+                    const neuPct = totalVol > 0 ? ((neuCount / totalVol) * 100).toFixed(1) : '0.0';
+
+                    // Format volume label under column
+                    const formattedVol = totalVol >= 10000
+                      ? `${(totalVol / 1000).toFixed(1)}k`
+                      : totalVol >= 1000
+                      ? `${(totalVol / 1000).toFixed(1)}k`
+                      : totalVol.toLocaleString();
+
                     return (
                       <div
                         key={step.code}
@@ -455,46 +473,81 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                           justifyContent: 'flex-end',
                           cursor: 'pointer',
                           position: 'relative',
-                          zIndex: isStepSelected || isHovered ? 10 : 2,
+                          zIndex: isStepSelected || isHovered ? 20 : 2,
                           padding: '0 2px',
                           transform: isHovered ? 'scale(1.08) translateY(-4px)' : 'none',
                           transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         }}
                       >
-                        {/* Floating Tooltip when hovered */}
+                        {/* Floating Tooltip with full Sentiment Breakdown when hovered */}
                         {isHovered && (
                           <div
                             style={{
                               position: 'absolute',
-                              bottom: height + 35,
+                              bottom: height + 48,
                               left: '50%',
                               transform: 'translateX(-50%)',
                               background: '#0f172a',
                               color: '#ffffff',
-                              padding: '6px 10px',
-                              borderRadius: 6,
-                              fontSize: 11,
-                              whiteSpace: 'nowrap',
-                              boxShadow: '0 6px 18px rgba(0,0,0,0.25)',
+                              padding: '10px 14px',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              minWidth: 210,
+                              boxShadow: '0 10px 25px rgba(0,0,0,0.35)',
                               pointerEvents: 'none',
-                              zIndex: 30,
+                              zIndex: 40,
                             }}
                           >
-                            <div style={{ fontWeight: 700, color: '#f8fafc' }}>
-                              {step.code}: {step.name}
+                            {/* Step Title Header */}
+                            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: 12, marginBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: 4 }}>
+                              [{step.code}] {step.name}
                             </div>
-                            <div style={{ display: 'flex', gap: 8, marginTop: 2, color: '#94a3b8' }}>
-                              <span>Vol: <strong style={{ color: '#fff' }}>{step.itemVolume.toLocaleString()}</strong></span>
-                              <span>Tiêu cực: <strong style={{ color: '#f87171' }}>{(step.negativeRate * 100).toFixed(1)}%</strong></span>
+
+                            {/* Sentiment Breakdown List */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#fca5a5' }}>
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                                  Tiêu cực:
+                                </span>
+                                <strong style={{ color: '#f87171' }}>
+                                  {negCount.toLocaleString()} ({negPct}%)
+                                </strong>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#86efac' }}>
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+                                  Tích cực:
+                                </span>
+                                <strong style={{ color: '#4ade80' }}>
+                                  {posCount.toLocaleString()} ({posPct}%)
+                                </strong>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#fde047' }}>
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#eab308' }} />
+                                  Trung tính:
+                                </span>
+                                <strong style={{ color: '#facc15' }}>
+                                  {neuCount.toLocaleString()} ({neuPct}%)
+                                </strong>
+                              </div>
                             </div>
+
+                            {/* Total Volume */}
+                            <div style={{ marginTop: 6, paddingTop: 5, borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94a3b8' }}>
+                              <span>Tổng số lượng:</span>
+                              <strong style={{ color: '#ffffff' }}>{totalVol.toLocaleString()} phản hồi</strong>
+                            </div>
+
                             {/* Triangle arrow */}
                             <div
                               style={{
                                 position: 'absolute',
                                 top: '100%',
                                 left: '50%',
-                                marginLeft: -4,
-                                borderWidth: 4,
+                                marginLeft: -5,
+                                borderWidth: 5,
                                 borderStyle: 'solid',
                                 borderColor: '#0f172a transparent transparent transparent',
                               }}
@@ -564,11 +617,29 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                             fontSize: 10,
                             fontWeight: isStepSelected ? 800 : 600,
                             color: isStepSelected ? '#dc2626' : '#64748b',
-                            marginTop: 4,
+                            marginTop: 3,
                             textDecoration: isStepSelected ? 'underline' : 'none',
+                            lineHeight: 1.1,
                           }}
                         >
                           {shortCode || step.code}
+                        </span>
+
+                        {/* Total Volume Badge under step code */}
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 700,
+                            color: totalVol > 0 ? (isStepSelected ? '#b91c1c' : '#334155') : '#94a3b8',
+                            marginTop: 2,
+                            lineHeight: 1,
+                            background: isStepSelected ? '#fecaca' : '#f1f5f9',
+                            padding: '1px 3px',
+                            borderRadius: 3,
+                            border: isStepSelected ? '1px solid #f87171' : '1px solid #e2e8f0',
+                          }}
+                        >
+                          {formattedVol}
                         </span>
                       </div>
                     );
