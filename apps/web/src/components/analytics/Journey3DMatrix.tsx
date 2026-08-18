@@ -149,16 +149,16 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
     };
   };
 
-  // Compute height for 3D bar (20px min, 120px max)
+  // Compute height for 3D bar (12px min, 60px max to ensure tooltip fits inside container comfortably)
   const computeHeight = (step: AnalyticsBreakdownItem) => {
     if (metricMode === 'volume') {
-      if (step.itemVolume === 0) return 14;
-      const ratio = step.itemVolume / maxVolume;
-      return Math.max(Math.round(ratio * 105) + 16, 20);
+      if (step.itemVolume === 0) return 10;
+      const ratio = maxVolume > 0 ? step.itemVolume / maxVolume : 0;
+      return Math.max(Math.round(ratio * 48) + 12, 14);
     } else {
       // By Negative Rate
-      if (step.itemVolume === 0) return 14;
-      return Math.max(Math.round(step.negativeRate * 110) + 16, 20);
+      if (step.itemVolume === 0) return 10;
+      return Math.max(Math.round(step.negativeRate * 50) + 12, 14);
     }
   };
 
@@ -173,7 +173,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
   };
 
   return (
-    <div className="card journey-3d-wrapper animate-in" style={{ padding: 20, marginBottom: 24, overflow: 'hidden' }}>
+    <div className="card journey-3d-wrapper animate-in" style={{ padding: 20, marginBottom: 24 }}>
       {/* Top Header & Interactive Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <div>
@@ -372,8 +372,8 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                 {/* 3D Isometric Bar Matrix for this Stage */}
                 <div
                   style={{
-                    padding: '16px 8px 8px',
-                    minHeight: 160,
+                    padding: '24px 8px 10px',
+                    minHeight: 180,
                     flex: 1,
                     display: 'flex',
                     alignItems: 'flex-end',
@@ -441,7 +441,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                           justifyContent: 'flex-end',
                           cursor: 'pointer',
                           position: 'relative',
-                          zIndex: isStepSelected || isHovered ? 20 : 2,
+                          zIndex: isStepSelected || isHovered ? 50 : 2,
                           padding: '0 2px',
                           transform: isHovered ? 'scale(1.08) translateY(-4px)' : 'none',
                           transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -452,30 +452,30 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                           <div
                             style={{
                               position: 'absolute',
-                              bottom: height + 48,
+                              bottom: height + 24,
                               left: '50%',
                               transform: 'translateX(-50%)',
                               background: '#0f172a',
                               color: '#ffffff',
-                              padding: '10px 14px',
-                              borderRadius: 8,
-                              fontSize: 12,
-                              minWidth: 210,
-                              boxShadow: '0 10px 25px rgba(0,0,0,0.35)',
+                              padding: '7px 11px',
+                              borderRadius: 7,
+                              fontSize: 11,
+                              minWidth: 195,
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
                               pointerEvents: 'none',
-                              zIndex: 40,
+                              zIndex: 100,
                             }}
                           >
                             {/* Step Title Header */}
-                            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: 12, marginBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: 4 }}>
+                            <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: 11, marginBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: 3 }}>
                               [{step.code}] {step.name}
                             </div>
 
                             {/* Sentiment Breakdown List */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 10 }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#fca5a5' }}>
-                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#fca5a5' }}>
+                                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} />
                                   Tiêu cực:
                                 </span>
                                 <strong style={{ color: '#f87171' }}>
@@ -483,8 +483,8 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                                 </strong>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#86efac' }}>
-                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#86efac' }}>
+                                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
                                   Tích cực:
                                 </span>
                                 <strong style={{ color: '#4ade80' }}>
@@ -492,8 +492,8 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                                 </strong>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#fde047' }}>
-                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#eab308' }} />
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#fde047' }}>
+                                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#eab308' }} />
                                   Trung tính:
                                 </span>
                                 <strong style={{ color: '#facc15' }}>
@@ -503,8 +503,8 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                             </div>
 
                             {/* Total Volume */}
-                            <div style={{ marginTop: 6, paddingTop: 5, borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94a3b8' }}>
-                              <span>Tổng số lượng:</span>
+                            <div style={{ marginTop: 4, paddingTop: 3, borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8' }}>
+                              <span>Tổng cộng:</span>
                               <strong style={{ color: '#ffffff' }}>{totalVol.toLocaleString()} phản hồi</strong>
                             </div>
 
@@ -514,8 +514,8 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                                 position: 'absolute',
                                 top: '100%',
                                 left: '50%',
-                                marginLeft: -5,
-                                borderWidth: 5,
+                                marginLeft: -4,
+                                borderWidth: 4,
                                 borderStyle: 'solid',
                                 borderColor: '#0f172a transparent transparent transparent',
                               }}
