@@ -177,18 +177,9 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
       {/* Top Header & Interactive Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Layers size={18} color="var(--color-info)" />
-              Bản đồ Dòng chảy Hành trình Trực quan 3D (Customer Journey Flow)
-            </span>
-            <span className="badge-modern" style={{ background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
-              6 Giai đoạn liên tục • 36 Bước 3D
-            </span>
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-            Kéo trượt sang ngang để xem toàn bộ 6 giai đoạn hành trình. Chiều cao cột 3D phản ánh trực tiếp khối lượng phản ánh hoặc tỷ lệ tiêu cực.
-          </p>
+          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+            Hành trình khách hàng
+          </span>
         </div>
 
         {/* Action Controls & Scroll Arrows */}
@@ -303,29 +294,6 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
               <X size={13} /> Xóa chọn lọc
             </button>
           )}
-        </div>
-      </div>
-
-      {/* Legend & Summary Info */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', background: '#f8fafc', borderRadius: 8, marginBottom: 16, border: '1px solid #e2e8f0', fontSize: 11 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#64748b' }}>
-          <span style={{ fontWeight: 600, color: '#334155' }}>Mức độ Tiêu cực:</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: '#ef4444' }} /> ≥ 50% (Rất cao)
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: '#f97316' }} /> 35 - 49% (Cao)
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: '#eab308' }} /> 20 - 34% (Trung bình)
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: '#3b82f6' }} /> &lt; 20% (Tốt)
-          </span>
-        </div>
-        <div style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span>Dòng thời gian:</span>
-          <strong style={{ color: '#0f172a' }}>Nhận thức ➔ Xem xét ➔ Giao dịch ➔ Nhận nhà ➔ Cư trú ➔ Vận hành</strong>
         </div>
       </div>
 
