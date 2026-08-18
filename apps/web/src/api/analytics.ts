@@ -118,7 +118,7 @@ export class AnalyticsApiError extends Error {
   }
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 const projectId = import.meta.env.VITE_ANALYTICS_PROJECT_ID?.trim();
 
 type ErrorDetail = {
