@@ -8,17 +8,10 @@ import {
   ArrowRight,
   RefreshCw,
   Sparkles,
+  FileSpreadsheet,
 } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import { directImportCsv, DirectImportResponse } from '../../api/importPipeline';
-
-const STANDARD_COLUMNS = [
-  { key: 'noi_dung', label: 'noi_dung', desc: 'Nội dung phản ánh của cư dân / khách hàng (Bắt buộc)', required: true },
-  { key: 'khu_do_thi', label: 'khu_do_thi', desc: 'Tên khu đô thị / Vị trí (VD: Vinhomes Smart City)', required: false },
-  { key: 'thoi_gian', label: 'thoi_gian', desc: 'Thời điểm phản hồi (VD: 2026-08-18 08:30:00)', required: false },
-  { key: 'ma_phan_anh', label: 'ma_phan_anh', desc: 'Mã số phiếu / ID phản hồi (VD: PA-00123)', required: false },
-  { key: 'kenh_tiep_nhan', label: 'kenh_tiep_nhan', desc: 'Kênh gửi (VD: App cư dân, Hotline, Quầy)', required: false },
-];
 
 const SAMPLE_CSV_CONTENT = `noi_dung,khu_do_thi,thoi_gian,ma_phan_anh,kenh_tiep_nhan
 "Cửa barrier cổng hầm quẹt thẻ không nhận vào giờ cao điểm sáng","Vinhomes Smart City","2026-08-15 07:45:00","PA-00101","App cư dân"
@@ -40,7 +33,6 @@ const ImportWizardPage: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [result, setResult] = useState<DirectImportResponse | null>(null);
 
-  // Download Sample Template CSV
   const handleDownloadTemplate = () => {
     const blob = new Blob(['\uFEFF' + SAMPLE_CSV_CONTENT], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -58,11 +50,10 @@ const ImportWizardPage: React.FC = () => {
     if (!selectedFile) return;
 
     if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
-      setMessage('Vui lòng chọn đúng tệp bảng tính định dạng chuẩn .CSV');
+      setMessage('Vui lòng chọn tệp bảng tính có định dạng .CSV');
     }
   };
 
-  // Direct 1-Click Upload and Ingest
   const handleDirectImport = async () => {
     if (!file) return;
     setBusy(true);
@@ -80,90 +71,80 @@ const ImportWizardPage: React.FC = () => {
 
   return (
     <>
-      <TopBar title="Nhập dữ liệu" subtitle="Tải lên và nạp nhanh tệp dữ liệu phản ánh (.CSV)" />
-      <main className="page-content" style={{ padding: '24px 28px', maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Header with Template Download Button */}
-        <div className="card" style={{ padding: '18px 22px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
-              Nạp dữ liệu phản ánh khách hàng
-            </h2>
-            <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
-              Chọn tệp <strong>.CSV</strong> theo mẫu chuẩn để nạp trực tiếp vào hệ thống ngay lập tức.
-            </p>
+      <TopBar title="Nhập dữ liệu" subtitle="Nạp nhanh tệp dữ liệu phản ánh khách hàng" />
+      <main className="page-content" style={{ padding: '32px 28px', maxWidth: 780, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Main Card */}
+        <div className="card" style={{ padding: '32px 36px', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: 20 }}>
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+                Tải lên tệp phản ánh (.CSV)
+              </h2>
+              <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                Chọn tệp CSV để nạp dữ liệu vào hệ thống phân tích. Dữ liệu sẽ tự động được làm sạch và hiển thị trên bảng điều khiển.
+              </p>
+            </div>
+
+            <button
+              onClick={handleDownloadTemplate}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                borderRadius: 6,
+                background: '#f8fafc',
+                color: '#2563eb',
+                border: '1px solid #e2e8f0',
+                fontWeight: 600,
+                fontSize: 12,
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#eff6ff';
+                e.currentTarget.style.borderColor = '#bfdbfe';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#f8fafc';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}
+            >
+              <Download size={14} />
+              <span>Tải file CSV mẫu</span>
+            </button>
           </div>
 
-          <button
-            onClick={handleDownloadTemplate}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '9px 15px',
-              borderRadius: 6,
-              background: '#eff6ff',
-              color: '#2563eb',
-              border: '1px solid #bfdbfe',
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
-          >
-            <Download size={16} />
-            Tải tệp mẫu chuẩn (.CSV)
-          </button>
-        </div>
+          {message && (
+            <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, color: '#b91c1c', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{message}</span>
+            </div>
+          )}
 
-        {/* Standard Columns Specification Box */}
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '16px 20px' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-            📋 Quy định các cột trong tệp CSV mẫu:
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-            {STANDARD_COLUMNS.map((col) => (
-              <div key={col.key} style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '8px 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                  <code style={{ fontSize: 13, fontWeight: 700, color: col.required ? '#dc2626' : '#2563eb' }}>{col.label}</code>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: col.required ? '#dc2626' : '#64748b' }}>
-                    {col.required ? 'Bắt buộc' : 'Tùy chọn'}
-                  </span>
-                </div>
-                <span style={{ fontSize: 11, color: '#64748b', lineHeight: 1.3, display: 'block' }}>{col.desc}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {message && (
-          <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, color: '#b91c1c', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
-            <span>{message}</span>
-          </div>
-        )}
-
-        {/* Main Upload Box */}
-        <div className="card" style={{ padding: '32px 28px', borderRadius: 10, minHeight: 280, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           {result ? (
-            /* Result Success View */
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 16 }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <CheckCircle2 size={38} color="#16a34a" />
+            /* Success State */
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 16, padding: '20px 0' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle2 size={32} color="#16a34a" />
               </div>
 
               <div>
-                <h3 style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
-                  Nạp dữ liệu phản ánh thành công!
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+                  Nạp dữ liệu thành công!
                 </h3>
-                <p style={{ fontSize: 14, color: '#15803d', margin: 0, fontWeight: 600 }}>
-                  Đã ghi nhận thành công {result.imported_rows.toLocaleString()} / {result.total_rows.toLocaleString()} phản ánh vào hệ thống.
+                <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
+                  Đã ghi nhận <strong>{result.imported_rows.toLocaleString()}</strong> phản ánh vào kho dữ liệu.
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
                 <button
                   onClick={() => navigate('/feedback')}
                   style={{
-                    padding: '10px 22px',
+                    padding: '9px 20px',
                     borderRadius: 6,
                     background: '#2563eb',
                     color: '#ffffff',
@@ -174,11 +155,11 @@ const ImportWizardPage: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
-                    boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
+                    boxShadow: '0 2px 8px rgba(37,99,235,0.2)',
                   }}
                 >
-                  <span>Xem danh sách phản hồi vừa nạp</span>
-                  <ArrowRight size={15} />
+                  <span>Xem danh sách phản hồi</span>
+                  <ArrowRight size={14} />
                 </button>
 
                 <button
@@ -188,7 +169,7 @@ const ImportWizardPage: React.FC = () => {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '10px 18px',
+                    padding: '9px 16px',
                     borderRadius: 6,
                     background: '#ffffff',
                     color: '#475569',
@@ -198,20 +179,19 @@ const ImportWizardPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Nhập thêm tệp khác
+                  Nhập tệp khác
                 </button>
               </div>
             </div>
           ) : (
-            /* Upload Action View */
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 18, width: '100%' }}>
+            /* Upload Zone */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <label
                 style={{
                   width: '100%',
-                  maxWidth: 540,
                   border: file ? '2px solid #22c55e' : '2px dashed #cbd5e1',
                   borderRadius: 10,
-                  padding: '36px 24px',
+                  padding: '40px 24px',
                   background: file ? '#f0fdf4' : '#fafafa',
                   cursor: 'pointer',
                   display: 'flex',
@@ -233,45 +213,75 @@ const ImportWizardPage: React.FC = () => {
                   style={{ display: 'none' }}
                   onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
                 />
-                <UploadCloud size={40} color={file ? '#16a34a' : '#2563eb'} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
-                  {file ? file.name : 'Nhấp để chọn tệp .CSV hoặc kéo thả file vào đây'}
-                </span>
-                <span style={{ fontSize: 12, color: '#64748b' }}>
-                  {file ? `Dung lượng: ${formatSize(file.size)} · Sẵn sàng nạp` : 'Hỗ trợ tệp bảng tính định dạng chuẩn .CSV'}
-                </span>
+                {file ? (
+                  <FileSpreadsheet size={40} color="#16a34a" />
+                ) : (
+                  <UploadCloud size={40} color="#64748b" />
+                )}
+                <div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', display: 'block' }}>
+                    {file ? file.name : 'Nhấp để chọn tệp .CSV hoặc kéo thả vào đây'}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#64748b', display: 'block', marginTop: 4 }}>
+                    {file ? `Dung lượng: ${formatSize(file.size)} · Đã sẵn sàng` : 'Hỗ trợ định dạng .CSV (UTF-8)'}
+                  </span>
+                </div>
               </label>
 
-              <button
-                onClick={handleDirectImport}
-                disabled={!file || busy}
-                style={{
-                  padding: '11px 32px',
-                  borderRadius: 6,
-                  background: !file || busy ? '#94a3b8' : '#2563eb',
-                  color: '#ffffff',
-                  border: 'none',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: !file || busy ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  boxShadow: file ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
-                }}
-              >
-                {busy ? (
-                  <>
-                    <RefreshCw size={16} className="spin" />
-                    <span>Đang nạp dữ liệu vào hệ thống...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Tải lên & Nạp dữ liệu ngay</span>
-                    <Sparkles size={16} />
-                  </>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>
+                {file && (
+                  <button
+                    onClick={() => {
+                      setFile(null);
+                      setMessage(null);
+                    }}
+                    style={{
+                      padding: '9px 16px',
+                      borderRadius: 6,
+                      background: '#ffffff',
+                      color: '#64748b',
+                      border: '1px solid #e2e8f0',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Hủy chọn
+                  </button>
                 )}
-              </button>
+
+                <button
+                  onClick={handleDirectImport}
+                  disabled={!file || busy}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: 6,
+                    background: !file || busy ? '#94a3b8' : '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: !file || busy ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    boxShadow: file ? '0 2px 8px rgba(37,99,235,0.25)' : 'none',
+                  }}
+                >
+                  {busy ? (
+                    <>
+                      <RefreshCw size={15} className="spin" />
+                      <span>Đang nạp dữ liệu...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Nạp dữ liệu vào hệ thống</span>
+                      <Sparkles size={15} />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
