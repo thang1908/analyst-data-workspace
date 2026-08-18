@@ -12,20 +12,20 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: 'TỔNG QUAN',
     items: [
-      { label: 'CX Dashboard', icon: '⬡', path: '/overview' },
+      { label: 'Tổng quan CX', icon: '⬡', path: '/overview' },
     ],
   },
   {
     title: 'TRẢI NGHIỆM KHÁCH HÀNG',
     items: [
-      { label: 'Hotspot & Root Cause', icon: '🔥', path: '/hotspot' },
+      { label: 'Điểm nóng & Căn nguyên', icon: '🔥', path: '/hotspot' },
     ],
   },
   {
     title: 'VẬN HÀNH',
     items: [
-      { label: 'Feedback Explorer', icon: '◎', path: '/feedback' },
-      { label: 'Imports', icon: '↑', path: '/imports' },
+      { label: 'Tra cứu phản hồi', icon: '◎', path: '/feedback' },
+      { label: 'Nhập dữ liệu', icon: '↑', path: '/imports' },
     ],
   },
 ];
@@ -41,7 +41,7 @@ const Sidebar: React.FC = () => {
         <div className="sidebar-logo-icon">⬡</div>
         <div>
           <div className="sidebar-logo-text">CX Platform</div>
-          <div className="sidebar-logo-sub">Intelligence & Operations</div>
+          <div className="sidebar-logo-sub">Quản trị & Vận hành CX</div>
         </div>
       </div>
 

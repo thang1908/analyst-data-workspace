@@ -18,17 +18,17 @@ const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
         )}
       </div>
 
-      <span className="topbar-context" title="Project được lấy từ VITE_ANALYTICS_PROJECT_ID">
-        {isConfigured ? 'Project analytics' : 'Chưa cấu hình project'}
+      <span className="topbar-context" title="Dự án được kết nối từ hệ thống dữ liệu">
+        {isConfigured ? 'Dự án phân tích CX' : 'Chưa kết nối dự án'}
       </span>
 
       <input
         className="topbar-search"
-        placeholder="🔍  Tìm kiếm..."
+        placeholder="🔍  Tìm kiếm nhanh..."
         type="text"
       />
 
-      <div className="topbar-avatar" title="CX Manager">M</div>
+      <div className="topbar-avatar" title="Quản trị viên CX">CX</div>
     </header>
   );
 };

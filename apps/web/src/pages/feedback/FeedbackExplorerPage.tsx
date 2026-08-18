@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { UploadCloud, Download, RefreshCw } from 'lucide-react';
+import { UploadCloud, Download, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import AnalyticsState from '../../components/analytics/AnalyticsState';
 import FeedbackDataTable from '../../components/feedback/FeedbackDataTable';
@@ -20,15 +20,29 @@ const FeedbackExplorerPage: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<FeedbackWorkspaceItem | null>(null);
   const [loading, setLoading] = useState(Boolean(filters));
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const query = searchParams.get('q') ?? '';
 
   const setQuery = useCallback((value: string) => {
+    setPage(1);
     setSearchParams((current) => {
       const next = new URLSearchParams(current);
       if (value) next.set('q', value); else next.delete('q');
       return next;
     });
   }, [setSearchParams]);
+
+  // Reset to page 1 whenever filters change
+  const handleFilterChange = (field: any, value: string | undefined) => {
+    setPage(1);
+    setFilter(field, value);
+  };
+
+  const handleResetFilters = () => {
+    setPage(1);
+    resetFilters();
+  };
 
   // Load summary metrics for tabs
   useEffect(() => {
@@ -69,6 +83,8 @@ const FeedbackExplorerPage: React.FC = () => {
         touchpointCode: filters.touchpointCode,
         hotspotId,
         query,
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
       });
       setItems(result.items);
       setTotal(result.total);
@@ -77,7 +93,7 @@ const FeedbackExplorerPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, query, searchParams]);
+  }, [filters, query, searchParams, page, pageSize]);
 
   useEffect(() => { void loadItems(); }, [loadItems]);
 
@@ -90,6 +106,9 @@ const FeedbackExplorerPage: React.FC = () => {
   const negCount = summary ? Math.round(summary.itemVolume * summary.negativeRate) : 0;
   const posCount = summary ? Math.round(summary.itemVolume * summary.positiveRate) : 0;
   const neuCount = summary ? Math.max(0, summary.itemVolume - negCount - posCount) : 0;
+
+  // Total pages
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // Handle Export CSV
   const handleExportCSV = () => {
@@ -112,14 +131,14 @@ const FeedbackExplorerPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `feedback_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `danh_sach_phan_anh_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <>
-      <TopBar title="Feedback Explorer" />
+      <TopBar title="Tra cứu phản hồi" subtitle="Bằng chứng và phân loại dữ liệu" />
       <main className="page-content" style={{ padding: '20px 24px', maxWidth: 1600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {analyticsConfigurationError && (
           <AnalyticsState title="Chưa cấu hình Analytics" message={analyticsConfigurationError} />
@@ -139,7 +158,7 @@ const FeedbackExplorerPage: React.FC = () => {
                   {/* Sentiment Segmented Tabs */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <button
-                      onClick={() => setFilter('sentiment', undefined)}
+                      onClick={() => handleFilterChange('sentiment', undefined)}
                       style={{
                         padding: '6px 12px',
                         borderRadius: 6,
@@ -161,7 +180,7 @@ const FeedbackExplorerPage: React.FC = () => {
                     </button>
 
                     <button
-                      onClick={() => setFilter('sentiment', 'NEGATIVE')}
+                      onClick={() => handleFilterChange('sentiment', 'NEGATIVE')}
                       style={{
                         padding: '6px 12px',
                         borderRadius: 6,
@@ -186,7 +205,7 @@ const FeedbackExplorerPage: React.FC = () => {
                     </button>
 
                     <button
-                      onClick={() => setFilter('sentiment', 'NEUTRAL')}
+                      onClick={() => handleFilterChange('sentiment', 'NEUTRAL')}
                       style={{
                         padding: '6px 12px',
                         borderRadius: 6,
@@ -211,7 +230,7 @@ const FeedbackExplorerPage: React.FC = () => {
                     </button>
 
                     <button
-                      onClick={() => setFilter('sentiment', 'POSITIVE')}
+                      onClick={() => handleFilterChange('sentiment', 'POSITIVE')}
                       style={{
                         padding: '6px 12px',
                         borderRadius: 6,
@@ -256,7 +275,7 @@ const FeedbackExplorerPage: React.FC = () => {
                     }}
                   >
                     <UploadCloud size={15} />
-                    Import dữ liệu
+                    Nhập dữ liệu
                   </button>
 
                   <button
@@ -303,13 +322,13 @@ const FeedbackExplorerPage: React.FC = () => {
               activeFilterCount={activeFilterCount}
               query={query}
               onQueryChange={setQuery}
-              onChange={setFilter}
-              onReset={resetFilters}
+              onChange={handleFilterChange}
+              onReset={handleResetFilters}
             />
 
             {/* Table Section */}
             {loading && (
-              <AnalyticsState title="Đang tải danh sách phản ánh" message="Đang truy vấn dữ liệu theo bộ lọc đã chọn…" />
+              <AnalyticsState title="Đang tải danh sách phản ánh" message="Đang truy vấn dữ liệu theo trang và bộ lọc…" />
             )}
 
             {!loading && error && (
@@ -321,26 +340,182 @@ const FeedbackExplorerPage: React.FC = () => {
                 title="Không tìm thấy phản ánh nào"
                 message="Hãy thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc."
                 onRetry={() => {
-                  resetFilters();
+                  handleResetFilters();
                   setQuery('');
                 }}
               />
             )}
 
             {!loading && !error && Boolean(items.length) && (
-              <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <FeedbackDataTable
                   items={items}
                   selectedId={selectedItem?.feedbackItemId}
                   onSelect={handleSelectItem}
                 />
 
-                {/* Table Footer Summary */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 4px', fontSize: 12, color: '#64748b' }}>
-                  <span>Hiển thị <strong>{items.length}</strong> trong tổng số <strong>{total.toLocaleString()}</strong> phản ánh</span>
-                  <span>Nhấp vào bất kỳ dòng nào để xem toàn văn bằng chứng & phân tích</span>
+                {/* Modern Pagination Footer */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 12,
+                    background: '#ffffff',
+                    padding: '12px 18px',
+                    borderRadius: 8,
+                    border: '1px solid #e2e8f0',
+                    fontSize: 13,
+                    color: '#475569',
+                  }}
+                >
+                  {/* Left: Range Info & Page Size */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                    <span>
+                      Hiển thị <strong>{(page - 1) * pageSize + 1}</strong> -{' '}
+                      <strong>{Math.min(page * pageSize, total).toLocaleString()}</strong> trong{' '}
+                      <strong>{total.toLocaleString()}</strong> phản ánh
+                    </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 12, color: '#64748b' }}>Mỗi trang:</span>
+                      <select
+                        value={pageSize}
+                        onChange={(e) => {
+                          setPageSize(Number(e.target.value));
+                          setPage(1);
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: 6,
+                          border: '1px solid #cbd5e1',
+                          background: '#ffffff',
+                          fontSize: 12,
+                          color: '#1e293b',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value={10}>10 mục</option>
+                        <option value={20}>20 mục</option>
+                        <option value={50}>50 mục</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Right: Pagination Controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button
+                      onClick={() => setPage(1)}
+                      disabled={page === 1}
+                      style={{
+                        padding: '6px 8px',
+                        borderRadius: 6,
+                        border: '1px solid #cbd5e1',
+                        background: page === 1 ? '#f8fafc' : '#ffffff',
+                        color: page === 1 ? '#94a3b8' : '#334155',
+                        cursor: page === 1 ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Trang đầu"
+                    >
+                      <ChevronsLeft size={15} />
+                    </button>
+
+                    <button
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: '1px solid #cbd5e1',
+                        background: page === 1 ? '#f8fafc' : '#ffffff',
+                        color: page === 1 ? '#94a3b8' : '#334155',
+                        cursor: page === 1 ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    >
+                      <ChevronLeft size={15} /> Trước
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum = i + 1;
+                        if (totalPages > 5 && page > 3) {
+                          pageNum = page - 3 + i;
+                          if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                        }
+                        if (pageNum < 1 || pageNum > totalPages) return null;
+
+                        const isCurrent = page === pageNum;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setPage(pageNum)}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 6,
+                              border: isCurrent ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                              background: isCurrent ? '#2563eb' : '#ffffff',
+                              color: isCurrent ? '#ffffff' : '#334155',
+                              fontWeight: isCurrent ? 700 : 500,
+                              fontSize: 12,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: '1px solid #cbd5e1',
+                        background: page >= totalPages ? '#f8fafc' : '#ffffff',
+                        color: page >= totalPages ? '#94a3b8' : '#334155',
+                        cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 12,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Sau <ChevronRight size={15} />
+                    </button>
+
+                    <button
+                      onClick={() => setPage(totalPages)}
+                      disabled={page >= totalPages}
+                      style={{
+                        padding: '6px 8px',
+                        borderRadius: 6,
+                        border: '1px solid #cbd5e1',
+                        background: page >= totalPages ? '#f8fafc' : '#ffffff',
+                        color: page >= totalPages ? '#94a3b8' : '#334155',
+                        cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Trang cuối"
+                    >
+                      <ChevronsRight size={15} />
+                    </button>
+                  </div>
                 </div>
-              </>
+              </div>
             )}
           </>
         )}

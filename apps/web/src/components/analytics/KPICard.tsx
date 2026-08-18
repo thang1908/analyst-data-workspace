@@ -58,31 +58,31 @@ const percentage = (value: number) => `${value.toFixed(1)}%`;
 export const buildKPICards = (data: KPIData) => [
   {
     type: 'negative' as const,
-    label: 'NEGATIVE RATE',
+    label: 'TỶ LỆ TIÊU CỰC',
     icon: '↓',
     value: percentage(data.negativeRate),
     subtitle: 'Trong bộ lọc hiện tại',
   },
   {
     type: 'volume' as const,
-    label: 'FEEDBACK VOLUME',
+    label: 'TỔNG PHẢN HỒI',
     icon: '◎',
     value: data.feedbackVolume.toLocaleString(),
     subtitle: 'Phản hồi đủ điều kiện',
   },
   {
     type: 'hotspot' as const,
-    label: 'ACTIVE HOTSPOTS',
+    label: 'ĐIỂM NÓNG ĐANG MỞ',
     icon: '🔥',
     value: String(data.activeHotspots),
     delta: undefined,
-    subtitle: data.activeHotspots ? 'Cần được theo dõi' : 'Không có hotspot đang hoạt động',
+    subtitle: data.activeHotspots ? 'Cần được theo dõi' : 'Không có điểm nóng',
   },
   {
     type: 'unknown' as const,
-    label: 'SENTIMENT UNKNOWN RATE',
+    label: 'CHƯA RÕ CẢM XÚC',
     icon: '◈',
     value: percentage(data.unknownRate),
-    subtitle: 'Phản hồi chưa xác định được cảm xúc',
+    subtitle: 'Phản hồi chưa phân loại',
   },
 ];
