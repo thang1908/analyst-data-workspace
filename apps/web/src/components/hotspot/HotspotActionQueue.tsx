@@ -283,7 +283,7 @@ export const HotspotActionQueue: React.FC<HotspotActionQueueProps> = ({
                         ● {priorityConfig.label}
                       </span>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6, background: '#f1f5f9', color: '#475569' }}>
-                        {h.operational_severity}
+                        {{ 'SEV-1': 'Cấp 1', 'SEV-2': 'Cấp 2', 'SEV-3': 'Cấp 3', 'SEV-4': 'Cấp 4' }[h.operational_severity] ?? h.operational_severity}
                       </span>
                     </div>
                     <span style={{ fontSize: 11, color: '#64748b', background: '#f8fafc', padding: '1px 6px', borderRadius: 4 }}>
@@ -293,10 +293,10 @@ export const HotspotActionQueue: React.FC<HotspotActionQueueProps> = ({
 
                   {/* Title & Issue */}
                   <h4 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 4px 0', lineHeight: 1.3 }}>
-                    {h.service.name_vi ?? h.service.code}
+                    {h.service.name_vi || 'Dịch vụ'}
                   </h4>
                   <p style={{ fontSize: 12, color: '#475569', margin: '0 0 8px 0', lineHeight: 1.4, fontWeight: 500 }}>
-                    {h.issue.name_vi ?? h.issue.code}
+                    {h.issue.name_vi || 'Vấn đề'}
                   </p>
 
                   {/* Location & Count Tag */}

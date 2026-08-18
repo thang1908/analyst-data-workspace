@@ -156,7 +156,7 @@ export const FeedbackDetailModal: React.FC<FeedbackDetailModalProps> = ({ item, 
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12 }}>
               <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Mức độ vận hành</span>
               <strong style={{ fontSize: 14, color: classification.operationalSeverity === 'SEV-1' ? '#dc2626' : '#0f172a' }}>
-                {classification.operationalSeverity || 'SEV-4 (Thấp)'}
+                {{ 'SEV-1': 'Cấp 1 (Nghiêm trọng)', 'SEV-2': 'Cấp 2 (Cao)', 'SEV-3': 'Cấp 3 (Trung bình)', 'SEV-4': 'Cấp 4 (Nhẹ / Thấp)' }[classification.operationalSeverity ?? ''] ?? (classification.operationalSeverity || 'Cấp 4 (Nhẹ / Thấp)')}
               </strong>
             </div>
 
@@ -170,7 +170,9 @@ export const FeedbackDetailModal: React.FC<FeedbackDetailModalProps> = ({ item, 
 
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12 }}>
               <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 4 }}>Điều kiện phân tích</span>
-              <strong style={{ fontSize: 13, color: '#16a34a' }}>{item.analyticEligibility}</strong>
+              <strong style={{ fontSize: 13, color: '#16a34a' }}>
+                {item.analyticEligibility === 'INCLUDED' ? 'Hợp lệ đưa vào phân tích' : item.analyticEligibility === 'EXCLUDED' ? 'Loại trừ' : 'Đang xử lý'}
+              </strong>
             </div>
           </div>
 
@@ -181,7 +183,7 @@ export const FeedbackDetailModal: React.FC<FeedbackDetailModalProps> = ({ item, 
             </div>
             <span style={{ color: '#64748b' }}>
               {item.parentItemId
-                ? `Item này là phân đoạn con tách từ Feedback gốc #${item.parentItemId}`
+                ? 'Item này là phân đoạn con tách từ phản hồi gốc ban đầu.'
                 : 'Đây là phản hồi gốc ban đầu, không qua phân tách ý định.'}
             </span>
           </div>

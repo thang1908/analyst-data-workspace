@@ -468,7 +468,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                           >
                             {/* Step Title Header */}
                             <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: 11, marginBottom: 4, borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: 3 }}>
-                              [{step.code}] {step.name}
+                              {step.name}
                             </div>
 
                             {/* Sentiment Breakdown List */}

@@ -26,6 +26,35 @@ interface HotspotDetailModalProps {
   onRefresh: () => void;
 }
 
+const PRIORITY_LABELS: Record<string, string> = {
+  IMMEDIATE: 'Xử lý ngay',
+  URGENT: 'Khẩn cấp',
+  PLANNED: 'Theo kế hoạch',
+  MONITOR: 'Theo dõi',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  CANDIDATE: 'Mới phát hiện',
+  ACKNOWLEDGED: 'Đã ghi nhận',
+  INVESTIGATING: 'Đang xử lý',
+  RESOLVED: 'Đã giải quyết',
+  DISMISSED: 'Đã đóng',
+};
+
+const SEVERITY_LABELS: Record<string, string> = {
+  'SEV-1': 'Cấp 1',
+  'SEV-2': 'Cấp 2',
+  'SEV-3': 'Cấp 3',
+  'SEV-4': 'Cấp 4',
+};
+
+const SENTIMENT_LABELS: Record<string, string> = {
+  NEGATIVE: 'Tiêu cực',
+  POSITIVE: 'Tích cực',
+  NEUTRAL: 'Trung tính',
+  UNKNOWN: 'Chưa rõ',
+};
+
 export const HotspotDetailModal: React.FC<HotspotDetailModalProps> = ({
   detail,
   onClose,
@@ -105,17 +134,17 @@ export const HotspotDetailModal: React.FC<HotspotDetailModalProps> = ({
           <div className="modal-title-area">
             <div className="hotspot-badges">
               <span className={`priority-badge priority-${hotspot.action_priority.toLowerCase()}`}>
-                {hotspot.action_priority}
+                {PRIORITY_LABELS[hotspot.action_priority] ?? hotspot.action_priority}
               </span>
               <span className={`severity-badge severity-${hotspot.operational_severity.toLowerCase()}`}>
-                {hotspot.operational_severity}
+                {SEVERITY_LABELS[hotspot.operational_severity] ?? hotspot.operational_severity}
               </span>
               <span className={`status-badge status-${hotspot.status.toLowerCase()}`}>
-                {hotspot.status}
+                {STATUS_LABELS[hotspot.status] ?? hotspot.status}
               </span>
             </div>
             <h2>
-              {hotspot.service.name_vi ?? hotspot.service.code} • {hotspot.issue.name_vi ?? hotspot.issue.code}
+              {hotspot.service.name_vi || 'Dịch vụ'} • {hotspot.issue.name_vi || 'Vấn đề'}
             </h2>
             <p className="modal-subtitle">
               {hotspot.location?.name_vi ? `Vị trí: ${hotspot.location.name_vi}` : 'Phạm vi toàn hệ thống'} • {hotspot.evidence_count} phản ánh phát hiện
@@ -259,12 +288,12 @@ export const HotspotDetailModal: React.FC<HotspotDetailModalProps> = ({
                       <td>{item.content_masked}</td>
                       <td>
                         <span className={`sentiment-pill sentiment-${item.sentiment.toLowerCase()}`}>
-                          {item.sentiment}
+                          {SENTIMENT_LABELS[item.sentiment] ?? item.sentiment}
                         </span>
                       </td>
                       <td>
                         <span className={`severity-badge severity-${item.operational_severity.toLowerCase()}`}>
-                          {item.operational_severity}
+                          {SEVERITY_LABELS[item.operational_severity] ?? item.operational_severity}
                         </span>
                       </td>
                     </tr>
@@ -289,7 +318,7 @@ export const HotspotDetailModal: React.FC<HotspotDetailModalProps> = ({
                       </span>
                     </div>
                     <div className="timeline-sub">
-                      {event.from_status ? `${event.from_status} → ` : ''}{event.to_status}
+                      {event.from_status ? `${STATUS_LABELS[event.from_status] ?? event.from_status} → ` : ''}{STATUS_LABELS[event.to_status] ?? event.to_status}
                       {event.reason ? ` • Lý do: ${event.reason}` : ''}
                     </div>
                   </div>
