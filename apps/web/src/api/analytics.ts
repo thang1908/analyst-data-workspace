@@ -165,7 +165,7 @@ export const defaultAnalyticsFilters = (): AnalyticsFilters | null => {
   if (!projectId) return null;
   const dateTo = new Date();
   const dateFrom = new Date();
-  dateFrom.setDate(dateTo.getDate() - 29);
+  dateFrom.setDate(dateTo.getDate() - 120);
   return {
     projectId,
     dateFrom: formatLocalDate(dateFrom),
