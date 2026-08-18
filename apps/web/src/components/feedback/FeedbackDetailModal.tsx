@@ -96,9 +96,6 @@ export const FeedbackDetailModal: React.FC<FeedbackDetailModalProps> = ({ item, 
               <MessageSquare size={18} color="#2563eb" />
               Chi tiết phản ánh của khách hàng
             </h3>
-            <span style={{ fontSize: 11, color: '#64748b', marginTop: 2, display: 'block' }}>
-              Mã ID: <code>{item.feedbackItemId}</code>
-            </span>
           </div>
 
           <button
@@ -135,7 +132,7 @@ export const FeedbackDetailModal: React.FC<FeedbackDetailModalProps> = ({ item, 
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Calendar size={13} /> {formatDate(item.reportedAt)}
               </span>
-              <span>Kênh: <strong>{item.sourceSystem}</strong></span>
+              <span>Kênh: <strong>Đang cập nhật</strong></span>
             </div>
           </div>
 

@@ -112,9 +112,9 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
         <tbody>
           {items.map((item, idx) => {
             const isSelected = selectedId === item.feedbackItemId;
-            const locationName = item.location.name || item.location.code || 'Toàn dự án';
+            const locationName = item.location.name || 'Toàn dự án';
             const serviceName = item.currentClassification.service?.nameVi || 'Chưa phân loại';
-            const channel = item.sourceSystem || 'Tại quầy';
+            const channel = '-';
 
             return (
               <tr
@@ -164,8 +164,8 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
                 </td>
 
                 {/* Kênh phản ánh */}
-                <td style={{ padding: '12px 14px', color: '#475569', fontSize: 12 }}>
-                  <span style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 4, fontWeight: 500 }}>
+                <td style={{ padding: '12px 14px', color: '#64748b', fontSize: 12 }}>
+                  <span style={{ color: '#94a3b8' }}>
                     {channel}
                   </span>
                 </td>

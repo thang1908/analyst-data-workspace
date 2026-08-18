@@ -639,7 +639,7 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Sparkles size={16} color="#ef4444" />
-                Chi tiết bước hành trình: [{activeStep.code}] {activeStep.name}
+                Chi tiết bước hành trình: {activeStep.name}
               </span>
               <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>
                 Khối lượng: <strong>{activeStep.itemVolume.toLocaleString()}</strong> phản hồi
@@ -703,14 +703,13 @@ export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#1e293b' }}>
                         {tp.name}
                       </div>
-                      <div style={{ fontSize: 10, color: '#64748b' }}>{tp.code}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>
                         {tp.itemVolume.toLocaleString()}
                       </div>
                       <div style={{ fontSize: 10, color: tp.negativeRate >= 0.4 ? '#dc2626' : '#64748b' }}>
-                        {(tp.negativeRate * 100).toFixed(0)}% neg
+                        {(tp.negativeRate * 100).toFixed(0)}% tiêu cực
                       </div>
                     </div>
                   </div>

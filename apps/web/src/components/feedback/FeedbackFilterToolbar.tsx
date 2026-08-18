@@ -225,12 +225,6 @@ export const FeedbackFilterToolbar: React.FC<FeedbackFilterToolbarProps> = ({
             options={options?.severities ?? []}
             onChange={(v) => onChange('operationalSeverity', v)}
           />
-          <FilterSelect
-            label="Nguồn dữ liệu"
-            value={filters.sourceSystem}
-            options={options?.sourceSystems ?? []}
-            onChange={(v) => onChange('sourceSystem', v)}
-          />
         </div>
       )}
     </div>
