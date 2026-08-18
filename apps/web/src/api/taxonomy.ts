@@ -69,7 +69,7 @@ export interface IssueItem {
   sort_order: number;
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 
 export const listCustomerLifecycleStages = async (): Promise<LifecycleStage[]> => {
   const res = await fetch(`${baseUrl}/api/v1/customer-lifecycle/stages`);

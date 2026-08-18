@@ -81,7 +81,7 @@ interface ApiListResponse {
   meta: { total: number; limit: number; offset: number };
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 export const feedbackProjectId = import.meta.env.VITE_ANALYTICS_PROJECT_ID?.trim();
 
 const toItem = (item: ApiFeedbackItem): FeedbackWorkspaceItem => ({

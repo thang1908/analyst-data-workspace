@@ -83,7 +83,7 @@ export interface HotspotDetailResponse {
   data: HotspotDetailData;
 }
 
-const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 
 export const listHotspots = async (filters: HotspotListFilters): Promise<HotspotListResponse> => {
   const url = new URL(`${baseUrl}/api/v1/hotspots`);
