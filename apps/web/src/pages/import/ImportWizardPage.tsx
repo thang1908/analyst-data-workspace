@@ -49,7 +49,7 @@ const ImportWizardPage: React.FC = () => {
   const submitExecution = () => job && run(() => executeImport(job), 4);
   const retryStatus = () => job && void getImportJob(job.importJobId).then((next) => { setJob(next); if (['COMPLETED', 'PARTIAL', 'FAILED'].includes(next.status)) setStep(5); });
 
-  return <><TopBar title="Imports" subtitle="Nạp feedback có kiểm soát và truy vết theo dòng" />
+  return <><TopBar title="Nhập dữ liệu" />
     <main className="page-content import-page">
       <div className="import-header"><div><h1>Nhập dữ liệu phản hồi</h1><p>Kiểm tra cấu trúc, xử lý lỗi và chỉ nạp các dòng đã được xác thực.</p></div><span className="import-scope">{configured ? 'Đã cấu hình project' : 'Thiếu cấu hình project'}</span></div>
       <ol className="import-steps" aria-label="Tiến trình nhập dữ liệu">{steps.map((label, index) => <li key={label} className={index === step ? 'active' : index < step ? 'done' : ''}><span>{index < step ? <Check size={14} /> : index + 1}</span><small>{label}</small></li>)}</ol>

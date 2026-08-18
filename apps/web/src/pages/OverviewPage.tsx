@@ -142,7 +142,7 @@ const OverviewPage: React.FC = () => {
 
   return (
     <>
-      <TopBar title="CX Operating Dashboard" subtitle="Giám sát hành trình, chất lượng dịch vụ & hàng đợi điểm nóng" />
+      <TopBar title="CX Dashboard" />
       <div className="page-content">
         <AnalyticsFilterBar
           filters={filters}
@@ -207,8 +207,7 @@ const OverviewPage: React.FC = () => {
               <section className="card animate-in">
                 <div className="section-header">
                   <div>
-                    <span className="section-title">10 Dịch vụ vận hành</span>
-                    <p className="dashboard-helper">Nhấp vào dịch vụ để lọc vấn đề và bằng chứng liên quan</p>
+                    <span className="section-title">Dịch vụ vận hành</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span className="panel-count">{services.length} dịch vụ</span>
@@ -261,8 +260,7 @@ const OverviewPage: React.FC = () => {
               <div className="card animate-in">
                 <div className="section-header">
                   <div>
-                    <span className="section-title">Vấn đề phát sinh nổi bật (Pain Points)</span>
-                    <p className="dashboard-helper">Nhấp vào vấn đề để xem chi tiết bằng chứng phản ánh</p>
+                    <span className="section-title">Vấn đề phát sinh</span>
                   </div>
                 </div>
                 {issues.length ? (
@@ -282,8 +280,7 @@ const OverviewPage: React.FC = () => {
             <div className="card animate-in" style={{ marginTop: 24 }}>
               <div className="section-header">
                 <div>
-                  <span className="section-title">Xu hướng trải nghiệm & tỷ lệ tiêu cực</span>
-                  <p className="dashboard-helper">Biểu đồ khối lượng phản ánh và biến động tỷ lệ tiêu cực theo thời gian</p>
+                  <span className="section-title">Xu hướng theo thời gian</span>
                 </div>
               </div>
               {trend.length ? (

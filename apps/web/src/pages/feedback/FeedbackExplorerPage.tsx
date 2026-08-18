@@ -80,7 +80,7 @@ const FeedbackExplorerPage: React.FC = () => {
   }, [items.length, total]);
 
   return <>
-    <TopBar title="Feedback Explorer" subtitle="Khoan sâu từ vấn đề đến bằng chứng đã mask" />
+    <TopBar title="Feedback Explorer" />
     <main className="page-content feedback-explorer-page">
       {analyticsConfigurationError && <AnalyticsState title="Chưa cấu hình Analytics" message={analyticsConfigurationError} />}
       {!analyticsConfigurationError && <>

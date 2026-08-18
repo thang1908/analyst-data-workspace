@@ -39,10 +39,7 @@ export const HotspotPage: React.FC = () => {
 
   return (
     <>
-      <TopBar
-        title="Quản lý Điểm nóng (Hotspot Operations)"
-        subtitle="Hàng đợi ưu tiên xử lý và chuyển trạng thái điểm nóng vận hành"
-      />
+      <TopBar title="Quản lý Điểm nóng" />
       <div className="page-content">
         <AnalyticsFilterBar
           filters={filters}
