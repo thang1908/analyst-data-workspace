@@ -104,10 +104,12 @@ async def direct_import_csv(
         raise HTTPException(status_code=422, detail="Tệp CSV rỗng, vui lòng kiểm tra lại.")
 
     text_content = raw_bytes.decode("utf-8-sig", errors="ignore")
-    reader = csv.DictReader(io.StringIO(text_content))
+    first_line = text_content.split("\n", 1)[0] if text_content else ""
+    delimiter = "\t" if "\t" in first_line else ";" if (";" in first_line and "," not in first_line) else ","
+    reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
     rows = list(reader)
     if not rows:
-        raise HTTPException(status_code=422, detail="Tệp CSV không có dòng dữ liệu nào.")
+        raise HTTPException(status_code=422, detail="Tệp không có dòng dữ liệu nào.")
 
     session = repository._session
 
@@ -145,6 +147,7 @@ async def direct_import_csv(
 
     for idx, row in enumerate(rows, start=1):
         content = (
+            row.get("content_masked") or row.get("content_raw") or
             row.get("noi_dung") or row.get("content") or row.get("message") or
             row.get("feedback") or row.get("noidung") or row.get("review") or ""
         ).strip()
@@ -152,18 +155,25 @@ async def direct_import_csv(
             continue
 
         # Location matching
-        loc_name = (row.get("khu_do_thi") or row.get("location") or row.get("khudothi") or "").strip().lower()
+        loc_name = (
+            row.get("project") or row.get("management_board") or
+            row.get("khu_do_thi") or row.get("location") or row.get("khudothi") or
+            row.get("building") or row.get("location_code") or ""
+        ).strip().lower()
         matched_loc_id = None
         if loc_name:
             for l in locations:
-                if l["name"] and loc_name in l["name"].lower():
+                if l["name"] and (loc_name in l["name"].lower() or l["name"].lower() in loc_name):
                     matched_loc_id = l["location_id"]
                     break
         if not matched_loc_id and locations:
             matched_loc_id = locations[0]["location_id"]
 
         # Date parsing
-        date_str = (row.get("thoi_gian") or row.get("reported_at") or row.get("thoigian") or "").strip()
+        date_str = (
+            row.get("reported_date") or row.get("thoi_gian") or row.get("reported_at") or
+            row.get("actual_end") or row.get("created_at") or row.get("thoigian") or ""
+        ).strip()
         reported_at = now
         if date_str:
             try:
@@ -172,26 +182,54 @@ async def direct_import_csv(
                 reported_at = now
 
         # Source record key
-        rec_key = (row.get("ma_phan_anh") or row.get("ticket_id") or row.get("id") or f"direct-csv-{uuid4().hex[:12]}").strip()
+        rec_key = (
+            row.get("ticket_id") or row.get("ma_phan_anh") or row.get("id") or
+            f"direct-csv-{uuid4().hex[:12]}"
+        ).strip()
 
-        # Sentiment heuristics
+        # Sentiment heuristics / parsing
+        sent_input = (row.get("sentiment") or "").strip().lower()
         low_content = content.lower()
-        sentiment = "NEUTRAL"
-        severity = "SEV-4"
-        if any(w in low_content for w in ["hỏng", "kẹt", "mùi", "bẩn", "lỗi", "chậm", "kém", "bực", "tắc", "chờ", "ồn", "thất vọng", "không nhận", "rơi", "hôi", "tệ"]):
+        if sent_input in ["negative", "tiêu cực", "tieu cuc"]:
+            sentiment = "NEGATIVE"
+            severity = "SEV-2"
+        elif sent_input in ["positive", "tích cực", "tich cuc"]:
+            sentiment = "POSITIVE"
+            severity = "SEV-4"
+        elif sent_input in ["neutral", "trung tính", "trung tinh"]:
+            sentiment = "NEUTRAL"
+            severity = "SEV-4"
+        elif any(w in low_content for w in ["hỏng", "kẹt", "mùi", "bẩn", "lỗi", "chậm", "kém", "bực", "tắc", "chờ", "ồn", "thất vọng", "không nhận", "rơi", "hôi", "tệ"]):
             sentiment = "NEGATIVE"
             severity = "SEV-2"
         elif any(w in low_content for w in ["tốt", "khen", "nhiệt tình", "nhanh", "hài lòng", "tuyệt vời", "chu đáo", "cảm ơn", "sạch sẽ", "đẹp"]):
             sentiment = "POSITIVE"
             severity = "SEV-4"
+        else:
+            sentiment = "NEUTRAL"
+            severity = "SEV-4"
 
-        # Service heuristics
+        # Service & Issue matching
+        service_input = (row.get("service_domain") or row.get("cause_group") or "").strip().lower()
         matched_service_id = default_service_id
+        if service_input:
+            for s in services:
+                if s["name_vi"] and (service_input in s["name_vi"].lower() or s["name_vi"].lower() in service_input):
+                    matched_service_id = s["service_id"]
+                    break
+        if matched_service_id == default_service_id:
+            for s in services:
+                if s["name_vi"] and any(kw in low_content for kw in s["name_vi"].lower().split()):
+                    matched_service_id = s["service_id"]
+                    break
+
+        issue_input = (row.get("topic") or row.get("cause_group") or "").strip().lower()
         matched_issue_id = default_issue_id
-        for s in services:
-            if s["name_vi"] and any(kw in low_content for kw in s["name_vi"].lower().split()):
-                matched_service_id = s["service_id"]
-                break
+        if issue_input:
+            for iss in issues:
+                if iss["name_vi"] and (issue_input in iss["name_vi"].lower() or iss["name_vi"].lower() in issue_input):
+                    matched_issue_id = iss["issue_id"]
+                    break
 
         # Mask PII
         masked_content = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[EMAIL]", content)

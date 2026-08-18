@@ -49,8 +49,9 @@ const ImportWizardPage: React.FC = () => {
     setResult(null);
     if (!selectedFile) return;
 
-    if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
-      setMessage('Vui lòng chọn tệp bảng tính có định dạng .CSV');
+    const name = selectedFile.name.toLowerCase();
+    if (!name.endsWith('.csv') && !name.endsWith('.tsv') && !name.endsWith('.txt')) {
+      setMessage('Vui lòng chọn tệp bảng tính có định dạng .CSV hoặc .TSV');
     }
   };
 
@@ -204,7 +205,7 @@ const ImportWizardPage: React.FC = () => {
               >
                 <input
                   type="file"
-                  accept=".csv,text/csv"
+                  accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values"
                   style={{ display: 'none' }}
                   onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
                 />
@@ -215,10 +216,10 @@ const ImportWizardPage: React.FC = () => {
                 )}
                 <div>
                   <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', display: 'block' }}>
-                    {file ? file.name : 'Nhấp để chọn tệp .CSV hoặc kéo thả vào đây'}
+                    {file ? file.name : 'Nhấp để chọn tệp (.CSV / .TSV) hoặc kéo thả vào đây'}
                   </span>
                   <span style={{ fontSize: 12, color: '#64748b', display: 'block', marginTop: 4 }}>
-                    {file ? `Dung lượng: ${formatSize(file.size)} · Đã sẵn sàng` : 'Hỗ trợ định dạng .CSV (UTF-8)'}
+                    {file ? `Dung lượng: ${formatSize(file.size)} · Đã sẵn sàng` : 'Hỗ trợ định dạng bảng tính .CSV hoặc .TSV (UTF-8)'}
                   </span>
                 </div>
               </label>
