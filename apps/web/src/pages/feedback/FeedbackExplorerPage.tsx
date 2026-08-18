@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, UploadCloud, Download, Filter, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { UploadCloud, Download, RefreshCw } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import AnalyticsState from '../../components/analytics/AnalyticsState';
 import FeedbackDataTable from '../../components/feedback/FeedbackDataTable';
 import FeedbackDetailModal from '../../components/feedback/FeedbackDetailModal';
-import FeedbackSidebarFilters from '../../components/feedback/FeedbackSidebarFilters';
-import { getFeedbackItem, listFeedbackItems, FeedbackWorkspaceItem } from '../../api/feedback';
+import FeedbackFilterToolbar from '../../components/feedback/FeedbackFilterToolbar';
+import { listFeedbackItems, FeedbackWorkspaceItem } from '../../api/feedback';
 import { analyticsConfigurationError, getAnalyticsSummary, AnalyticsSummary } from '../../api/analytics';
 import { useAnalyticsFilters } from '../../hooks/useAnalyticsFilters';
 
@@ -18,11 +18,8 @@ const FeedbackExplorerPage: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [selectedItem, setSelectedItem] = useState<FeedbackWorkspaceItem | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [showFilters, setShowFilters] = useState(true);
   const [loading, setLoading] = useState(Boolean(filters));
   const [error, setError] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
   const query = searchParams.get('q') ?? '';
 
   const setQuery = useCallback((value: string) => {
@@ -86,7 +83,6 @@ const FeedbackExplorerPage: React.FC = () => {
 
   const handleSelectItem = (item: FeedbackWorkspaceItem) => {
     setSelectedItem(item);
-    setIsDetailModalOpen(true);
   };
 
   // Sentiment counts
@@ -124,21 +120,23 @@ const FeedbackExplorerPage: React.FC = () => {
   return (
     <>
       <TopBar title="Feedback Explorer" />
-      <main className="page-content" style={{ padding: '16px 24px', maxWidth: 1600, margin: '0 auto' }}>
+      <main className="page-content" style={{ padding: '20px 24px', maxWidth: 1600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {analyticsConfigurationError && (
           <AnalyticsState title="Chưa cấu hình Analytics" message={analyticsConfigurationError} />
         )}
 
         {!analyticsConfigurationError && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Top Statistics & Action Header */}
-            <div className="card" style={{ padding: '16px 20px', borderRadius: 10 }}>
+          <>
+            {/* Header: Title, Action buttons & Sentiment Quick Tabs */}
+            <div className="card" style={{ padding: '18px 20px', borderRadius: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
-                {/* Title & Sentiment Tabs */}
+                {/* Title */}
                 <div>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0', letterSpacing: '-0.2px' }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0', letterSpacing: '-0.2px' }}>
                     Danh sách phản ánh
                   </h2>
+
+                  {/* Sentiment Segmented Tabs */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <button
                       onClick={() => setFilter('sentiment', undefined)}
@@ -239,7 +237,7 @@ const FeedbackExplorerPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Top Right Action Buttons */}
+                {/* Right Action Buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <button
                     onClick={() => navigate('/imports')}
@@ -278,150 +276,80 @@ const FeedbackExplorerPage: React.FC = () => {
                     }}
                   >
                     <Download size={15} />
-                    Tải bản dữ liệu
+                    Xuất CSV
+                  </button>
+
+                  <button
+                    onClick={() => void loadItems()}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      color: '#475569',
+                      cursor: 'pointer',
+                    }}
+                    title="Làm mới"
+                  >
+                    <RefreshCw size={14} className={loading ? 'spin' : ''} />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Main Content Layout: Left Filters + Right Table */}
-            <div style={{ display: 'grid', gridTemplateColumns: showFilters ? '280px 1fr' : '1fr', gap: 16, alignItems: 'start' }}>
-              {/* Left Sidebar Filter Panel */}
-              {showFilters && (
-                <FeedbackSidebarFilters
-                  filters={filters}
-                  activeFilterCount={activeFilterCount}
-                  onChange={setFilter}
-                  onReset={resetFilters}
+            {/* Horizontal Filter Toolbar */}
+            <FeedbackFilterToolbar
+              filters={filters}
+              activeFilterCount={activeFilterCount}
+              query={query}
+              onQueryChange={setQuery}
+              onChange={setFilter}
+              onReset={resetFilters}
+            />
+
+            {/* Table Section */}
+            {loading && (
+              <AnalyticsState title="Đang tải danh sách phản ánh" message="Đang truy vấn dữ liệu theo bộ lọc đã chọn…" />
+            )}
+
+            {!loading && error && (
+              <AnalyticsState title="Không tải được danh sách" message={error} onRetry={() => void loadItems()} />
+            )}
+
+            {!loading && !error && !items.length && (
+              <AnalyticsState
+                title="Không tìm thấy phản ánh nào"
+                message="Hãy thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc."
+                onRetry={() => {
+                  resetFilters();
+                  setQuery('');
+                }}
+              />
+            )}
+
+            {!loading && !error && Boolean(items.length) && (
+              <>
+                <FeedbackDataTable
+                  items={items}
+                  selectedId={selectedItem?.feedbackItemId}
+                  onSelect={handleSelectItem}
                 />
-              )}
 
-              {/* Right Table & Search Section */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {/* Search Bar & Filter Toggle */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                  <div style={{ position: 'relative', flex: 1, minWidth: 260 }}>
-                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                    <input
-                      type="text"
-                      placeholder="Tìm kiếm theo nội dung phản ánh..."
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') setQuery(searchInput);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px 9px 36px',
-                        borderRadius: 8,
-                        border: '1px solid #cbd5e1',
-                        fontSize: 13,
-                        background: '#ffffff',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button
-                      onClick={() => setQuery(searchInput)}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: 6,
-                        background: '#0f172a',
-                        color: '#ffffff',
-                        border: 'none',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Tìm kiếm
-                    </button>
-
-                    <button
-                      onClick={() => setShowFilters((v) => !v)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '8px 12px',
-                        borderRadius: 6,
-                        background: showFilters ? '#eff6ff' : '#ffffff',
-                        color: showFilters ? '#2563eb' : '#475569',
-                        border: '1px solid #cbd5e1',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <Filter size={14} />
-                      {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
-                    </button>
-
-                    <button
-                      onClick={() => void loadItems()}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: 6,
-                        background: '#ffffff',
-                        border: '1px solid #cbd5e1',
-                        color: '#475569',
-                        cursor: 'pointer',
-                      }}
-                      title="Tải lại danh sách"
-                    >
-                      <RefreshCw size={14} className={loading ? 'spin' : ''} />
-                    </button>
-                  </div>
+                {/* Table Footer Summary */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 4px', fontSize: 12, color: '#64748b' }}>
+                  <span>Hiển thị <strong>{items.length}</strong> trong tổng số <strong>{total.toLocaleString()}</strong> phản ánh</span>
+                  <span>Nhấp vào bất kỳ dòng nào để xem toàn văn bằng chứng & phân tích</span>
                 </div>
-
-                {/* Table Data View */}
-                {loading && (
-                  <AnalyticsState title="Đang tải danh sách phản ánh" message="Đang truy vấn dữ liệu theo bộ lọc đã chọn…" />
-                )}
-
-                {!loading && error && (
-                  <AnalyticsState title="Không tải được danh sách" message={error} onRetry={() => void loadItems()} />
-                )}
-
-                {!loading && !error && !items.length && (
-                  <AnalyticsState
-                    title="Không tìm thấy phản ánh nào"
-                    message="Hãy thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc."
-                    onRetry={() => {
-                      resetFilters();
-                      setSearchInput('');
-                      setQuery('');
-                    }}
-                  />
-                )}
-
-                {!loading && !error && Boolean(items.length) && (
-                  <>
-                    <FeedbackDataTable
-                      items={items}
-                      selectedId={selectedItem?.feedbackItemId}
-                      onSelect={handleSelectItem}
-                    />
-
-                    {/* Table Footer Info */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 4px', fontSize: 12, color: '#64748b' }}>
-                      <span>Hiển thị <strong>{items.length}</strong> / <strong>{total.toLocaleString()}</strong> phản ánh</span>
-                      <span>Nhấp vào bất kỳ dòng nào để xem chi tiết bằng chứng</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+              </>
+            )}
+          </>
         )}
 
-        {/* Feedback Detail Modal */}
-        {isDetailModalOpen && (
+        {/* Detail Modal */}
+        {selectedItem && (
           <FeedbackDetailModal
             item={selectedItem}
-            onClose={() => setIsDetailModalOpen(false)}
+            onClose={() => setSelectedItem(null)}
           />
         )}
       </main>
