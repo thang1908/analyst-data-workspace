@@ -104,10 +104,29 @@ async def direct_import_csv(
         raise HTTPException(status_code=422, detail="Tệp CSV rỗng, vui lòng kiểm tra lại.")
 
     text_content = raw_bytes.decode("utf-8-sig", errors="ignore")
-    first_line = text_content.split("\n", 1)[0] if text_content else ""
+    raw_lines = [line.strip() for line in text_content.splitlines() if line.strip()]
+    if not raw_lines:
+        raise HTTPException(status_code=422, detail="Tệp không có dòng dữ liệu nào.")
+
+    # Check if lines were exported with outer double-quotes escaping
+    first = raw_lines[0]
+    if first.startswith('"') and first.endswith('"') and (',""' in first or '\t""' in first or '"",' in first):
+        unquoted = []
+        for l in raw_lines:
+            if l.startswith('"') and l.endswith('"'):
+                l = l[1:-1].replace('""', '"')
+            unquoted.append(l)
+        text_content = "\n".join(unquoted)
+
+    first_line = text_content.split("\n", 1)[0]
     delimiter = "\t" if "\t" in first_line else ";" if (";" in first_line and "," not in first_line) else ","
+    
     reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
-    rows = list(reader)
+    rows: list[dict[str, str]] = []
+    for r in reader:
+        cleaned = {k.strip().strip('"'): (v.strip().strip('"') if isinstance(v, str) else v) for k, v in r.items() if k is not None}
+        rows.append(cleaned)
+
     if not rows:
         raise HTTPException(status_code=422, detail="Tệp không có dòng dữ liệu nào.")
 
@@ -134,15 +153,23 @@ async def direct_import_csv(
     issues = issues_res.mappings().all()
     default_issue_id = issues[0]["issue_id"] if issues else None
 
-    # Fetch lifecycle step & stage
-    steps_res = await session.execute(text("SELECT customer_lifecycle_step_id, customer_lifecycle_stage_id FROM customer_lifecycle_step LIMIT 1"))
-    step_row = steps_res.mappings().one_or_none()
-    default_step_id = step_row["customer_lifecycle_step_id"] if step_row else None
-    default_stage_id = step_row["customer_lifecycle_stage_id"] if step_row else None
+    # Fetch lifecycle steps & stages
+    steps_res = await session.execute(text("SELECT customer_lifecycle_step_id, customer_lifecycle_stage_id, step_code, name_vi FROM customer_lifecycle_step"))
+    all_steps = steps_res.mappings().all()
+    
+    stages_res = await session.execute(text("SELECT customer_lifecycle_stage_id, stage_code, name_vi FROM customer_lifecycle_stage"))
+    all_stages = stages_res.mappings().all()
+
+    default_step = next((s for s in all_steps if s["step_code"] in ["RES-07", "RES-01"]), all_steps[0] if all_steps else None)
+    default_step_id = default_step["customer_lifecycle_step_id"] if default_step else None
+    default_stage_id = default_step["customer_lifecycle_stage_id"] if default_step else None
 
     # Fetch locations
     locs_res = await session.execute(text("SELECT location_id, name, location_code FROM location"))
-    locations = locs_res.mappings().all()
+    locations = list(locs_res.mappings().all())
+
+    now = datetime.now(timezone.utc)
+    imported_count = 0
 
     feedback_batch: list[dict[str, Any]] = []
     item_batch: list[dict[str, Any]] = []
@@ -154,15 +181,14 @@ async def direct_import_csv(
             await session.execute(
                 text("""
                     INSERT INTO feedback (
-                        feedback_id, project_id, source_system, source_record_key,
+                        feedback_id, project_id, source_system, source_record_key, external_ticket_id,
                         reported_at, ingested_at, content_raw, content_masked,
                         source_metadata_json, raw_content_checksum, created_at
                     ) VALUES (
-                        :feedback_id, :project_id, 'direct-csv', :source_record_key,
+                        :feedback_id, :project_id, 'direct-csv', :source_record_key, :external_ticket_id,
                         :reported_at, :now, :content_raw, :content_masked,
                         '{}'::jsonb, :checksum, :now
                     )
-                    ON CONFLICT (source_system, source_record_key) DO NOTHING
                 """),
                 feedback_batch,
             )
@@ -178,7 +204,6 @@ async def direct_import_csv(
                         :feedback_item_id, :feedback_id, 1, :masked_content,
                         :location_id, 'ACTIVE', 'INCLUDED'
                     )
-                    ON CONFLICT (feedback_id, item_index) DO NOTHING
                 """),
                 item_batch,
             )
@@ -201,7 +226,6 @@ async def direct_import_csv(
                         :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
                         'SOURCE_TRUSTED', 'Direct CSV Import', UUID('00000000-0000-0000-0000-000000000002'), :reported_at
                     )
-                    ON CONFLICT (feedback_item_id, decision_version) DO NOTHING
                 """),
                 decision_batch,
             )
@@ -224,7 +248,6 @@ async def direct_import_csv(
                         :sentiment, :severity, 'NOT_ASSESSED', 'ACCEPTED',
                         :reported_at, 1
                     )
-                    ON CONFLICT (feedback_item_id) DO NOTHING
                 """),
                 current_batch,
             )
@@ -240,20 +263,22 @@ async def direct_import_csv(
             continue
 
         # Location matching
-        loc_name = (
+        raw_loc_name = (
             row.get("project") or row.get("management_board") or
-            row.get("khu_do_thi") or row.get("location") or row.get("khudothi") or
-            row.get("building") or row.get("location_code") or ""
-        ).strip().lower()
+            row.get("khu_do_thi") or row.get("location") or row.get("khudothi") or ""
+        ).strip()
+        loc_code = (row.get("location_code") or row.get("building") or "").strip()
+        loc_query = (raw_loc_name or loc_code).lower()
+        
         matched_loc_id = None
         matched_proj_id = default_proj_id
 
-        if loc_name:
+        if loc_query:
             for l in locations:
-                if l["name"] and (loc_name in l["name"].lower() or l["name"].lower() in loc_name):
+                if l["name"] and (loc_query in l["name"].lower() or l["name"].lower() in loc_query):
                     matched_loc_id = l["location_id"]
                     break
-                if l["location_code"] and loc_name == l["location_code"].lower():
+                if l["location_code"] and loc_query == l["location_code"].lower():
                     matched_loc_id = l["location_id"]
                     break
 
@@ -267,32 +292,48 @@ async def direct_import_csv(
         ).strip()
         reported_at = now
         if date_str:
-            try:
-                clean_date = date_str.replace("Z", "").strip()
-                dt = datetime.fromisoformat(clean_date)
-                if dt.tzinfo is None:
+            cleaned_date = date_str.replace("Z", "").strip()
+            for fmt in (
+                "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d %H:%M",
+                "%Y-%m-%d",
+                "%Y/%m/%d %H:%M:%S",
+                "%Y/%m/%d",
+                "%d/%m/%Y %H:%M:%S",
+                "%d/%m/%Y %H:%M",
+                "%d/%m/%Y",
+                "%d-%m-%Y %H:%M:%S",
+                "%d-%m-%Y",
+            ):
+                try:
+                    dt = datetime.strptime(cleaned_date, fmt)
                     reported_at = dt.replace(tzinfo=timezone.utc)
-                else:
-                    reported_at = dt
-            except Exception:
-                reported_at = now
+                    break
+                except ValueError:
+                    pass
+            else:
+                try:
+                    dt = datetime.fromisoformat(cleaned_date)
+                    reported_at = dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+                except Exception:
+                    reported_at = now
 
-        # Source record key
-        rec_key = (
-            row.get("ticket_id") or row.get("ma_phan_anh") or row.get("id") or
-            f"direct-csv-{uuid4().hex[:12]}"
+        # Source record key & ticket ID
+        raw_ticket_id = (
+            row.get("ticket_id") or row.get("ma_phan_anh") or row.get("id") or ""
         ).strip()
+        unique_key = f"{raw_ticket_id}_{uuid4().hex[:8]}" if raw_ticket_id else f"direct-{uuid4().hex[:12]}"
 
         # Sentiment heuristics / parsing
         sent_input = (row.get("sentiment") or "").strip().lower()
         low_content = content.lower()
-        if sent_input in ["negative", "tiêu cực", "tieu cuc"]:
+        if sent_input in ["negative", "tiêu cực", "tieu cuc", "-1"]:
             sentiment = "NEGATIVE"
             severity = "SEV-2"
-        elif sent_input in ["positive", "tích cực", "tich cuc"]:
+        elif sent_input in ["positive", "tích cực", "tich cuc", "1"]:
             sentiment = "POSITIVE"
             severity = "SEV-4"
-        elif sent_input in ["neutral", "trung tính", "trung tinh"]:
+        elif sent_input in ["neutral", "trung tính", "trung tinh", "0"]:
             sentiment = "NEUTRAL"
             severity = "SEV-4"
         elif any(w in low_content for w in ["hỏng", "kẹt", "mùi", "bẩn", "lỗi", "chậm", "kém", "bực", "tắc", "chờ", "ồn", "thất vọng", "không nhận", "rơi", "hôi", "tệ"]):
@@ -314,10 +355,23 @@ async def direct_import_csv(
                     matched_service_id = s["service_id"]
                     break
         if matched_service_id == default_service_id:
-            for s in services:
-                if s["name_vi"] and any(kw in low_content for kw in s["name_vi"].lower().split()):
-                    matched_service_id = s["service_id"]
-                    break
+            # Keyword heuristics for service
+            if any(w in low_content or w in service_input for w in ["kỹ thuật", "sửa", "điện", "chiếu sáng", "điều hòa", "thiết bị", "nước", "thang máy", "cửa"]):
+                s_match = next((s for s in services if s["service_code"] == "SV-07"), None)
+                if s_match:
+                    matched_service_id = s_match["service_id"]
+            elif any(w in low_content or w in service_input for w in ["bảo vệ", "an ninh", "trộm", "mất đồ", "pccc"]):
+                s_match = next((s for s in services if s["service_code"] == "SV-08"), None)
+                if s_match:
+                    matched_service_id = s_match["service_id"]
+            elif any(w in low_content or w in service_input for w in ["xe", "đỗ xe", "bãi xe", "sạc", "parking", "thẻ xe"]):
+                s_match = next((s for s in services if s["service_code"] == "SV-05"), None)
+                if s_match:
+                    matched_service_id = s_match["service_id"]
+            elif any(w in low_content or w in service_input for w in ["hợp đồng", "cskh", "chăm sóc", "cư dân", "thủ tục", "phụ lục"]):
+                s_match = next((s for s in services if s["service_code"] == "SV-03"), None)
+                if s_match:
+                    matched_service_id = s_match["service_id"]
 
         issue_input = (row.get("topic") or row.get("cause_group") or "").strip().lower()
         matched_issue_id = default_issue_id
@@ -325,6 +379,19 @@ async def direct_import_csv(
             for iss in issues:
                 if iss["name_vi"] and (issue_input in iss["name_vi"].lower() or iss["name_vi"].lower() in issue_input):
                     matched_issue_id = iss["issue_id"]
+                    break
+
+        # Stage & Step matching
+        row_stage = (row.get("journey_stage") or "").strip().lower()
+        row_step = (row.get("journey_step") or "").strip().lower()
+        matched_stage_id = default_stage_id
+        matched_step_id = default_step_id
+
+        if row_step:
+            for st in all_steps:
+                if st["name_vi"] and (row_step in st["name_vi"].lower() or st["name_vi"].lower() in row_step):
+                    matched_step_id = st["customer_lifecycle_step_id"]
+                    matched_stage_id = st["customer_lifecycle_stage_id"]
                     break
 
         # Mask PII
@@ -339,7 +406,8 @@ async def direct_import_csv(
         feedback_batch.append({
             "feedback_id": feedback_id,
             "project_id": matched_proj_id,
-            "source_record_key": rec_key,
+            "source_record_key": unique_key,
+            "external_ticket_id": raw_ticket_id or None,
             "reported_at": reported_at,
             "now": now,
             "content_raw": content,
@@ -354,13 +422,13 @@ async def direct_import_csv(
             "location_id": matched_loc_id,
         })
 
-        if taxonomy_release_id and matched_service_id and default_step_id:
+        if taxonomy_release_id and matched_service_id and matched_step_id:
             issue_status = "KNOWN" if matched_issue_id else "NOT_APPLICABLE"
             decision_batch.append({
                 "decision_id": decision_id,
                 "feedback_item_id": feedback_item_id,
                 "taxonomy_release_id": taxonomy_release_id,
-                "step_id": default_step_id,
+                "step_id": matched_step_id,
                 "service_id": matched_service_id,
                 "issue_status": issue_status,
                 "issue_id": matched_issue_id,
@@ -373,8 +441,8 @@ async def direct_import_csv(
                 "feedback_item_id": feedback_item_id,
                 "decision_id": decision_id,
                 "taxonomy_release_id": taxonomy_release_id,
-                "stage_id": default_stage_id,
-                "step_id": default_step_id,
+                "stage_id": matched_stage_id,
+                "step_id": matched_step_id,
                 "service_id": matched_service_id,
                 "issue_status": issue_status,
                 "issue_id": matched_issue_id,
