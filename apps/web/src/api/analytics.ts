@@ -15,6 +15,7 @@ export interface AnalyticsFilters {
   issueCode?: string;
   sentiment?: string;
   operationalSeverity?: string;
+  analyticEligibility?: string;
 }
 
 export interface AnalyticsSummary {
@@ -192,6 +193,7 @@ const filterParams = (filters: AnalyticsFilters): URLSearchParams => {
     issueCode: 'issue_code',
     sentiment: 'sentiment',
     operationalSeverity: 'operational_severity',
+    analyticEligibility: 'analytic_eligibility',
   };
   for (const [key, apiName] of Object.entries(names)) {
     const value = filters[key as keyof typeof names];

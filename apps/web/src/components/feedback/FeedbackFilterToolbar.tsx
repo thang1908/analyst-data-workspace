@@ -50,6 +50,11 @@ const FilterSelect: React.FC<{
   </div>
 );
 
+const ELIGIBILITY_OPTIONS: AnalyticsFilterOption[] = [
+  { code: 'INCLUDED', name: 'Hợp lệ đưa vào phân tích' },
+  { code: 'EXCLUDED', name: 'Loại trừ (Spam / Test / Non-feedback)' },
+];
+
 export const FeedbackFilterToolbar: React.FC<FeedbackFilterToolbarProps> = ({
   filters,
   activeFilterCount,
@@ -191,16 +196,22 @@ export const FeedbackFilterToolbar: React.FC<FeedbackFilterToolbarProps> = ({
           onChange={(v) => onChange('issueCode', v)}
         />
         <FilterSelect
-          label="Giai đoạn hành trình"
-          value={filters.customerLifecycleStageCode}
-          options={options?.journeyStages ?? []}
-          onChange={(v) => onChange('customerLifecycleStageCode', v)}
+          label="Tính hợp lệ"
+          value={filters.analyticEligibility}
+          options={ELIGIBILITY_OPTIONS}
+          onChange={(v) => onChange('analyticEligibility', v)}
         />
       </div>
 
       {/* Advanced Filter Row (Collapsible) */}
       {showAdvanced && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, paddingTop: 8, borderTop: '1px dashed #e2e8f0' }}>
+          <FilterSelect
+            label="Giai đoạn hành trình"
+            value={filters.customerLifecycleStageCode}
+            options={options?.journeyStages ?? []}
+            onChange={(v) => onChange('customerLifecycleStageCode', v)}
+          />
           <FilterSelect
             label="Bước hành trình"
             value={filters.customerLifecycleStepCode}

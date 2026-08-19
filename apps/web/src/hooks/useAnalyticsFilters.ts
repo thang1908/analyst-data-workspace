@@ -20,6 +20,7 @@ const queryNames: Record<FilterField, string> = {
   issueCode: 'issue_code',
   sentiment: 'sentiment',
   operationalSeverity: 'operational_severity',
+  analyticEligibility: 'analytic_eligibility',
 };
 
 const filterFields = Object.keys(queryNames) as FilterField[];

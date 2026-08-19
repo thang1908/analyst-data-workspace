@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import json
 import re
 from datetime import date, datetime, timezone
 from typing import Annotated, Any
@@ -16,7 +17,7 @@ from apps.api.deps import get_feedback_repository
 from apps.api.schemas.feedback import (
     CurrentClassification, FeedbackItemData, FeedbackItemDetailResponse,
     FeedbackItemListMeta, FeedbackItemListResponse, Location, Reference,
-    SplitFeedbackItemRequest, SplitFeedbackItemResponse,
+    SplitFeedbackItemRequest, SplitFeedbackItemResponse, UpdateFeedbackItemRequest,
 )
 from packages.application.feedback import FeedbackService, SplitFeedbackItemCommand
 from packages.domain.feedback import SplitItemDraft
@@ -50,6 +51,7 @@ async def list_feedback_items(
     customer_lifecycle_step_code: str | None = None,
     touchpoint_code: str | None = None,
     hotspot_id: UUID | None = None,
+    analytic_eligibility: str | None = None,
     q: str | None = None,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -73,6 +75,7 @@ async def list_feedback_items(
             customer_lifecycle_step_code=customer_lifecycle_step_code,
             touchpoint_code=touchpoint_code,
             hotspot_id=hotspot_id,
+            analytic_eligibility=analytic_eligibility,
             q=q,
             limit=limit,
             offset=offset,
@@ -92,13 +95,38 @@ async def get_feedback_item(feedback_item_id: UUID, repository: FeedbackReposito
     return FeedbackItemDetailResponse(data=_item_data(row))
 
 
+@router.patch("/{feedback_item_id}", response_model=FeedbackItemDetailResponse, operation_id="updateFeedbackItem")
+async def update_feedback_item(
+    feedback_item_id: UUID,
+    request: UpdateFeedbackItemRequest,
+    repository: FeedbackRepositoryDep,
+    actor_id: UUID | None = Header(None, alias="X-Actor-ID"),
+) -> FeedbackItemDetailResponse:
+    """Allow operators/analysts to directly edit or correct classification & operational fields."""
+    updated_row = await repository.update_item_classification(
+        feedback_item_id,
+        service_code=request.service_code,
+        issue_code=request.issue_code,
+        sentiment=request.sentiment,
+        operational_severity=request.operational_severity,
+        analytic_eligibility=request.analytic_eligibility,
+        location_id=request.location_id,
+        symptom_detail=request.symptom_detail,
+        actor_user_id=actor_id,
+        reason=request.correction_reason,
+    )
+    if updated_row is None:
+        raise HTTPException(status_code=404, detail="Feedback item was not found.")
+    return FeedbackItemDetailResponse(data=_item_data(updated_row))
+
+
 @router.post("/direct-import-csv")
 async def direct_import_csv(
     repository: FeedbackRepositoryDep,
     file: UploadFile = File(...),
     project_id: UUID = UUID("00000000-0000-0000-0000-000000000001"),
 ) -> dict[str, Any]:
-    """Directly and synchronously import a CSV file into Postgres without S3 or async worker."""
+    """Directly and synchronously import a CSV file into Postgres Document-Store model without S3 or async worker."""
     raw_bytes = await file.read()
     if not raw_bytes:
         raise HTTPException(status_code=422, detail="Tệp CSV rỗng, vui lòng kiểm tra lại.")
@@ -124,7 +152,7 @@ async def direct_import_csv(
     reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
     rows: list[dict[str, str]] = []
     for r in reader:
-        cleaned = {k.strip().strip('"'): (v.strip().strip('"') if isinstance(v, str) else v) for k, v in r.items() if k is not None}
+        cleaned = {str(k).strip().strip('"'): (v.strip().strip('"') if isinstance(v, str) else v) for k, v in r.items() if k is not None}
         rows.append(cleaned)
 
     if not rows:
@@ -164,9 +192,23 @@ async def direct_import_csv(
     default_step_id = default_step["customer_lifecycle_step_id"] if default_step else None
     default_stage_id = default_step["customer_lifecycle_stage_id"] if default_step else None
 
-    # Fetch locations
-    locs_res = await session.execute(text("SELECT location_id, name, location_code FROM location"))
-    locations = list(locs_res.mappings().all())
+    # Fetch channels
+    channels_res = await session.execute(text("SELECT interaction_channel_id, channel_code, name_vi FROM interaction_channel"))
+    channels = channels_res.mappings().all()
+    channel_map: dict[str, UUID] = {}
+    for c in channels:
+        channel_map[c["channel_code"].lower()] = c["interaction_channel_id"]
+        channel_map[c["name_vi"].lower()] = c["interaction_channel_id"]
+
+    # Fetch locations & build dynamic cache
+    locs_res = await session.execute(text("SELECT location_id, project_id, location_code, name FROM location"))
+    locations_list = list(locs_res.mappings().all())
+    loc_cache: dict[str, UUID] = {}
+    for l in locations_list:
+        if l["name"]:
+            loc_cache[l["name"].strip().lower()] = l["location_id"]
+        if l["location_code"]:
+            loc_cache[l["location_code"].strip().lower()] = l["location_id"]
 
     now = datetime.now(timezone.utc)
     imported_count = 0
@@ -181,13 +223,15 @@ async def direct_import_csv(
             await session.execute(
                 text("""
                     INSERT INTO feedback (
-                        feedback_id, project_id, source_system, source_record_key, external_ticket_id,
+                        feedback_id, project_id, source_system, source_record_key,
+                        intake_channel_id, external_ticket_id,
                         reported_at, ingested_at, content_raw, content_masked,
                         source_metadata_json, raw_content_checksum, created_at
                     ) VALUES (
-                        :feedback_id, :project_id, 'direct-csv', :source_record_key, :external_ticket_id,
+                        :feedback_id, :project_id, 'direct-csv', :source_record_key,
+                        :intake_channel_id, :external_ticket_id,
                         :reported_at, :now, :content_raw, :content_masked,
-                        '{}'::jsonb, :checksum, :now
+                        CAST(:source_metadata_json AS jsonb), :checksum, :now
                     )
                 """),
                 feedback_batch,
@@ -262,7 +306,7 @@ async def direct_import_csv(
         if not content:
             continue
 
-        # Location matching
+        # Dynamic Location matching / registration
         raw_loc_name = (
             row.get("project") or row.get("management_board") or
             row.get("khu_do_thi") or row.get("location") or row.get("khudothi") or ""
@@ -271,19 +315,68 @@ async def direct_import_csv(
         loc_query = (raw_loc_name or loc_code).lower()
         
         matched_loc_id = None
-        matched_proj_id = default_proj_id
-
         if loc_query:
-            for l in locations:
-                if l["name"] and (loc_query in l["name"].lower() or l["name"].lower() in loc_query):
-                    matched_loc_id = l["location_id"]
-                    break
-                if l["location_code"] and loc_query == l["location_code"].lower():
-                    matched_loc_id = l["location_id"]
-                    break
+            if loc_query in loc_cache:
+                matched_loc_id = loc_cache[loc_query]
+            else:
+                for k, lid in loc_cache.items():
+                    if loc_query in k or k in loc_query:
+                        matched_loc_id = lid
+                        loc_cache[loc_query] = lid
+                        break
+            
+            # If still not found, auto-create dynamic location
+            if not matched_loc_id:
+                clean_name = raw_loc_name or loc_code
+                code_candidate = re.sub(r"[^A-Za-z0-9]+", "-", (loc_code or raw_loc_name)).strip("-").upper()[:20]
+                if not code_candidate:
+                    code_candidate = f"LOC-{uuid4().hex[:6].upper()}"
+                
+                new_loc_id = uuid4()
+                try:
+                    await session.execute(
+                        text("""
+                            INSERT INTO location (location_id, project_id, location_code, name, location_type, active)
+                            VALUES (:loc_id, :project_id, :loc_code, :loc_name, 'BUILDING', true)
+                            ON CONFLICT (project_id, location_code) DO NOTHING
+                        """),
+                        {
+                            "loc_id": new_loc_id,
+                            "project_id": default_proj_id,
+                            "loc_code": code_candidate,
+                            "loc_name": clean_name,
+                        },
+                    )
+                    matched_loc_id = new_loc_id
+                    loc_cache[loc_query] = new_loc_id
+                    if raw_loc_name:
+                        loc_cache[raw_loc_name.lower()] = new_loc_id
+                    if loc_code:
+                        loc_cache[loc_code.lower()] = new_loc_id
+                except Exception:
+                    matched_loc_id = locations_list[0]["location_id"] if locations_list else None
 
-        if not matched_loc_id and locations:
-            matched_loc_id = locations[0]["location_id"]
+        if not matched_loc_id and locations_list:
+            matched_loc_id = locations_list[0]["location_id"]
+
+        # Channel mapping
+        intake_channel_id = None
+        raw_channel = (row.get("channel") or row.get("kenh") or row.get("intake_channel") or "").strip().lower()
+        if raw_channel:
+            if raw_channel in channel_map:
+                intake_channel_id = channel_map[raw_channel]
+            elif any(w in raw_channel for w in ["app", "mobile"]):
+                intake_channel_id = channel_map.get("ch-app")
+            elif any(w in raw_channel for w in ["hotline", "thoại", "call"]):
+                intake_channel_id = channel_map.get("ch-hotline")
+            elif any(w in raw_channel for w in ["web", "portal"]):
+                intake_channel_id = channel_map.get("ch-web")
+            elif any(w in raw_channel for w in ["email", "mail"]):
+                intake_channel_id = channel_map.get("ch-email")
+            elif any(w in raw_channel for w in ["lễ tân", "reception", "trực tiếp"]):
+                intake_channel_id = channel_map.get("ch-frontdesk")
+            elif any(w in raw_channel for w in ["zalo", "facebook", "social"]):
+                intake_channel_id = channel_map.get("ch-social")
 
         # Date parsing
         date_str = (
@@ -346,6 +439,17 @@ async def direct_import_csv(
             sentiment = "NEUTRAL"
             severity = "SEV-4"
 
+        # Check explicit priority column
+        raw_prio = (row.get("priority") or row.get("muc_do") or "").strip().lower()
+        if any(p in raw_prio for p in ["critical", "khẩn cấp", "nguy cấp", "sev-1", "1"]):
+            severity = "SEV-1"
+        elif any(p in raw_prio for p in ["high", "cao", "sev-2", "2"]):
+            severity = "SEV-2"
+        elif any(p in raw_prio for p in ["medium", "trung bình", "sev-3", "3"]):
+            severity = "SEV-3"
+        elif any(p in raw_prio for p in ["low", "thấp", "sev-4", "4"]):
+            severity = "SEV-4"
+
         # Service & Issue matching
         service_input = (row.get("service_domain") or row.get("cause_group") or "").strip().lower()
         matched_service_id = default_service_id
@@ -399,19 +503,24 @@ async def direct_import_csv(
         masked_content = re.sub(r"(?<!\d)(?:\+?84|0)\d{8,10}(?!\d)", "[PHONE]", masked_content)
         checksum = hashlib.sha256(content.encode()).hexdigest()
 
+        # Document representation (preserves every raw CSV field like MongoDB)
+        raw_document = {str(k): (str(v) if v is not None else "") for k, v in row.items()}
+
         feedback_id = uuid4()
         feedback_item_id = uuid4()
         decision_id = uuid4()
 
         feedback_batch.append({
             "feedback_id": feedback_id,
-            "project_id": matched_proj_id,
+            "project_id": default_proj_id,
             "source_record_key": unique_key,
+            "intake_channel_id": intake_channel_id,
             "external_ticket_id": raw_ticket_id or None,
             "reported_at": reported_at,
             "now": now,
             "content_raw": content,
             "content_masked": masked_content,
+            "source_metadata_json": json.dumps(raw_document, default=str),
             "checksum": checksum,
         })
 
@@ -465,7 +574,7 @@ async def direct_import_csv(
         "success": True,
         "total_rows": len(rows),
         "imported_rows": imported_count,
-        "message": f"Đã nạp thành công {imported_count} phản hồi vào hệ thống!",
+        "message": f"Đã nạp thành công {imported_count} phản hồi vào hệ thống với đầy đủ dữ liệu Document JSON!",
     }
 
 
@@ -502,6 +611,9 @@ def _item_data(row: FeedbackItemWorkspaceRow) -> FeedbackItemData:
         current_classification=CurrentClassification(
             service=Reference(code=row.service_code, name_vi=row.service_name_vi) if row.service_code else None,
             issue=Reference(code=row.issue_code, name_vi=row.issue_name_vi) if row.issue_code else None,
+            journey_stage=Reference(code=row.journey_stage_code, name_vi=row.journey_stage_name_vi) if row.journey_stage_code else None,
+            journey_step=Reference(code=row.journey_step_code, name_vi=row.journey_step_name_vi) if row.journey_step_code else None,
+            touchpoint=Reference(code=row.touchpoint_code, name_vi=row.touchpoint_name_vi) if row.touchpoint_code else None,
             sentiment=row.sentiment, operational_severity=row.operational_severity,
             classification_state=row.classification_state, projection_version=row.projection_version,
         ),

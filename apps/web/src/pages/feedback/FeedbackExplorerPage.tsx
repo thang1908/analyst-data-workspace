@@ -21,7 +21,7 @@ const FeedbackExplorerPage: React.FC = () => {
   const [loading, setLoading] = useState(Boolean(filters));
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const query = searchParams.get('q') ?? '';
 
   const setQuery = useCallback((value: string) => {
@@ -82,6 +82,7 @@ const FeedbackExplorerPage: React.FC = () => {
         customerLifecycleStepCode: filters.customerLifecycleStepCode,
         touchpointCode: filters.touchpointCode,
         hotspotId,
+        analyticEligibility: filters.analyticEligibility,
         query,
         limit: pageSize,
         offset: (page - 1) * pageSize,
@@ -139,7 +140,7 @@ const FeedbackExplorerPage: React.FC = () => {
   return (
     <>
       <TopBar title="Tra cứu phản hồi" subtitle="Bằng chứng và phân loại dữ liệu" />
-      <main className="page-content" style={{ padding: '20px 24px', maxWidth: 1600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <main className="page-content" style={{ padding: '20px 24px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {analyticsConfigurationError && (
           <AnalyticsState title="Chưa cấu hình Analytics" message={analyticsConfigurationError} />
         )}
@@ -525,6 +526,10 @@ const FeedbackExplorerPage: React.FC = () => {
           <FeedbackDetailModal
             item={selectedItem}
             onClose={() => setSelectedItem(null)}
+            onItemUpdated={(updated) => {
+              setItems((prev) => prev.map((it) => (it.feedbackItemId === updated.feedbackItemId ? updated : it)));
+              setSelectedItem(updated);
+            }}
           />
         )}
       </main>

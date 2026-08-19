@@ -25,6 +25,9 @@ class Location(FeedbackAPIModel):
 class CurrentClassification(FeedbackAPIModel):
     service: Reference | None = None
     issue: Reference | None = None
+    journey_stage: Reference | None = None
+    journey_step: Reference | None = None
+    touchpoint: Reference | None = None
     sentiment: str | None = None
     operational_severity: str | None = None
     classification_state: str | None = None
@@ -74,3 +77,14 @@ class SplitFeedbackItemRequest(FeedbackAPIModel):
 
 class SplitFeedbackItemResponse(FeedbackAPIModel):
     data: dict[str, object]
+
+
+class UpdateFeedbackItemRequest(FeedbackAPIModel):
+    service_code: str | None = None
+    issue_code: str | None = None
+    sentiment: str | None = None
+    operational_severity: str | None = None
+    analytic_eligibility: str | None = None
+    location_id: UUID | None = None
+    symptom_detail: str | None = None
+    correction_reason: str | None = None

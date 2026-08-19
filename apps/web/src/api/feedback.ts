@@ -16,6 +16,9 @@ export interface FeedbackWorkspaceItem {
   currentClassification: {
     service: FeedbackReference | null;
     issue: FeedbackReference | null;
+    journeyStage: FeedbackReference | null;
+    journeyStep: FeedbackReference | null;
+    touchpoint: FeedbackReference | null;
     sentiment: string | null;
     operationalSeverity: string | null;
     classificationState: string | null;
@@ -42,9 +45,21 @@ export interface FeedbackListFilters {
   customerLifecycleStepCode?: string;
   touchpointCode?: string;
   hotspotId?: string;
+  analyticEligibility?: string;
   query?: string;
   limit?: number;
   offset?: number;
+}
+
+export interface UpdateFeedbackPayload {
+  service_code?: string;
+  issue_code?: string;
+  sentiment?: string;
+  operational_severity?: string;
+  analytic_eligibility?: string;
+  location_id?: string;
+  symptom_detail?: string;
+  correction_reason?: string;
 }
 
 export interface FeedbackListResult {
@@ -66,6 +81,9 @@ interface ApiFeedbackItem {
   current_classification: {
     service: ApiReference | null;
     issue: ApiReference | null;
+    journey_stage?: ApiReference | null;
+    journey_step?: ApiReference | null;
+    touchpoint?: ApiReference | null;
     sentiment: string | null;
     operational_severity: string | null;
     classification_state: string | null;
@@ -96,6 +114,9 @@ const toItem = (item: ApiFeedbackItem): FeedbackWorkspaceItem => ({
   currentClassification: {
     service: item.current_classification.service && { code: item.current_classification.service.code, nameVi: item.current_classification.service.name_vi },
     issue: item.current_classification.issue && { code: item.current_classification.issue.code, nameVi: item.current_classification.issue.name_vi },
+    journeyStage: item.current_classification.journey_stage ? { code: item.current_classification.journey_stage.code, nameVi: item.current_classification.journey_stage.name_vi } : null,
+    journeyStep: item.current_classification.journey_step ? { code: item.current_classification.journey_step.code, nameVi: item.current_classification.journey_step.name_vi } : null,
+    touchpoint: item.current_classification.touchpoint ? { code: item.current_classification.touchpoint.code, nameVi: item.current_classification.touchpoint.name_vi } : null,
     sentiment: item.current_classification.sentiment,
     operationalSeverity: item.current_classification.operational_severity,
     classificationState: item.current_classification.classification_state,
@@ -123,6 +144,7 @@ export const listFeedbackItems = async (filters: FeedbackListFilters): Promise<F
     customerLifecycleStepCode: 'customer_lifecycle_step_code',
     touchpointCode: 'touchpoint_code',
     hotspotId: 'hotspot_id',
+    analyticEligibility: 'analytic_eligibility',
   };
   for (const [field, apiName] of Object.entries(fields)) {
     const value = filters[field as keyof typeof fields];
@@ -148,4 +170,28 @@ export const getFeedbackItem = async (feedbackItemId: string): Promise<FeedbackW
   const response = await fetch(`${getApiBaseUrl()}/api/v1/feedback-items/${feedbackItemId}`);
   if (!response.ok) throw new AnalyticsApiError(`Không tải được feedback item (${response.status}).`, response.status);
   return toItem((await response.json() as { data: ApiFeedbackItem }).data);
+};
+
+export const updateFeedbackItem = async (
+  feedbackItemId: string,
+  payload: UpdateFeedbackPayload
+): Promise<FeedbackWorkspaceItem> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/feedback-items/${feedbackItemId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    let message = `Không thể cập nhật phản hồi (${response.status}).`;
+    try {
+      message = formatAnalyticsApiError((await response.json() as { detail?: unknown }).detail) ?? message;
+    } catch {
+      // ignore
+    }
+    throw new AnalyticsApiError(message, response.status);
+  }
+  const result = await response.json() as { data: ApiFeedbackItem };
+  return toItem(result.data);
 };

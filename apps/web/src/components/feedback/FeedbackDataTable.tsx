@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, MapPin, Tag } from 'lucide-react';
+import { Eye, MapPin, Tag, Compass, Navigation } from 'lucide-react';
 import { FeedbackWorkspaceItem } from '../../api/feedback';
 
 interface FeedbackDataTableProps {
@@ -24,68 +24,33 @@ const formatDate = (value: string) => {
 
 const renderSentimentBadge = (sentiment: string | null | undefined) => {
   const norm = (sentiment ?? '').toUpperCase();
+  let badgeStyle = { background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', dot: '#94a3b8', text: norm ? 'TRUNG TÍNH' : 'CHƯA GÁN' };
+
   if (norm === 'NEGATIVE' || norm === 'TIÊU CỰC') {
-    return (
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '3px 8px',
-          borderRadius: 12,
-          fontSize: 11,
-          fontWeight: 700,
-          background: '#fef2f2',
-          color: '#dc2626',
-          border: '1px solid #fca5a5',
-          letterSpacing: '0.3px',
-        }}
-      >
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} />
-        TIÊU CỰC
-      </span>
-    );
+    badgeStyle = { background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', dot: '#ef4444', text: 'TIÊU CỰC' };
+  } else if (norm === 'POSITIVE' || norm === 'TÍCH CỰC') {
+    badgeStyle = { background: '#f0fdf4', color: '#16a34a', border: '1px solid #86efac', dot: '#22c55e', text: 'TÍCH CỰC' };
   }
-  if (norm === 'POSITIVE' || norm === 'TÍCH CỰC') {
-    return (
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '3px 8px',
-          borderRadius: 12,
-          fontSize: 11,
-          fontWeight: 700,
-          background: '#f0fdf4',
-          color: '#16a34a',
-          border: '1px solid #86efac',
-          letterSpacing: '0.3px',
-        }}
-      >
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-        TÍCH CỰC
-      </span>
-    );
-  }
+
   return (
     <span
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 4,
-        padding: '3px 8px',
+        gap: 5,
+        padding: '3px 9px',
         borderRadius: 12,
         fontSize: 11,
-        fontWeight: 600,
-        background: '#f8fafc',
-        color: '#64748b',
-        border: '1px solid #e2e8f0',
-        letterSpacing: '0.3px',
+        fontWeight: 700,
+        background: badgeStyle.background,
+        color: badgeStyle.color,
+        border: badgeStyle.border,
+        letterSpacing: '0.2px',
+        whiteSpace: 'nowrap',
       }}
     >
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8' }} />
-      {norm ? 'TRUNG TÍNH' : 'CHƯA PHÂN LOẠI'}
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: badgeStyle.dot }} />
+      {badgeStyle.text}
     </span>
   );
 };
@@ -97,24 +62,28 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
 }) => {
   return (
     <div className="feedback-table-container" style={{ overflowX: 'auto', background: '#ffffff', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+      <table style={{ width: '100%', minWidth: 1250, borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
         <thead>
           <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: 12, fontWeight: 700 }}>
-            <th style={{ padding: '12px 14px', minWidth: 260 }}>Tiêu đề phản ánh</th>
-            <th style={{ padding: '12px 14px', minWidth: 160 }}>Khu đô thị</th>
-            <th style={{ padding: '12px 14px', minWidth: 160 }}>Nhóm dịch vụ</th>
-            <th style={{ padding: '12px 14px', width: 130 }}>Cảm xúc</th>
-            <th style={{ padding: '12px 14px', width: 130 }}>Kênh phản ánh</th>
-            <th style={{ padding: '12px 14px', width: 140 }}>Thời gian ↕</th>
-            <th style={{ padding: '12px 14px', width: 70, textAlign: 'center' }}>Chi tiết</th>
+            <th style={{ padding: '12px 14px', minWidth: 320 }}>Nội dung phản ánh</th>
+            <th style={{ padding: '12px 14px', width: 160 }}>Khu đô thị</th>
+            <th style={{ padding: '12px 14px', width: 170 }}>Dịch vụ</th>
+            <th style={{ padding: '12px 14px', width: 180 }}>Vấn đề</th>
+            <th style={{ padding: '12px 14px', width: 160 }}>Bước hành trình</th>
+            <th style={{ padding: '12px 14px', width: 160 }}>Điểm chạm</th>
+            <th style={{ padding: '12px 14px', width: 110 }}>Cảm xúc</th>
+            <th style={{ padding: '12px 14px', width: 130 }}>Thời gian ↕</th>
+            <th style={{ padding: '12px 14px', width: 60, textAlign: 'center' }}>Xem</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item, idx) => {
             const isSelected = selectedId === item.feedbackItemId;
-            const locationName = item.location.name || 'Toàn dự án';
-            const serviceName = item.currentClassification.service?.nameVi || 'Chưa phân loại';
-            const channel = '-';
+            const locationName = item.location.name || item.location.code || 'Toàn dự án';
+            const service = item.currentClassification.service;
+            const issue = item.currentClassification.issue;
+            const journeyStep = item.currentClassification.journeyStep;
+            const touchpoint = item.currentClassification.touchpoint;
 
             return (
               <tr
@@ -122,7 +91,7 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
                 onClick={() => onSelect(item)}
                 style={{
                   borderBottom: '1px solid #f1f5f9',
-                  background: isSelected ? '#f8fafc' : idx % 2 === 0 ? '#ffffff' : '#fafafa',
+                  background: isSelected ? '#eff6ff' : idx % 2 === 0 ? '#ffffff' : '#fafafa',
                   cursor: 'pointer',
                   transition: 'background 0.15s ease',
                 }}
@@ -133,16 +102,11 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
                   if (!isSelected) e.currentTarget.style.background = idx % 2 === 0 ? '#ffffff' : '#fafafa';
                 }}
               >
-                {/* Tiêu đề phản ánh / Nội dung Masked */}
+                {/* Nội dung phản ánh Masked - Hiển thị đầy đủ, không bị cắt */}
                 <td style={{ padding: '12px 14px', color: '#1e293b' }}>
-                  <div style={{ fontWeight: 600, color: '#0f172a', marginBottom: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
+                  <div style={{ fontWeight: 600, color: '#0f172a', lineHeight: 1.5, wordBreak: 'break-word' }}>
                     {item.contentMasked}
                   </div>
-                  {item.currentClassification.issue?.nameVi && (
-                    <span style={{ fontSize: 11, color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 2 }}>
-                      <Tag size={10} color="#94a3b8" /> {item.currentClassification.issue.nameVi}
-                    </span>
-                  )}
                 </td>
 
                 {/* Khu đô thị */}
@@ -153,21 +117,29 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
                   </div>
                 </td>
 
-                {/* Nhóm dịch vụ */}
+                {/* Dịch vụ */}
                 <td style={{ padding: '12px 14px', color: '#334155', fontWeight: 500 }}>
-                  {serviceName}
+                  {service?.nameVi || 'Chưa phân loại'}
+                </td>
+
+                {/* Vấn đề */}
+                <td style={{ padding: '12px 14px', color: '#334155' }}>
+                  {issue?.nameVi || 'Chưa phân loại'}
+                </td>
+
+                {/* Bước hành trình */}
+                <td style={{ padding: '12px 14px', color: '#334155', fontWeight: 500 }}>
+                  {journeyStep?.nameVi || journeyStep?.code || '-'}
+                </td>
+
+                {/* Điểm chạm (Touchpoint) */}
+                <td style={{ padding: '12px 14px', color: '#334155' }}>
+                  {touchpoint?.nameVi || touchpoint?.code || '-'}
                 </td>
 
                 {/* Cảm xúc */}
                 <td style={{ padding: '12px 14px' }}>
                   {renderSentimentBadge(item.currentClassification.sentiment)}
-                </td>
-
-                {/* Kênh phản ánh */}
-                <td style={{ padding: '12px 14px', color: '#64748b', fontSize: 12 }}>
-                  <span style={{ color: '#94a3b8' }}>
-                    {channel}
-                  </span>
                 </td>
 
                 {/* Thời gian */}
@@ -195,7 +167,7 @@ export const FeedbackDataTable: React.FC<FeedbackDataTableProps> = ({
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                     }}
-                    title="Xem chi tiết"
+                    title="Xem & Hiệu chỉnh chi tiết"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = '#2563eb';
                       e.currentTarget.style.color = '#ffffff';

@@ -8,6 +8,7 @@ from apps.api.routers.analytics import router as analytics_router
 from apps.api.routers.feedback import router as feedback_router
 from apps.api.routers.taxonomy import router as taxonomy_router
 from apps.api.routers.hotspot import router as hotspot_router
+from apps.api.routers.ai_classification import router as ai_router
 from packages.infrastructure.logging import setup_logging
 
 setup_logging()
@@ -33,6 +34,7 @@ app.include_router(analytics_router)
 app.include_router(feedback_router)
 app.include_router(taxonomy_router)
 app.include_router(hotspot_router)
+app.include_router(ai_router)
 
 
 @app.get("/health", tags=["Health"])

@@ -32,6 +32,7 @@ class FeedbackItemListFilters:
     customer_lifecycle_step_code: str | None = None
     touchpoint_code: str | None = None
     hotspot_id: UUID | None = None
+    analytic_eligibility: str | None = None
     q: str | None = None
     limit: int = 50
     offset: int = 0
@@ -59,6 +60,12 @@ class FeedbackItemWorkspaceRow:
     analytic_eligibility: str
     parent_item_id: UUID | None
     affected_channel_codes: tuple[str, ...]
+    journey_stage_code: str | None = None
+    journey_stage_name_vi: str | None = None
+    journey_step_code: str | None = None
+    journey_step_name_vi: str | None = None
+    touchpoint_code: str | None = None
+    touchpoint_name_vi: str | None = None
 
 
 class FeedbackRepository:
@@ -165,6 +172,9 @@ class FeedbackRepository:
                        fi.parent_item_id, loc.location_id, loc.location_code, loc.name AS location_name,
                        service.service_code, service.name_vi AS service_name_vi,
                        issue.issue_code, issue.name_vi AS issue_name_vi,
+                       cls.stage_code AS journey_stage_code, cls.name_vi AS journey_stage_name_vi,
+                       clst.step_code AS journey_step_code, clst.name_vi AS journey_step_name_vi,
+                       tp.touchpoint_code, tp.name_vi AS touchpoint_name_vi,
                        cc.sentiment, cc.operational_severity, cc.classification_state,
                        cc.projection_version,
                        COALESCE(ARRAY_AGG(DISTINCT affected.channel_code)
@@ -176,13 +186,18 @@ class FeedbackRepository:
                 LEFT JOIN classification_current cc ON cc.feedback_item_id = fi.feedback_item_id
                 LEFT JOIN service ON service.service_id = cc.primary_service_id
                 LEFT JOIN issue ON issue.issue_id = cc.issue_id
+                LEFT JOIN customer_lifecycle_stage cls ON cls.customer_lifecycle_stage_id = cc.customer_lifecycle_stage_id
+                LEFT JOIN customer_lifecycle_step clst ON clst.customer_lifecycle_step_id = cc.customer_lifecycle_step_id
+                LEFT JOIN touchpoint tp ON tp.touchpoint_id = cc.touchpoint_id
                 LEFT JOIN feedback_item_affected_channel fiac ON fiac.feedback_item_id = fi.feedback_item_id
                 LEFT JOIN interaction_channel affected ON affected.interaction_channel_id = fiac.interaction_channel_id
                 WHERE {where}
                 GROUP BY fi.feedback_item_id, f.feedback_id, f.reported_at, f.source_system,
                          fi.item_text_masked, fi.status, fi.analytic_eligibility, fi.parent_item_id,
                          loc.location_id, loc.location_code, loc.name, service.service_code, service.name_vi,
-                         issue.issue_code, issue.name_vi, cc.sentiment, cc.operational_severity,
+                         issue.issue_code, issue.name_vi, cls.stage_code, cls.name_vi,
+                         clst.step_code, clst.name_vi, tp.touchpoint_code, tp.name_vi,
+                         cc.sentiment, cc.operational_severity,
                          cc.classification_state, cc.projection_version
                 ORDER BY f.reported_at DESC, fi.feedback_item_id DESC
                 LIMIT :limit OFFSET :offset
@@ -199,7 +214,11 @@ class FeedbackRepository:
                        fi.item_text_masked AS content_masked, fi.status, fi.analytic_eligibility,
                        fi.parent_item_id, loc.location_id, loc.location_code, loc.name AS location_name,
                        service.service_code, service.name_vi AS service_name_vi, issue.issue_code,
-                       issue.name_vi AS issue_name_vi, cc.sentiment, cc.operational_severity,
+                       issue.name_vi AS issue_name_vi,
+                       cls.stage_code AS journey_stage_code, cls.name_vi AS journey_stage_name_vi,
+                       clst.step_code AS journey_step_code, clst.name_vi AS journey_step_name_vi,
+                       tp.touchpoint_code, tp.name_vi AS touchpoint_name_vi,
+                       cc.sentiment, cc.operational_severity,
                        cc.classification_state, cc.projection_version,
                        COALESCE(ARRAY_AGG(DISTINCT affected.channel_code)
                          FILTER (WHERE affected.channel_code IS NOT NULL), ARRAY[]::text[]) AS affected_channel_codes
@@ -209,19 +228,99 @@ class FeedbackRepository:
                 LEFT JOIN classification_current cc ON cc.feedback_item_id = fi.feedback_item_id
                 LEFT JOIN service ON service.service_id = cc.primary_service_id
                 LEFT JOIN issue ON issue.issue_id = cc.issue_id
+                LEFT JOIN customer_lifecycle_stage cls ON cls.customer_lifecycle_stage_id = cc.customer_lifecycle_stage_id
+                LEFT JOIN customer_lifecycle_step clst ON clst.customer_lifecycle_step_id = cc.customer_lifecycle_step_id
+                LEFT JOIN touchpoint tp ON tp.touchpoint_id = cc.touchpoint_id
                 LEFT JOIN feedback_item_affected_channel fiac ON fiac.feedback_item_id = fi.feedback_item_id
                 LEFT JOIN interaction_channel affected ON affected.interaction_channel_id = fiac.interaction_channel_id
                 WHERE fi.feedback_item_id = :feedback_item_id
                 GROUP BY fi.feedback_item_id, f.feedback_id, f.reported_at, f.source_system,
                          fi.item_text_masked, fi.status, fi.analytic_eligibility, fi.parent_item_id,
                          loc.location_id, loc.location_code, loc.name, service.service_code, service.name_vi,
-                         issue.issue_code, issue.name_vi, cc.sentiment, cc.operational_severity,
+                         issue.issue_code, issue.name_vi, cls.stage_code, cls.name_vi,
+                         clst.step_code, clst.name_vi, tp.touchpoint_code, tp.name_vi,
+                         cc.sentiment, cc.operational_severity,
                          cc.classification_state, cc.projection_version
             """),
             {"feedback_item_id": feedback_item_id},
         )
         row = result.mappings().one_or_none()
         return _as_workspace_row(row) if row else None
+
+    async def update_item_classification(
+        self,
+        feedback_item_id: UUID,
+        *,
+        service_code: str | None = None,
+        issue_code: str | None = None,
+        sentiment: str | None = None,
+        operational_severity: str | None = None,
+        analytic_eligibility: str | None = None,
+        location_id: UUID | None = None,
+        symptom_detail: str | None = None,
+        actor_user_id: UUID | None = None,
+        reason: str | None = None,
+    ) -> FeedbackItemWorkspaceRow | None:
+        """Correct or update classification and operational fields for one feedback item."""
+        # Lookup service and issue IDs if provided
+        svc_id = None
+        if service_code:
+            r = await self._session.execute(
+                text("SELECT service_id FROM service WHERE service_code = :code"),
+                {"code": service_code},
+            )
+            svc_id = r.scalar_one_or_none()
+
+        iss_id = None
+        if issue_code:
+            r = await self._session.execute(
+                text("SELECT issue_id FROM issue WHERE issue_code = :code"),
+                {"code": issue_code},
+            )
+            iss_id = r.scalar_one_or_none()
+
+        # Update feedback_item table
+        fi_updates = []
+        fi_params: dict[str, Any] = {"feedback_item_id": feedback_item_id}
+        if analytic_eligibility is not None:
+            fi_updates.append("analytic_eligibility = :elig")
+            fi_params["elig"] = analytic_eligibility
+        if location_id is not None:
+            fi_updates.append("location_id = :loc_id")
+            fi_params["loc_id"] = location_id
+        if symptom_detail is not None:
+            fi_updates.append("symptom_detail = :sym")
+            fi_params["sym"] = symptom_detail
+
+        if fi_updates:
+            await self._session.execute(
+                text(f"UPDATE feedback_item SET {', '.join(fi_updates)} WHERE feedback_item_id = :feedback_item_id"),
+                fi_params,
+            )
+
+        # Update classification_current
+        cc_updates = ["last_decision_at = NOW()", "classification_state = 'ACCEPTED'"]
+        cc_params: dict[str, Any] = {"feedback_item_id": feedback_item_id}
+        if svc_id is not None:
+            cc_updates.append("primary_service_id = :svc_id, primary_service_value_status = 'KNOWN'")
+            cc_params["svc_id"] = svc_id
+        if iss_id is not None:
+            cc_updates.append("issue_id = :iss_id, issue_value_status = 'KNOWN'")
+            cc_params["iss_id"] = iss_id
+        if sentiment is not None:
+            cc_updates.append("sentiment = :sentiment")
+            cc_params["sentiment"] = sentiment
+        if operational_severity is not None:
+            cc_updates.append("operational_severity = :severity")
+            cc_params["severity"] = operational_severity
+
+        await self._session.execute(
+            text(f"UPDATE classification_current SET {', '.join(cc_updates)} WHERE feedback_item_id = :feedback_item_id"),
+            cc_params,
+        )
+
+        await self._session.commit()
+        return await self.get_workspace_item(feedback_item_id)
 
     async def apply_split(
         self,
@@ -429,6 +528,9 @@ def _workspace_where(filters: FeedbackItemListFilters) -> tuple[str, dict[str, A
     if filters.hotspot_id:
         clauses.append("EXISTS (SELECT 1 FROM feedback_item_hotspot filter_fih WHERE filter_fih.feedback_item_id = fi.feedback_item_id AND filter_fih.hotspot_id = :hotspot_id)")
         params["hotspot_id"] = filters.hotspot_id
+    if filters.analytic_eligibility:
+        clauses.append("fi.analytic_eligibility = :analytic_eligibility")
+        params["analytic_eligibility"] = filters.analytic_eligibility
     if filters.q:
         clauses.append("fi.item_text_masked ILIKE :q")
         params["q"] = f"%{filters.q.strip()}%"
@@ -448,4 +550,10 @@ def _as_workspace_row(row: Any) -> FeedbackItemWorkspaceRow:
         status=row["status"], analytic_eligibility=row["analytic_eligibility"],
         parent_item_id=row["parent_item_id"],
         affected_channel_codes=tuple(row["affected_channel_codes"] or ()),
+        journey_stage_code=row.get("journey_stage_code"),
+        journey_stage_name_vi=row.get("journey_stage_name_vi"),
+        journey_step_code=row.get("journey_step_code"),
+        journey_step_name_vi=row.get("journey_step_name_vi"),
+        touchpoint_code=row.get("touchpoint_code"),
+        touchpoint_name_vi=row.get("touchpoint_name_vi"),
     )

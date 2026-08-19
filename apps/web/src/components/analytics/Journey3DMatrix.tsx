@@ -30,7 +30,7 @@ const STAGE_CONFIGS: StageConfig[] = [
   { code: 'TR', name: 'Giao dịch', prefix: 'TR', themeColor: '#8b5cf6', order: 3 },
   { code: 'HO', name: 'Nhận nhà', prefix: 'HO', themeColor: '#ec4899', order: 4 },
   { code: 'RES', name: 'Cư trú', prefix: 'RES', themeColor: '#ef4444', order: 5 },
-  { code: 'OPS', name: 'Vận hành', prefix: 'OPS', themeColor: '#f97316', order: 6 },
+  { code: 'OPS', name: 'Sử dụng dịch vụ', prefix: 'OPS', themeColor: '#f97316', order: 6 },
 ];
 
 export const Journey3DMatrix: React.FC<Journey3DMatrixProps> = ({

@@ -19,7 +19,7 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: 'TRẢI NGHIỆM KHÁCH HÀNG',
     items: [
-      { label: 'Điểm nóng & Căn nguyên', icon: '🔥', path: '/hotspot' },
+      { label: 'Điểm nóng', icon: '🔥', path: '/hotspot' },
     ],
   },
   {

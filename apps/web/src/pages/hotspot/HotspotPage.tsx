@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import { HotspotActionQueue } from '../../components/hotspot/HotspotActionQueue';
+import { HotspotDashboard } from '../../components/hotspot/HotspotDashboard';
 import { HotspotItemData, listHotspots } from '../../api/hotspots';
 import { useAnalyticsFilters } from '../../hooks/useAnalyticsFilters';
 import AnalyticsFilterBar from '../../components/analytics/AnalyticsFilterBar';
@@ -51,12 +52,20 @@ export const HotspotPage: React.FC = () => {
           <AnalyticsState title="Lỗi tải dữ liệu" message={error} onRetry={() => void loadHotspots()} />
         ) : (
           filters && (
-            <HotspotActionQueue
-              projectId={filters.projectId}
-              hotspots={hotspots}
-              loading={loading}
-              onRefresh={() => void loadHotspots()}
-            />
+            <>
+              {/* Visual Dashboard: KPIs + Charts */}
+              {!loading && hotspots.length > 0 && (
+                <HotspotDashboard hotspots={hotspots} />
+              )}
+
+              {/* Action Queue: scrollable cards */}
+              <HotspotActionQueue
+                projectId={filters.projectId}
+                hotspots={hotspots}
+                loading={loading}
+                onRefresh={() => void loadHotspots()}
+              />
+            </>
           )
         )}
       </div>
