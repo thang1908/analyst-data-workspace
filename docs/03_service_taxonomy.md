@@ -1,447 +1,412 @@
-# 02 — Taxonomy Dịch vụ Bất động sản Nhà ở (Residential Real Estate Service Taxonomy)
+# 03 — Taxonomy Dịch vụ (Service Taxonomy)
 
 - **Dự án:** CX Intelligence & Operations Platform
-- **Phiên bản tài liệu:** 3.0.0
-- **Phạm vi nghiệp vụ:** Chủ đầu tư nhà ở + giao dịch + bàn giao + cư trú + quản lý vận hành chung cư/khu dân cư
-- **Quy mô tiêu chuẩn (Canonical size):** 10 Service / 28 Issue đại diện
-- **Hành trình (Journey):** 6 Customer Lifecycle Stage / 36 Customer Journey Step / 8 Service Request Step
-- **Mục đích:** Một không gian nhãn (label space) ngắn gọn, dễ phân loại, đủ dùng cho dashboard, xác định quyền sở hữu (ownership) và phân tích nguyên nhân gốc rễ
+- **Phiên bản taxonomy:** 3.0.1 (active) · 3.0.0 (historical, immutable)
+- **Phiên bản tài liệu:** 3.1.0 — cập nhật khớp DB migration 016, 018, 019
+- **Quy mô:** 10 Service / 28 Issue / 6 Stage / 36 Step / 8 Service Request Step / Touchpoints
+- **Nguồn truth duy nhất:** `alembic/versions/016_seed_taxonomy_v3.py` + `018` + `019`
 
-> Taxonomy hỗ trợ phân loại và điều phối. Nó không tự xác lập trách nhiệm pháp lý, nghĩa vụ bảo hành, phần sở hữu chung–riêng hoặc nguồn kinh phí.
+> Taxonomy phục vụ phân loại và điều phối. Không xác lập trách nhiệm pháp lý, bảo hành hoặc phần sở hữu chung-riêng.
 
-## 1. Mô hình Phân loại (Classification Model)
+---
 
-```text
+## 1. Mô hình Phân loại
+
+```
 Feedback Envelope
-  ├── Source System
-  └── Intake Channel
+  ├── source_system (tên hệ thống nguồn)
+  └── intake_channel_id (kênh tiếp nhận)
         ↓ 1:N
-Feedback Item / Atomic Observation
-  ├── Customer Lifecycle Stage/Step   0:1
-  ├── Service Request Step            0:1
-  ├── Primary Service                 0:1
-  ├── Canonical Issue                 0:1; thuộc Primary Service
-  ├── Location                        0:1
-  ├── Affected Channel                0:N
+Feedback Item (atomic observation)
+  ├── Customer Lifecycle Stage / Step    0:1
+  ├── Touchpoint                         0:1  ← MỚI (migration 019)
+  ├── Service Request Step               0:1
+  ├── Primary Service                    0:1
+  ├── Canonical Issue                    0:1  (thuộc Primary Service)
+  ├── Location                           0:1
+  ├── Affected Channel                   0:N
   └── symptom_detail + evidence
 ```
 
-### 1.1 Khái niệm
+### Quy tắc bắt buộc
 
-| Entity | Trả lời câu hỏi | Không dùng để biểu diễn |
-| --- | --- | --- |
-| Customer Lifecycle Stage/Step | Khách hàng hoặc tài sản đang ở giai đoạn nào? | Trạng thái xử lý ticket |
-| Service Request Step | Yêu cầu đang ở bước phục vụ nào? | Giai đoạn khách hàng |
-| Service | Outcome/năng lực nào chịu trách nhiệm chính? | Phòng ban, vendor, channel, asset |
-| Issue | Nhóm failure nào đã quan sát? | Nguyên nhân chưa xác nhận |
-| symptom_detail | Biểu hiện cụ thể là gì? | Master code để chia nhỏ dashboard |
-| Candidate Cause | Giả thuyết điều tra nào có thể đúng? | Confirmed Root Cause |
-
-### 1.2 Quy tắc bắt buộc
-
-1. Một `feedback_item` chỉ chứa một `customer intent` hoặc một `observable failure`; nhiều ý định (`multi-intent`) phải chia nhỏ (`split`).
-2. Khi `Primary Service` và `Issue` đều có `value_status = KNOWN`, item phải có đúng một Primary Service và Issue bắt buộc thuộc Primary Service đó trong cùng taxonomy release. `Primary Service` có thể là `KNOWN` trong khi `Issue` là `UNKNOWN` nếu chưa đủ thông tin để xác định Issue cụ thể.
-3. Không tạo Service/Issue mới chỉ vì khác location, channel, source system, vendor hoặc resolver.
-4. Không gộp purchase ledger với resident ledger chỉ vì đều là thanh toán.
-5. SV-10/IS-10-01 chỉ dùng khi nội dung đã rõ nhưng không thuộc SV-01..SV-09; bắt buộc có `other_reason` và `review`.
-6. Hard trigger không chờ classifier hoàn tất.
-7. AI không tự xác nhận Root Cause, warranty eligibility hoặc legal responsibility.
-
-## 2. Từ điển Hành trình (Journey Dictionary)
-
-### 2.1 Hai chiều Hành trình (Journey)
-
-| Dimension | Phạm vi | Code | Cardinality |
-| --- | --- | --- | --- |
-| CUSTOMER_LIFECYCLE | 6 stage: Nhận thức, Xem xét, Giao dịch, Nhận nhà, Cư trú, Vận hành | A, C, TR, HO, RES, OPS | 0:1 step trên feedback item |
-| SERVICE_REQUEST_LIFECYCLE | Vòng đời của một yêu cầu dịch vụ | SRV | 0:1 step trên feedback item/case |
-
-Vận hành là stage thứ sáu, dùng cho record mô tả hoạt động quản lý tài sản và dịch vụ sau bàn giao. Cư trú vẫn dùng cho trải nghiệm/touchpoint trực tiếp của cư dân. Service Request Lifecycle là chiều độc lập.
-
-### 2.2 Customer Lifecycle — Nhận thức
-
-| Code | Bước |
-| --- | --- |
-| A1 | Tiếp cận thương hiệu/dự án |
-| A2 | Khám phá nội dung & thông tin ban đầu |
-| A3 | Nhận giới thiệu / tham gia hoạt động quảng bá |
-
-### 2.3 Customer Lifecycle — Xem xét
-
-| Code | Bước |
-| --- | --- |
-| C1 | Tìm hiểu dự án & sản phẩm |
-| C2 | Đánh giá vị trí, thiết kế & tiện ích |
-| C3 | Xem quỹ căn & so sánh lựa chọn |
-| C4 | Đánh giá pháp lý, giá & chính sách |
-| C5 | Đánh giá khả năng tài chính |
-| C6 | Nhận tư vấn & tham quan |
-
-### 2.4 Customer Lifecycle — Giao dịch
-
-| Code | Bước |
-| --- | --- |
-| TR-01 | Yêu cầu giữ căn hoặc gửi booking |
-| TR-02 | Xác minh khách hàng & hồ sơ |
-| TR-03 | Đặt cọc & xác nhận giao dịch |
-| TR-04 | Chọn phương án tài chính & thanh toán |
-| TR-05 | Ký hợp đồng mua bán |
-| TR-06 | Thực hiện nghĩa vụ & thay đổi sau ký |
-
-### 2.5 Customer Lifecycle — Nhận nhà
-
-| Code | Bước |
-| --- | --- |
-| HO-01 | Nhận thông báo & chuẩn bị bàn giao |
-| HO-02 | Đặt lịch & làm thủ tục bàn giao |
-| HO-03 | Kiểm tra & nghiệm thu căn |
-| HO-04 | Ghi nhận tồn tại / yêu cầu khắc phục |
-| HO-05 | Hoàn tất nhận nhà & hồ sơ |
-
-### 2.6 Customer Lifecycle — Cư trú
-
-| Code | Bước |
-| --- | --- |
-| RES-01 | Thiết lập hồ sơ & quyền cư dân |
-| RES-02 | Sử dụng hệ thống & kênh cư dân |
-| RES-03 | Ra vào & di chuyển |
-| RES-04 | Tiếp khách |
-| RES-05 | Sử dụng tiện ích & dịch vụ |
-| RES-06 | Thanh toán phí & nghĩa vụ cư trú |
-| RES-07 | Gửi yêu cầu / phản ánh / sự cố |
-| RES-08 | Thực hiện thay đổi liên quan căn hộ |
-
-Từ release **3.0.1**, Dashboard dùng nhãn ngắn để dễ quét nhưng giữ nguyên code và định nghĩa: `RES-03` là **Ra vào & di chuyển**, `RES-07` là **Yêu cầu & phản ánh**. Bản 3.0.0 vẫn được giữ nguyên cho các quyết định lịch sử.
-
-### 2.7 Customer Lifecycle — Vận hành
-
-| Code | Bước vận hành | Nội dung chính |
-| --- | --- | --- |
-| OPS-01 | Tiếp nhận & huy động vận hành | Hồ sơ O&M, asset register, warranty, hợp đồng, nhân sự, vendor và readiness |
-| OPS-02 | Lập kế hoạch, ngân sách & nguồn lực | Service standard, ngân sách, bảo trì, staffing, SLA và kế hoạch khẩn cấp |
-| OPS-03 | Vận hành thường nhật & giám sát | Control room, tuần tra, chỉ số/cảnh báo, utilities, access, parking và tiện ích |
-| OPS-04 | Kiểm tra, thử nghiệm & bảo trì định kỳ | Inspection, preventive/predictive maintenance, kiểm định và planned outage |
-| OPS-05 | Chẩn đoán, sửa chữa & khôi phục | Work order, cô lập, sửa/thay, thử chức năng và đưa tài sản trở lại phục vụ |
-| OPS-06 | Ứng phó sự cố, khẩn cấp & duy trì liên tục | Triage, dispatch, containment, sơ tán, phương án dự phòng và recovery |
-| OPS-07 | Xác minh, tuân thủ & đánh giá hiệu suất | Nghiệm thu, hồ sơ pháp định, audit, SLA/KPI, vendor và hiệu suất tài nguyên |
-| OPS-08 | Cải tiến, đổi mới & chuyển giao | RCA/CAPA, tối ưu, thay thế, capital works, recommissioning và transition |
-
-Vận hành là chu kỳ, không phải funnel bắt buộc:
-
-```text
-OPS-01 → OPS-02 → OPS-03
-                   ↕
-              OPS-04 / OPS-05
-                   ↓
-                 OPS-07 → OPS-08 → OPS-02
-
-Sự cố từ OPS-03/04/05 → OPS-06 → OPS-07
-```
-
-### 2.8 Service Request Lifecycle
-
-| Code | Bước |
-| --- | --- |
-| SRV-01 | Tìm thông tin |
-| SRV-02 | Gửi yêu cầu |
-| SRV-03 | Xác nhận/phê duyệt |
-| SRV-04 | Thanh toán |
-| SRV-05 | Được phục vụ |
-| SRV-06 | Theo dõi/escalate |
-| SRV-07 | Hoàn tất |
-| SRV-08 | Đánh giá |
-
-### 2.9 Kênh Tương tác (Interaction Channel)
-
-| Code | Channel |
-| --- | --- |
-| CH-APP | Ứng dụng di động |
-| CH-WEB | Website/Portal |
-| CH-HOTLINE | Hotline/Call Center |
-| CH-EMAIL | Email |
-| CH-FRONTDESK | Quầy lễ tân/Service Desk |
-| CH-SOCIAL | Mạng xã hội/Messaging |
-| CH-INPERSON | In-person/Site Visit |
-| CH-SYSTEM | Machine/System event |
-
-CRM, ERP, BMS, CMMS, contact-center platform và sensor feed là source_system, không phải Channel.
+1. Một `feedback_item` chứa đúng 1 customer intent hoặc 1 observable failure. Multi-intent → bắt buộc `split`.
+2. Khi `Primary Service` và `Issue` đều `KNOWN`: Issue phải thuộc Primary Service đó trong cùng taxonomy release.
+3. Không tạo Service/Issue mới chỉ vì khác location, channel, source system hoặc vendor.
+4. `SV-10/IS-10-01` chỉ dùng khi nội dung đã rõ nhưng không thuộc SV-01..SV-09; bắt buộc có `other_reason` và `review`.
+5. Hard trigger SEV-1/safety không chờ classifier.
+6. AI không tự xác nhận Root Cause, warranty eligibility hoặc legal responsibility.
 
 ---
 
-## 3. Danh mục Dịch vụ Tiêu chuẩn (Canonical Service Catalog) — 10 Service
+## 2. Customer Lifecycle — 6 Stage / 36 Step
 
-### 3.1 Ranh giới Dịch vụ (Service Boundaries)
+> **v3.0.1 dashboard labels** (ngắn hơn v3.0.0, dùng trên UI; code & định nghĩa không đổi)
 
-| Code | Service (VI / EN) | Bao gồm |
-| --- | --- | --- |
-| SV-01 | Thông tin, bán hàng & giao dịch / Information, Sales & Transaction | Thông tin dự án, tư vấn, tham quan, quỹ căn, booking, KYC, đặt cọc và hợp đồng |
-| SV-02 | Tài chính mua nhà, bàn giao & bảo hành / Purchase Finance, Handover & Warranty | Khoản vay, purchase ledger, thanh toán, kiểm tra/tiếp nhận nhà, claim và khắc phục |
-| SV-03 | Hồ sơ, hỗ trợ & trải nghiệm số cư dân / Resident Administration, Support & Digital | Hồ sơ cư dân, tài khoản, app/portal, case handling và truyền thông |
-| SV-04 | Hóa đơn, phí & thanh toán cư dân / Resident Billing & Payments | Resident ledger, invoice, fee, payment, posting, adjustment và refund |
-| SV-05 | Ra vào, khách, bãi xe & di chuyển / Access, Visitor, Parking & Mobility | Credential, Face ID, intercom, visitor, LPR/barrier, parking và shuttle |
-| SV-06 | Tiện ích, cải tạo & chuyển nhà / Amenities, Renovation & Move Services | Booking/admission tiện ích, permit/compliance cải tạo, move-in/out logistics |
-| SV-07 | Kỹ thuật, tiện ích & tài sản chung / Engineering, Utilities & Common Assets | Elevator, water, electrical, generator, HVAC, building fabric, maintenance và major works |
-| SV-08 | An ninh, PCCC & khẩn cấp / Security, Fire & Emergency | Intrusion, theft, disturbance, security response, fire system, egress, evacuation và continuity |
-| SV-09 | Vệ sinh, môi trường & cảnh quan / Cleaning, Environment & Grounds | Cleaning, hygiene, waste, pest, landscaping và environmental nuisance |
-| SV-10 | Khác / Other | Nội dung rõ nhưng không thuộc SV-01..SV-09 |
+### Stage A — Nhận thức (Awareness)
 
-Trên Dashboard, release 3.0.1 dùng nhãn gọn cho các điểm chạm: `SV-01` **Thông tin & giao dịch**, `SV-05` **Ra vào & bãi xe**, `SV-07` **Kỹ thuật & tài sản chung** và `SV-08` **An ninh & khẩn cấp**. Code, định nghĩa và ranh giới dịch vụ không thay đổi.
+| Code | v3.0.0 name | v3.0.1 label (dashboard) |
+|---|---|---|
+| A1 | Tiếp cận thương hiệu/dự án | Biết đến dự án |
+| A2 | Khám phá nội dung & thông tin ban đầu | Tìm hiểu ban đầu |
+| A3 | Nhận giới thiệu / tham gia hoạt động quảng bá | Giới thiệu & ưu đãi |
 
----
+### Stage C — Xem xét (Consideration)
 
-## 4. Danh mục Vấn đề Tiêu chuẩn (Canonical Issue Catalog) — 28 Issue
+| Code | v3.0.0 name | v3.0.1 label |
+|---|---|---|
+| C1 | Tìm hiểu dự án & sản phẩm | Tìm hiểu dự án |
+| C2 | Đánh giá vị trí, thiết kế & tiện ích | Đánh giá sản phẩm |
+| C3 | Xem quỹ căn & so sánh lựa chọn | Chọn căn |
+| C4 | Đánh giá pháp lý, giá & chính sách | Giá & chính sách |
+| C5 | Đánh giá khả năng tài chính | Khả năng tài chính |
+| C6 | Nhận tư vấn & tham quan | Tư vấn & tham quan |
 
-### SV-01 — Information, Sales & Transaction (3)
+### Stage TR — Giao dịch (Transaction)
 
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-01-01 | Thông tin thiếu hoặc không chính xác / Information Missing or Inaccurate | Project, product, legal, policy, price hoặc content unavailable/stale |
-| IS-01-02 | Tư vấn, tham quan hoặc giữ chỗ không đạt / Advisory, Viewing or Reservation Failure | Contact, appointment, availability, booking, duplicate hoặc confirmation |
-| IS-01-03 | Hồ sơ hoặc giao dịch không hoàn tất / Dossier or Transaction Failure | KYC, document, contract data, e-sign, amendment hoặc transfer |
+| Code | v3.0.0 name | v3.0.1 label |
+|---|---|---|
+| TR-01 | Yêu cầu giữ căn hoặc gửi booking | Giữ chỗ |
+| TR-02 | Xác minh khách hàng & hồ sơ | Xác minh hồ sơ |
+| TR-03 | Đặt cọc & xác nhận giao dịch | Đặt cọc |
+| TR-04 | Chọn phương án tài chính & thanh toán | Chọn phương án tài chính |
+| TR-05 | Ký hợp đồng mua bán | Ký hợp đồng |
+| TR-06 | Thực hiện nghĩa vụ & thay đổi sau ký | Thay đổi sau ký |
 
-### SV-02 — Purchase Finance, Handover & Warranty (3)
+### Stage HO — Nhận nhà (Handover)
 
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-02-01 | Tài chính hoặc quyết toán mua nhà có vấn đề / Purchase Finance or Settlement Failure | Loan, payment, allocation, due amount, adjustment hoặc refund |
-| IS-02-02 | Bàn giao hoặc nghiệm thu không đạt / Handover or Acceptance Failure | Readiness, schedule, inspection, area, defect capture hoặc acceptance |
-| IS-02-03 | Bảo hành hoặc khắc phục không đạt / Warranty or Remediation Failure | Scope unclear, delay, ineffective repair, recurrence hoặc invalid closure |
+| Code | v3.0.0 name | v3.0.1 label |
+|---|---|---|
+| HO-01 | Nhận thông báo & chuẩn bị bàn giao | Chuẩn bị nhận nhà |
+| HO-02 | Đặt lịch & làm thủ tục bàn giao | Thủ tục nhận nhà |
+| HO-03 | Kiểm tra & nghiệm thu căn | Kiểm tra căn |
+| HO-04 | Ghi nhận tồn tại / yêu cầu khắc phục | Ghi nhận lỗi |
+| HO-05 | Hoàn tất nhận nhà & hồ sơ | Hoàn tất nhận nhà |
 
-### SV-03 — Resident Administration, Support & Digital (3)
+### Stage RES — Cư trú (Residence)
 
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-03-01 | Hồ sơ hoặc quyền cư dân sai / Resident Record or Entitlement Incorrect | Household/unit/profile/role/account status |
-| IS-03-02 | Nền tảng số hoặc case handling lỗi / Digital Platform or Case Handling Failure | Login, OTP, crash, API, missing/duplicate case, wrong owner, premature closure |
-| IS-03-03 | Hỗ trợ hoặc truyền thông không đạt / Support or Communication Failure | Response, audience, timing, clarity, follow-up hoặc notification |
+| Code | v3.0.0 name | v3.0.1 label |
+|---|---|---|
+| RES-01 | Thiết lập hồ sơ & quyền cư dân | Hồ sơ cư dân |
+| RES-02 | Sử dụng hệ thống & kênh cư dân | Ứng dụng & kênh cư dân |
+| RES-03 | Ra vào & di chuyển | Ra vào & di chuyển |
+| RES-04 | Tiếp khách | Tiếp khách |
+| RES-05 | Sử dụng tiện ích & dịch vụ | Tiện ích cư dân |
+| RES-06 | Thanh toán phí & nghĩa vụ cư trú | Phí & thanh toán |
+| RES-07 | Gửi yêu cầu / phản ánh / sự cố | Yêu cầu & phản ánh |
+| RES-08 | Thực hiện thay đổi liên quan căn hộ | Thay đổi căn hộ |
 
-### SV-04 — Resident Billing & Payments (3)
+### Stage OPS — Vận hành (Operations)
 
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-04-01 | Hóa đơn hoặc phí sai / Charge or Invoice Incorrect | Tariff, amount, penalty hoặc duplicate |
-| IS-04-02 | Thanh toán hoặc ghi nhận thất bại / Payment or Posting Failure | Gateway, bank, callback, reference, allocation hoặc reconciliation |
-| IS-04-03 | Điều chỉnh hoặc hoàn tiền chậm / Adjustment or Refund Delay | Adjustment, deposit settlement, refund hoặc document issuance delay |
-
-### SV-05 — Access, Visitor, Parking & Mobility (3)
-
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-05-01 | Ra vào hoặc hành trình khách thất bại / Access or Visitor Failure | Card, Face ID, floor permission, intercom, registration hoặc check-in |
-| IS-05-02 | Dịch vụ bãi xe không đạt / Parking Service Failure | LPR, barrier, entitlement, capacity, congestion hoặc availability |
-| IS-05-03 | Di chuyển nội khu không đạt / Estate Mobility Failure | Route, stop, schedule, realtime information, missed trip hoặc capacity |
-
-### SV-06 — Amenities, Renovation & Move Services (3)
-
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-06-01 | Tiện ích không đặt hoặc sử dụng được / Amenity Reservation or Use Failure | Booking, slot, eligibility, admission, opening status hoặc equipment |
-| IS-06-02 | Phê duyệt hoặc kiểm soát cải tạo không đạt / Renovation Approval or Compliance Failure | Dossier, approval, contractor, schedule, access, noise hoặc damage assessment |
-| IS-06-03 | Chuyển vào/chuyển ra không đạt / Move Service Failure | Registration, loading bay, freight lift, vehicle, contractor hoặc logistics |
-
-### SV-07 — Engineering, Utilities & Common Assets (3)
-
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-07-01 | Hệ thống ngừng hoặc suy giảm / System Outage or Degradation | Elevator, water, electrical, generator, HVAC outage/performance/quality |
-| IS-07-02 | Rò rỉ hoặc điều kiện kỹ thuật nguy hiểm / Leakage or Unsafe Technical Condition | Leak, blockage, flooding, entrapment, abnormal stop, overheat, burning smell |
-| IS-07-03 | Tài sản chung hoặc bảo trì không đạt / Common Asset or Maintenance Failure | Fabric defect, preventive/capital work, inspection, vendor/compliance record |
-
-### SV-08 — Security, Fire & Emergency (3)
-
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-08-01 | Sự kiện an ninh / Security Incident | Unauthorized access, theft, suspicious behavior, disturbance hoặc threat |
-| IS-08-02 | Giám sát hoặc phản ứng an ninh thất bại / Security Monitoring or Response Failure | CCTV, hotline, guard, patrol, dispatch hoặc response |
-| IS-08-03 | PCCC hoặc sẵn sàng khẩn cấp không đạt / Fire or Emergency Readiness Failure | Fire/smoke, alarm, detection, suppression, egress, evacuation, command hoặc continuity |
-
-### SV-09 — Cleaning, Environment & Grounds (3)
-
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-09-01 | Vệ sinh hoặc hygiene không đạt / Cleaning or Hygiene Failure | Dirty surface, restroom, supply hoặc spill response |
-| IS-09-02 | Rác thải hoặc sinh vật gây hại không được kiểm soát / Waste or Pest Failure | Overflow, missed collection, sorting, bulky waste, insect hoặc rodent |
-| IS-09-03 | Cảnh quan hoặc phiền nhiễu môi trường / Landscape or Environmental Nuisance | Plant, irrigation, unsafe branch, odor hoặc nuisance chưa rõ nguồn |
-
-### SV-10 — Other (1)
-
-| Code | Issue | Bao gồm |
-| --- | --- | --- |
-| IS-10-01 | Vấn đề khác cần review / Other Issue Requiring Review | Nội dung đủ rõ nhưng ngoài phạm vi chín Service |
-
-### 4.1 Kiểm soát nhãn “Khác”
-
-- Bắt buộc lưu `other_reason`, `raw evidence` và `reviewer`.
-- Không tự động áp dụng (auto-apply) bằng AI.
-- Đánh giá (review) theo tuần; các nhóm (cluster) lặp lại được đề xuất bổ sung vào Service/Issue hiện hữu hoặc tạo phiên bản taxonomy mới (taxonomy revision).
-- `other_rate` được theo dõi theo project/source; tăng bất thường là tín hiệu về chất lượng dữ liệu (data-quality signal).
-- Nhãn Khác không có người chịu trách nhiệm mặc định (default owner); ticket/case phải được phân loại thủ công (triage thủ công).
+| Code | v3.0.0 name | v3.0.1 label | Nội dung |
+|---|---|---|---|
+| OPS-01 | Tiếp nhận & huy động vận hành | Tiếp nhận vận hành | Hồ sơ O&M, asset register, warranty, hợp đồng, vendor readiness |
+| OPS-02 | Lập kế hoạch, ngân sách & nguồn lực | Kế hoạch & nguồn lực | Service standard, ngân sách, bảo trì, SLA |
+| OPS-03 | Vận hành thường nhật & giám sát | Vận hành & giám sát | Control room, tuần tra, BMS, utilities, access |
+| OPS-04 | Kiểm tra, thử nghiệm & bảo trì định kỳ | Kiểm tra & bảo trì | Preventive/predictive maintenance, kiểm định |
+| OPS-05 | Chẩn đoán, sửa chữa & khôi phục | Sửa chữa & khôi phục | Work order, cô lập, sửa/thay, thử chức năng |
+| OPS-06 | Ứng phó sự cố, khẩn cấp & duy trì liên tục | Ứng phó khẩn cấp | Triage, dispatch, containment, sơ tán, recovery |
+| OPS-07 | Xác minh, tuân thủ & đánh giá hiệu suất | Tuân thủ & hiệu suất | Nghiệm thu, audit, SLA/KPI, vendor performance |
+| OPS-08 | Cải tiến, đổi mới & chuyển giao | Cải tiến vận hành | RCA/CAPA, tối ưu, capital works |
 
 ---
 
-## 5. Cause, Severity and Safety
+## 3. Service Request Lifecycle — 8 Step
 
-### 5.1 Cause
+| Code | Tên VI | Tên EN |
+|---|---|---|
+| SRV-01 | Tìm thông tin | Find Information |
+| SRV-02 | Gửi yêu cầu | Submit Request |
+| SRV-03 | Xác nhận/phê duyệt | Confirm / Approve |
+| SRV-04 | Thanh toán | Payment |
+| SRV-05 | Được phục vụ | Service Delivered |
+| SRV-06 | Theo dõi/escalate | Track / Escalate |
+| SRV-07 | Hoàn tất | Complete |
+| SRV-08 | Đánh giá | Rate & Review |
 
-Candidate Cause là giả thuyết (hypothesis). Confirmed Root Cause bắt buộc có điều tra (investigation), bằng chứng (evidence), người xác nhận có thẩm quyền (authorized confirmer) và dấu thời gian (timestamp).
+---
 
-```text
-mechanism
-contributing_factor
-external_condition
-responsible_party
-required_evidence
-```
+## 4. Interaction Channels — 8 kênh
 
-UNKNOWN là cause_determination_status, không phải Cause.
+> Code trong DB dùng chữ thường `ch-xxx`. Tài liệu cũ dùng `CH-XXX` — đã thống nhất theo DB.
 
-### 5.2 Operational severity
+| DB Code | Tên VI | Tên EN |
+|---|---|---|
+| ch-app | Ứng dụng di động | Mobile App |
+| ch-web | Website/Portal | Website / Portal |
+| ch-hotline | Hotline/Call Center | Hotline / Call Center |
+| ch-email | Email | Email |
+| ch-frontdesk | Quầy lễ tân/Service Desk | Front Desk / Service Desk |
+| ch-social | Mạng xã hội/Messaging | Social Media / Messaging |
+| ch-inperson | In-person/Site Visit | In-person / Site Visit |
+| ch-system | Machine/System event | Machine / System Event |
 
-| Severity | Baseline |
-| --- | --- |
+> `source_system` (CRM, ERP, BMS, CMMS, sensor feed) **không** phải Channel.
+
+---
+
+## 5. Danh mục 10 Dịch vụ (Service Catalog)
+
+### Nhãn theo phiên bản taxonomy
+
+| Code | v3.0.0 (full name) | v3.0.1 (dashboard label) | Default SEV | Định nghĩa kết quả |
+|---|---|---|---|---|
+| SV-01 | Thông tin, bán hàng & giao dịch | Thông tin & giao dịch | SEV-4 | Khách hàng nhận thông tin chính xác, hoàn tất giao dịch và ký kết hợp đồng |
+| SV-02 | Tài chính mua nhà, bàn giao & bảo hành | Tài chính, bàn giao & bảo hành | SEV-3 | Khách hàng hoàn tất nghĩa vụ tài chính, nhận nhà đúng tiêu chuẩn và được bảo hành |
+| SV-03 | Hồ sơ, hỗ trợ & trải nghiệm số cư dân | Hồ sơ & hỗ trợ cư dân | SEV-4 | Cư dân có hồ sơ chính xác, truy cập nền tảng số và nhận hỗ trợ kịp thời |
+| SV-04 | Hóa đơn, phí & thanh toán cư dân | Hóa đơn & thanh toán | SEV-3 | Cư dân nhận hóa đơn chính xác và thanh toán thành công |
+| SV-05 | Ra vào, khách, bãi xe & di chuyển | Ra vào & bãi xe | SEV-2 | Cư dân và khách ra vào, đỗ xe và di chuyển nội khu an toàn |
+| SV-06 | Tiện ích, cải tạo & chuyển nhà | Tiện ích & chuyển nhà | SEV-4 | Cư dân sử dụng tiện ích, thực hiện cải tạo và chuyển nhà đúng quy trình |
+| SV-07 | Kỹ thuật, tiện ích & tài sản chung | Kỹ thuật & tài sản chung | **SEV-1** | Hệ thống kỹ thuật và tài sản chung hoạt động liên tục, an toàn |
+| SV-08 | An ninh, PCCC & khẩn cấp | An ninh & khẩn cấp | **SEV-1** | Tài sản và con người được bảo vệ; sự cố phát hiện và xử lý kịp thời |
+| SV-09 | Vệ sinh, môi trường & cảnh quan | Vệ sinh & cảnh quan | SEV-3 | Môi trường sạch, an toàn vệ sinh và cảnh quan được duy trì đúng tiêu chuẩn |
+| SV-10 | Khác | Khác | SEV-4 | Nội dung rõ nhưng không thuộc SV-01..SV-09; bắt buộc có other_reason và review |
+
+---
+
+## 6. Danh mục 28 Vấn đề (Issue Catalog)
+
+> Cột "🔴 Safety" = `safety_critical = true` trong DB → kích hoạt hard trigger
+
+### SV-01 — Thông tin & giao dịch (3 issues)
+
+| Code | Tên đầy đủ (v3.0.0) | Dashboard label (v3.0.1) | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-01-01 | Thông tin thiếu hoặc không chính xác | Thông tin sai hoặc thiếu | | Project, product, legal, policy, price hoặc content unavailable/stale |
+| IS-01-02 | Tư vấn, tham quan hoặc giữ chỗ không đạt | Tư vấn, tham quan & giữ chỗ | | Contact, appointment, availability, booking, duplicate hoặc confirmation |
+| IS-01-03 | Hồ sơ hoặc giao dịch không hoàn tất | Hồ sơ/giao dịch chưa hoàn tất | | KYC, document, contract data, e-sign, amendment hoặc transfer |
+
+### SV-02 — Tài chính, bàn giao & bảo hành (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-02-01 | Tài chính hoặc quyết toán mua nhà có vấn đề | Tài chính & quyết toán | | Loan, payment, allocation, due amount, adjustment hoặc refund |
+| IS-02-02 | Bàn giao hoặc nghiệm thu không đạt | Bàn giao & nghiệm thu | | Readiness, schedule, inspection, area, defect capture hoặc acceptance |
+| IS-02-03 | Bảo hành hoặc khắc phục không đạt | Bảo hành & khắc phục | | Scope unclear, delay, ineffective repair, recurrence hoặc invalid closure |
+
+### SV-03 — Hồ sơ & hỗ trợ cư dân (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-03-01 | Hồ sơ hoặc quyền cư dân sai | Hồ sơ hoặc quyền cư dân | | Household/unit/profile/role/account status |
+| IS-03-02 | Nền tảng số hoặc case handling lỗi | Nền tảng số & case | | Login, OTP, crash, API, missing/duplicate case, wrong owner, premature closure |
+| IS-03-03 | Hỗ trợ hoặc truyền thông không đạt | Hỗ trợ & truyền thông | | Response, audience, timing, clarity, follow-up hoặc notification |
+
+### SV-04 — Hóa đơn & thanh toán (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-04-01 | Hóa đơn hoặc phí sai | Hóa đơn hoặc phí sai | | Tariff, amount, penalty hoặc duplicate |
+| IS-04-02 | Thanh toán hoặc ghi nhận thất bại | Thanh toán/ghi nhận thất bại | | Gateway, bank, callback, reference, allocation hoặc reconciliation |
+| IS-04-03 | Điều chỉnh hoặc hoàn tiền chậm | Điều chỉnh/hoàn tiền chậm | | Adjustment, deposit settlement, refund hoặc document issuance delay |
+
+### SV-05 — Ra vào & bãi xe (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-05-01 | Ra vào hoặc hành trình khách thất bại | Ra vào hoặc tiếp khách | | Card, Face ID, floor permission, intercom, registration hoặc check-in |
+| IS-05-02 | Dịch vụ bãi xe không đạt | Bãi xe | | LPR, barrier, entitlement, capacity, congestion hoặc availability |
+| IS-05-03 | Di chuyển nội khu không đạt | Di chuyển nội khu | | Route, stop, schedule, realtime information, missed trip hoặc capacity |
+
+### SV-06 — Tiện ích & chuyển nhà (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-06-01 | Tiện ích không đặt hoặc sử dụng được | Đặt hoặc dùng tiện ích | | Booking, slot, eligibility, admission, opening status hoặc equipment |
+| IS-06-02 | Phê duyệt hoặc kiểm soát cải tạo không đạt | Phê duyệt cải tạo | | Dossier, approval, contractor, schedule, access, noise hoặc damage assessment |
+| IS-06-03 | Chuyển vào/chuyển ra không đạt | Chuyển vào/chuyển ra | | Registration, loading bay, freight lift, vehicle, contractor hoặc logistics |
+
+### SV-07 — Kỹ thuật & tài sản chung (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-07-01 | Hệ thống ngừng hoặc suy giảm | Hệ thống suy giảm | | Elevator, water, electrical, generator, HVAC outage/performance/quality |
+| IS-07-02 | Rò rỉ hoặc điều kiện kỹ thuật nguy hiểm | Rò rỉ/rủi ro kỹ thuật | 🔴 | Leak, blockage, flooding, entrapment, abnormal stop, overheat, burning smell |
+| IS-07-03 | Tài sản chung hoặc bảo trì không đạt | Tài sản chung & bảo trì | | Fabric defect, preventive/capital work, inspection, vendor/compliance record |
+
+### SV-08 — An ninh & khẩn cấp (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-08-01 | Sự kiện an ninh | Sự cố an ninh | 🔴 | Unauthorized access, theft, suspicious behavior, disturbance hoặc threat |
+| IS-08-02 | Giám sát hoặc phản ứng an ninh thất bại | Giám sát/phản ứng an ninh | | CCTV, hotline, guard, patrol, dispatch hoặc response |
+| IS-08-03 | PCCC hoặc sẵn sàng khẩn cấp không đạt | PCCC & khẩn cấp | 🔴 | Fire/smoke, alarm, detection, suppression, egress, evacuation, command |
+
+### SV-09 — Vệ sinh & cảnh quan (3 issues)
+
+| Code | Tên đầy đủ | Dashboard label | 🔴 Safety | Phạm vi |
+|---|---|---|---|---|
+| IS-09-01 | Vệ sinh hoặc hygiene không đạt | Vệ sinh | | Dirty surface, restroom, supply hoặc spill response |
+| IS-09-02 | Rác thải hoặc sinh vật gây hại không được kiểm soát | Rác thải & côn trùng | | Overflow, missed collection, sorting, bulky waste, insect hoặc rodent |
+| IS-09-03 | Cảnh quan hoặc phiền nhiễu môi trường | Cảnh quan & môi trường | | Plant, irrigation, unsafe branch, odor hoặc nuisance |
+
+### SV-10 — Khác (1 issue)
+
+| Code | Tên | Dashboard label | Phạm vi |
+|---|---|---|---|
+| IS-10-01 | Vấn đề khác cần review | Vấn đề khác cần review | Nội dung đủ rõ nhưng ngoài phạm vi 9 Service |
+
+> **Kiểm soát IS-10-01:** Bắt buộc lưu `other_reason` + `raw evidence` + `reviewer`. Không auto-apply bằng AI. Đánh giá hàng tuần; cluster lặp → đề xuất thêm vào taxonomy revision.
+
+---
+
+## 7. Touchpoints (MỚI — Migration 019, Taxonomy 3.0.1)
+
+Touchpoint là điểm tiếp xúc cụ thể giữa cư dân và hệ thống/nhân viên. Mỗi touchpoint gắn với 1 lifecycle step và 1+ service.
+
+> **Lưu ý:** Dữ liệu touchpoint được seed cho cả 2 taxonomy releases (3.0.0 và 3.0.1).
+
+### Stage A — Nhận thức
+
+| Code | Tên VI | Step | Service chính |
+|---|---|---|---|
+| TP-A1-01 | Xem quảng cáo & mạng xã hội | A1 | SV-01 |
+| TP-A1-02 | Biển bảng & sự kiện ngoài trời | A1 | SV-01 |
+| TP-A2-01 | Truy cập website & cổng thông tin | A2 | SV-01 |
+| TP-A2-02 | Tra cứu online & diễn đàn | A2 | SV-01 |
+| TP-A3-01 | Nhận tin nhắn & cuộc gọi tư vấn | A3 | SV-01 |
+| TP-A3-02 | Nhận tài liệu sự kiện & ưu đãi | A3 | SV-01 |
+
+### Stage C — Xem xét
+
+| Code | Tên VI | Step | Service chính | Service phụ |
+|---|---|---|---|---|
+| TP-C1-01 | Xem brochure & sa bàn điện tử | C1 | SV-01 | |
+| TP-C2-01 | Khảo sát mặt bằng & tiện ích | C2 | SV-01 | SV-06 |
+| TP-C3-01 | Xem bảng hàng & chọn mã căn | C3 | SV-01 | |
+| TP-C4-01 | Xem bảng giá & chính sách bán hàng | C4 | SV-01 | SV-02 |
+| TP-C5-01 | Tư vấn gói vay & lịch thanh toán | C5 | SV-02 | |
+| TP-C6-01 | Tham quan nhà mẫu & dự án thực tế | C6 | SV-01 | |
+
+### Stage TR — Giao dịch
+
+| Code | Tên VI | Step | Service chính | Service phụ |
+|---|---|---|---|---|
+| TP-TR-01-01 | Nộp phiếu đăng ký giữ chỗ / booking | TR-01 | SV-01 | |
+| TP-TR-02-01 | Xác minh định danh & hồ sơ khách | TR-02 | SV-01 | |
+| TP-TR-03-01 | Ký thỏa thuận đặt cọc & nộp tiền cọc | TR-03 | SV-01 | SV-02 |
+| TP-TR-04-01 | Xác nhận phương án tài chính & giải ngân | TR-04 | SV-02 | |
+| TP-TR-05-01 | Ký hợp đồng mua bán tại văn phòng | TR-05 | SV-01 | SV-02 |
+| TP-TR-06-01 | Đề nghị chuyển nhượng & sửa đổi sau ký | TR-06 | SV-01 | |
+
+### Stage HO — Nhận nhà
+
+| Code | Tên VI | Step | Service chính | Service phụ |
+|---|---|---|---|---|
+| TP-HO-01-01 | Nhận thông báo bàn giao & hướng dẫn | HO-01 | SV-02 | |
+| TP-HO-02-01 | Làm thủ tục check-in bàn giao | HO-02 | SV-02 | |
+| TP-HO-03-01 | Kiểm tra & nghiệm thu căn hộ | HO-03 | SV-02 | SV-07 |
+| TP-HO-04-01 | Ghi nhận tồn đọng & hẹn khắc phục | HO-04 | SV-02 | SV-07 |
+| TP-HO-05-01 | Nhận bàn giao chìa khóa & hồ sơ căn | HO-05 | SV-02 | SV-03 |
+
+### Stage RES — Cư trú (nhiều touchpoint nhất)
+
+| Code | Tên VI | Step | Service chính | Service phụ |
+|---|---|---|---|---|
+| TP-RES-01-01 | Đăng ký cư dân & nhân khẩu | RES-01 | SV-03 | |
+| TP-RES-02-01 | Gửi yêu cầu & tra cứu trên app | RES-02 | SV-03 | |
+| TP-RES-02-02 | Tra cứu tin tức & thông báo BQL | RES-02 | SV-03 | |
+| TP-RES-03-01 | Quét thẻ & cổng ra vào tòa nhà | RES-03 | SV-05 | |
+| TP-RES-03-02 | Gửi & nhận xe tại bãi | RES-03 | SV-05 | |
+| TP-RES-03-03 | Sử dụng thang máy & sảnh chung | RES-03 | SV-05 | SV-07 |
+| TP-RES-04-01 | Đăng ký khách & người giao hàng | RES-04 | SV-05 | SV-08 |
+| TP-RES-05-01 | Đặt & sử dụng hồ bơi / phòng gym | RES-05 | SV-06 | |
+| TP-RES-05-02 | Đăng ký khu BBQ & phòng sinh hoạt | RES-05 | SV-06 | |
+| TP-RES-06-01 | Nhận thông báo hóa đơn phí quản lý | RES-06 | SV-04 | |
+| TP-RES-06-02 | Thanh toán phí qua app / chuyển khoản | RES-06 | SV-04 | |
+| TP-RES-07-01 | Báo lỗi kỹ thuật & thiết bị chung | RES-07 | SV-07 | |
+| TP-RES-07-02 | Báo an ninh, tiếng ồn & PCCC | RES-07 | SV-08 | |
+| TP-RES-07-03 | Phản ánh vệ sinh & cảnh quan | RES-07 | SV-09 | |
+| TP-RES-08-01 | Đăng ký thi công sửa chữa nội thất | RES-08 | SV-06 | SV-07 |
+| TP-RES-08-02 | Đăng ký chuyển đồ & chuyển nhà | RES-08 | SV-06 | |
+
+### Stage OPS — Vận hành
+
+| Code | Tên VI | Step | Service chính | Service phụ |
+|---|---|---|---|---|
+| TP-OPS-01-01 | Tiếp nhận bàn giao tài sản CĐT | OPS-01 | SV-07 | |
+| TP-OPS-02-01 | Lập lịch trực & phân bổ ca làm việc | OPS-02 | SV-07 | SV-08 |
+| TP-OPS-03-01 | Trực phòng điều khiển & camera an ninh | OPS-03 | SV-08 | |
+| TP-OPS-04-01 | Tuần tra định kỳ & bảo dưỡng thiết bị | OPS-04 | SV-07 | |
+| TP-OPS-05-01 | Xử lý sự cố kỹ thuật hạ tầng | OPS-05 | SV-07 | |
+| TP-OPS-06-01 | Kích hoạt quy trình PCCC & khẩn cấp | OPS-06 | SV-08 | |
+| TP-OPS-07-01 | Đánh giá chất lượng dịch vụ nhà thầu | OPS-07 | SV-07 | SV-08, SV-09 |
+| TP-OPS-08-01 | Đề xuất cải tiến vận hành & tiện ích | OPS-08 | SV-07 | SV-10 |
+
+---
+
+## 8. Severity & Action Priority
+
+### Operational Severity
+
+| Mức | Baseline |
+|---|---|
 | SEV-1 | Mối đe dọa tức thì, an toàn tính mạng, sự cố nghiêm trọng toàn tòa nhà hoặc kích hoạt hard trigger |
 | SEV-2 | Tác động cao, ảnh hưởng nhiều cư dân hoặc cần phản ứng nhanh |
 | SEV-3 | Tác động vận hành cục bộ, không nguy hiểm tức thời |
 | SEV-4 | Thông tin, thẩm mỹ hoặc cải tiến |
 
-```text
-Hard trigger / safety rule
-  > authorized human override
-  > Issue severity override
-  > Service default
+> Thứ tự ưu tiên: Hard trigger > authorized override > Issue override > Service default
+
+### Action Priority (Hotspot — migration 019)
+
+| Priority | Điều kiện kích hoạt |
+|---|---|
+| IMMEDIATE | SEV-1 + `safety_critical=true` + `safety_playbook_approved=true` |
+| URGENT | SEV-1 (playbook chưa duyệt) hoặc SEV-2 hoặc evidence_count ≥ 10 |
+| PLANNED | SEV-3/SEV-4 + evidence_count ≥ 2 |
+| MONITOR | Còn lại |
+
+**Hard trigger issues** (safety_critical=true trong DB): IS-07-02, IS-08-01, IS-08-03
+
+---
+
+## 9. Hotspot Clustering
+
+```
+Dimension Key = {service_id} : {issue_id} : {location_id | GLOBAL} : {rule_version}
 ```
 
-Danh mục Hard-trigger độc lập với Service. Mắc kẹt thang, điện giật, cháy/khói, nước nghi nhiễm bẩn, ngập nghiêm trọng, cây sắp đổ và đe dọa an ninh đều phải được điều phối (dispatch) ngay lập tức.
+Điều kiện tạo Hotspot:
+- `evidence_count ≥ N` (default N=3) trong cửa sổ W ngày (default W=7)
+- HOẶC: 1 phản ánh SEV-1 safety_critical (Hard Trigger → IMMEDIATE ngay lập tức)
 
----
-
-## 6. Canonical Vocabulary Constraints
-
-Tài liệu này chỉ định nghĩa mô hình khái niệm (conceptual model), không gian nhãn (label space), mã (code), ranh giới (boundary) và bội số/quan hệ (cardinality) của taxonomy. Nó không định nghĩa bảng/cột DB, payload API hoặc trường triển khai (implementation field).
-
-Nguồn duy nhất cho schema triển khai là `05_Data_Model.md`; enum nghiệp vụ và chuyển đổi trạng thái (state transition) được định nghĩa trong `Business_Rules.md`. Chi tiết lưu trữ (persistence) không được lặp lại tại đây.
-
-### 6.1 Code patterns
-
-| Entity | Pattern |
-| --- | --- |
-| Service | ^SV-[0-9]{2}$ |
-| Issue | ^IS-[0-9]{2}-[0-9]{2}$ |
-| Transaction step | ^TR-[0-9]{2}$ |
-| Handover step | ^HO-[0-9]{2}$ |
-| Residence step | ^RES-[0-9]{2}$ |
-| Operations step | ^OPS-[0-9]{2}$ |
-| Service Request step | ^SRV-[0-9]{2}$ |
-| Channel | ^CH-[A-Z0-9]+(?:-[A-Z0-9]+)*$ |
-
-### 6.2 Cardinality
-
-- Issue thuộc đúng một Service.
-- Khi Service/Issue là KNOWN, Issue phải thuộc Primary Service trong cùng phiên bản (release).
-- Một feedback item có tối đa một Customer Lifecycle Step và một Service Request Step.
-- Báo cáo (reporting) mặc định theo Service + Issue; Location/Channel dùng để đi sâu chi tiết (drill-down).
-- Không cộng UNKNOWN hoặc SV-10 vào tỷ lệ bao phủ (coverage) đạt chuẩn.
-
----
-
-## 7. AI and Analytics Policy
-
-AI chỉ đưa ra gợi ý:
-
-```text
-customer_lifecycle_step
-service_request_step
-primary_service
-issue
-sentiment
+Hotspot Status lifecycle:
+```
+CANDIDATE → ACKNOWLEDGED → INVESTIGATING → RESOLVED
+                                         → DISMISSED
+RESOLVED / DISMISSED → REOPENED (→ INVESTIGATING)
 ```
 
-Dự đoán (prediction) không ghi đè quyết định con người. SV-10/IS-10-01, an toàn (safety), pháp lý (legal), trách nhiệm bảo hành (warranty responsibility) và Root Cause đã xác nhận (confirmed Root Cause) luôn cần con người đánh giá (human review).
+---
 
-Cơ sở xác định điểm nóng (Hotspot baseline):
+## 10. Governance & CI Invariants
 
-```text
-Service + Issue + Location + Time window
-```
+### Release gates (kiểm tra sau mỗi migration seed)
 
-Journey, Location, Channel, symptom_detail, recurrence và rủi ro SLA (SLA risk) là các chiều đi sâu chi tiết (drill-down); không tạo thêm Issue chỉ để phục vụ biểu đồ (chart).
+- Đúng **10 Service active** và **28 Issue active**
+- SV-01..SV-09: đúng **3 Issue/Service**; SV-10: đúng **1 Issue**
+- Đúng **6 Customer Lifecycle Stage** (A, C, TR, HO, RES, OPS)
+- Đúng **36 Customer Lifecycle Step** (3+6+6+5+8+8)
+- Đúng **8 Service Request Step** (SRV-01..SRV-08)
+- Đúng **8 Interaction Channel**
+- Code là duy nhất, đúng pattern, không tái sử dụng
+- SV-10 có hàng chờ review và theo dõi other_rate
+
+### Code patterns
+
+| Entity | Pattern | Ví dụ |
+|---|---|---|
+| Service | `^SV-[0-9]{2}$` | SV-07 |
+| Issue | `^IS-[0-9]{2}-[0-9]{2}$` | IS-07-02 |
+| Touchpoint | `^TP-[A-Z0-9]+-[0-9]{2}-[0-9]{2}$` | TP-RES-07-01 |
+| Transaction step | `^TR-[0-9]{2}$` | TR-05 |
+| Handover step | `^HO-[0-9]{2}$` | HO-03 |
+| Residence step | `^RES-[0-9]{2}$` | RES-07 |
+| Operations step | `^OPS-[0-9]{2}$` | OPS-06 |
+| Service Request step | `^SRV-[0-9]{2}$` | SRV-03 |
+| Channel (DB) | `^ch-[a-z]+$` | ch-app |
 
 ---
 
-## 8. Governance and Publication
-
-```text
-Draft
-  → schema validation
-  → Service owner review
-  → Operations/Safety review
-  → Data/AI impact review
-  → APPROVED
-  → PUBLISHED
-```
-
-Các cổng phát hành (Release gates):
-
-- đúng 10 Service và 28 Issue;
-- SV-01..SV-09 có đúng 3 Issue; SV-10 có đúng 1 Issue;
-- đủ 6 Customer Lifecycle Stage, 36 Customer Journey Step và 8 Service Request Step;
-- SV-10 có hàng chờ đánh giá (review queue) và theo dõi tỷ lệ nhãn Khác (other-rate monitoring);
-- dữ liệu khởi tạo cấu trúc (structured seed) có mã kiểm tra (checksum) và bộ xác thực (validator);
-- API/UI không mã hóa cứng nhãn (hard-code label);
-- kiểm thử kích hoạt an toàn (safety trigger test) độc lập với bộ phân loại (classifier).
-- mỗi Service có định nghĩa (definition) và phạm vi bao hàm (inclusion scope) rõ ràng;
-
----
-
-## 9. Research and Regulatory References
-
-### 9.1 Khung Tiêu chuẩn Chuyên ngành (Professional Framework)
-
-- [ISO 41011:2024 — Facility management vocabulary](https://www.iso.org/standard/82405.html)
-- [ISO 41001:2018 — Facility management management systems](https://www.iso.org/standard/68021.html)
-- [ISO 41012:2017 — Strategic sourcing and agreements](https://www.iso.org/standard/68168.html)
-- [ISO 55001:2024 — Asset management system requirements](https://www.iso.org/standard/83054.html)
-- [ISO/TC 267 Functional Areas](https://committee.iso.org/files/live/sites/tc267/files/Documents/AG1-Functional-Areas.html/)
-- [IFMA — Optimizing Building Management with a Lifecycle Approach](https://knowledgelibrary.ifma.org/optimizing-building-management-with-a-lifecycle-approach/)
-
-Các tiêu chuẩn trên hỗ trợ về từ vựng (vocabulary), vòng đời (lifecycle), cung cấp dịch vụ (service delivery), hiệu suất (performance), rủi ro (risk) và quản lý tài sản (asset management); danh sách 10 Service/28 Issue được thiết kế riêng cho phạm vi BĐS nhà ở.
-
-### 9.2 Khung Pháp lý Việt Nam
-
-- [Văn bản hợp nhất Luật Nhà ở 132/VBHN-VPQH](https://vanban.chinhphu.vn/?classid=0&docid=215257&pageid=27160)
-- [Luật Kinh doanh BĐS 29/2023/QH15](https://vanban.chinhphu.vn/?docid=209624&pageid=27160)
-- [Luật Bảo vệ quyền lợi người tiêu dùng 19/2023/QH15](https://vanban.chinhphu.vn/?classid=1&docid=208363&orggroupid=1&pageid=27160&previousPage=other+articles)
-- [Nghị định 06/2021/NĐ-CP](https://vanban.chinhphu.vn/default.aspx?docid=202585&pageid=27160)
-- [Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15](https://vanban.chinhphu.vn/?classid=1&docid=214590&pageid=27160)
-- [Luật PCCC và CNCH 55/2024/QH15](https://vanban.chinhphu.vn/?classid=1&docid=212483&orggroupid=1&pageid=27160)
-
-Đơn vị phụ trách Pháp lý/Vận hành (Legal/Operations owner) đối chiếu theo dự án, hợp đồng, nội quy, hồ sơ kỹ thuật và quy định địa phương.
-
----
-
-## 10. Các Ràng buộc Bất biến trong CI (CI Invariants)
-
-### Cấu trúc (Structure)
-
-- đúng 10 Service hoạt động và 28 Issue hoạt động;
-- SV-01..SV-09 có 3 Issue/Service; SV-10 có 1 Issue;
-- mỗi Issue thuộc đúng một Service;
-- mã (code) là duy nhất, đúng pattern và không tái sử dụng;
-- đúng 6 Customer Lifecycle Stage và đủ A/C/TR/HO/RES/OPS;
-- OPS-01..OPS-08 tồn tại, duy nhất và thuộc stage Vận hành.
-
-### Ngữ nghĩa (Semantics)
-
-- Issue không chỉ khác nhau bởi location, channel, source system hoặc vendor.
-- UNKNOWN không phải Service, Issue hoặc Cause;
-- SV-10 không nhận bản ghi thiếu thông tin hoặc mơ hồ (missing/ambiguous record);
-- tách các ý định bị trùng/kép (split multi-intent) trước khi phân loại (classification);
-- Issue trong quyết định phân loại (decision) phải thuộc Primary Service của cùng phiên bản release.
-- Service có định nghĩa/kết quả đầu ra (outcome/definition) và phạm vi bao hàm (inclusion scope) rõ ràng;
-
-### An toàn và Bằng chứng (Safety and Evidence)
-
-- kiểm thử kích hoạt an toàn (hard-trigger test) độc lập với bộ phân loại Service (Service classifier);
-- IS-07-02, IS-08-01, IS-08-03 và các mối nguy hiểm được định nghĩa trong chính sách (policy-defined hazards) bắt buộc phải được điều phối (dispatch) hoặc đánh giá thủ công (manual review);
-- AI không tự động áp dụng (auto-apply) SV-10, xác nhận Root Cause hoặc đưa ra kết luận pháp lý/bảo hành (legal/warranty determination);
-- kết quả xác minh (confirmed finding) bắt buộc có điều tra (investigation), bằng chứng (evidence) và người xác nhận có thẩm quyền (authorized confirmer).
+*Nguồn truth: `alembic/versions/016_seed_taxonomy_v3.py`, `018_publish_dashboard_labels_v301.py`, `019_touchpoints_and_hotspot_action_priority.py`*

@@ -1,12 +1,19 @@
-# 03 — Quy tắc Nghiệp vụ
+# 02 — Quy tắc Nghiệp vụ (Business Rules)
 
-# Nền tảng Phân tích Thông minh Hành trình CX, Dịch vụ & Nguyên nhân gốc rễ
+# CX Intelligence & Operations Platform
 
-**Phiên bản:** 1.1  
-**Trạng thái:** Dự thảo cho Cơ sở Kỹ thuật (Engineering Baseline)  
-**Dẫn xuất từ:** `docs/PRD.md` v1.3 và `docs/service_taxonomy.md` v3.0.0  
-**Phạm vi:** Phác thảo Xây dựng Thử nghiệm (Pilot Build Baseline) P0, với các quy tắc P1 được chọn lọc và đánh dấu rõ ràng  
-**Mục đích:** Chuyển đổi các quyết định về sản phẩm/taxonomy thành các quy tắc nghiệp vụ (domain rules) có thể thực thi, được triển khai trong schema, API, job, kiểm tra hợp lệ UI (UI validation) và các bài kiểm thử tự động.
+**Phiên bản tài liệu:** 1.2 — cập nhật khớp implementation  
+**Trạng thái:** ✅ Đồng bộ với codebase (Migration 020, API v1.1.0)  
+**Dẫn xuất từ:** `docs/03_service_taxonomy.md` v3.1.0, `packages/domain/shared/enums.py`, migration 016–020  
+**Phạm vi:** P0 đã triển khai đầy đủ; P1 đã implement một phần; P2 reserved  
+**Mục đích:** Quy tắc nghiệp vụ domain được triển khai trong schema DB, API, `packages/domain/`, kiểm thử tự động.
+
+> **Thay đổi từ v1.1:**
+> - Thêm quy tắc Touchpoint (BR-TP-*) — migration 019
+> - Thêm quy tắc Action Priority cho Hotspot — `packages/domain/hotspot/engine.py`
+> - Cập nhật Hotspot status: thêm **REOPENED** và chuyển đổi ASSIGN → INVESTIGATING
+> - Channel codes trong DB dùng chữ thường (ch-app, ch-hotline...) thay vì CH-APP
+> - Import pipeline: thêm Direct CSV mode (đồng bộ, không cần worker)
 
 ---
 
@@ -1011,3 +1018,42 @@ Tài liệu này được dẫn xuất từ:
 
 Bất kỳ quy tắc mới nào làm thay đổi ý nghĩa taxonomy chuẩn đều phải được phản ánh trước trong `service_taxonomy.md`.  
 Bất kỳ quy tắc mới nào làm thay đổi phạm vi/hành vi sản phẩm đều phải được phản ánh trước trong `PRD.md` hoặc một Decision Record được liên kết.
+
+
+---
+
+## Phụ lục — Quy tắc mới triển khai (v1.2)
+
+### BR-TP-001 — Touchpoint là chiều phân loại tùy chọn
+
+**Mức ưu tiên:** P0 (implemented migration 019)  
+**Quy tắc:** Mỗi `feedback_item` MAY có 0 hoặc 1 `touchpoint_id`. Touchpoint phải thuộc cùng lifecycle_step với `customer_lifecycle_step_id` của item trong cùng taxonomy release.  
+**Thực thi:** `classification_current.touchpoint_value_status` ∈ {KNOWN, UNKNOWN, MISSING, NOT_APPLICABLE}.
+
+### BR-TP-002 — Touchpoint-Service mapping
+
+**Quy tắc:** Mỗi touchpoint có 1 `primary_service` và 0..N `secondary_service` theo bảng `touchpoint_service_map`. Mapping type: PRIMARY | SECONDARY.
+
+### BR-HS-005 — Hotspot Action Priority
+
+**Quy tắc** (implemented `packages/domain/hotspot/engine.py::calculate_action_priority`):
+- `IMMEDIATE`: max_severity=SEV-1 AND issue.safety_critical=true AND safety_playbook_approved=true
+- `URGENT`: max_severity ∈ {SEV-1, SEV-2} OR evidence_count ≥ 10
+- `PLANNED`: max_severity ∈ {SEV-3, SEV-4} AND evidence_count ≥ 2
+- `MONITOR`: còn lại
+
+### BR-HS-006 — Hotspot REOPENED Status
+
+**Quy tắc:** Hotspot ở trạng thái RESOLVED hoặc DISMISSED MAY được REOPEN qua `POST /hotspots/{id}/reopen`. Khi reopen, status chuyển về INVESTIGATING (không phải CANDIDATE). Audit log ghi nhận `from_status` và `to_status`.
+
+### BR-HS-007 — Hotspot ASSIGN
+
+**Quy tắc:** `POST /hotspots/{id}/assign` chuyển trạng thái sang INVESTIGATING, đồng thời ghi nhận `assigned_user_id` và `assigned_team_key`. Bắt buộc có `expected_version` cho optimistic locking.
+
+### BR-IMP-003 — Direct CSV Import
+
+**Quy tắc:** `POST /api/v1/feedback-items/direct-import-csv` là mode import đồng bộ không qua worker. Toàn bộ raw CSV fields được lưu vào `feedback.source_metadata_json` (JSONB). Không overwrite dữ liệu hiện có (insert only).
+
+### BR-CHANNEL-001 — Channel Code Format
+
+**Quy tắc:** Channel codes trong DB và API dùng chữ thường với prefix `ch-`. Ví dụ: `ch-app`, `ch-hotline`, `ch-frontdesk`. Filter param tên `intake_channel_code` và `affected_channel_code`.

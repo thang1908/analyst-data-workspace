@@ -7,11 +7,13 @@
 > [`08_Operating_Dashboard_Spec.md`](./08_Operating_Dashboard_Spec.md). Tài liệu này
 > làm rõ phạm vi P0/P1, không thay đổi các bất biến nghiệp vụ trong PRD.
 
-**Phiên bản:** 1.3
-**Trạng thái:** Pilot Build Baseline / Căn chỉnh theo Taxonomy 3.0.0 / Đang chờ Quyết định từ Stakeholder chỉ định
+**Phiên bản:** 1.4 — cập nhật 19/08/2026
+**Trạng thái:** ✅ Đã triển khai — API v1.1.0, Migration 020, Taxonomy v3.0.1
 **Lĩnh vực:** Bất động sản / Trải nghiệm khách hàng (CX) & Vận hành Nhà ở
 **Nguồn hành trình lịch sử:** `Customer Journey(2).xlsx`
-**Taxonomy chuẩn (Authoritative taxonomy):** `service_taxonomy.md` phiên bản revision 3.0.0
+**Taxonomy chuẩn (Authoritative taxonomy):** `03_service_taxonomy.md` v3.1.0 (chứa v3.0.0 + v3.0.1 + Touchpoints)
+
+> **Thay đổi từ v1.3:** Taxonomy 3.0.1 đã PUBLISHED. Touchpoints đã implement (migration 019). Action Priority trên Hotspot đã implement. Direct CSV import đã implement. REOPEN Hotspot đã implement.
 
 ---
 

@@ -1,8 +1,22 @@
 # 06 — Đặc tả API
 
+> **Cập nhật v2.0 (19/08/2026):**
+> - Thêm endpoint `POST /feedback-items/direct-import-csv` — import CSV đồng bộ không cần worker
+> - Thêm endpoint `POST /hotspots/{id}/reopen` — reopen về INVESTIGATING
+> - Thêm endpoint `POST /hotspots/{id}/assign` — gán người xử lý, chuyển sang INVESTIGATING
+> - Taxonomy: thêm `GET /customer-lifecycle/touchpoints` và `GET /touchpoints` (alias hidden)
+> - Hotspot list filter thêm `action_priority`
+> - Analytics breakdown thêm dimension `touchpoint`
+> - `POST /hotspots/detect` body thêm field `safety_playbook_approved`
+> - `data-quality` endpoint trả 501 Not Implemented
+> - Channel codes (intake_channel_code, affected_channel_code) dùng lowercase: ch-app, ch-hotline...
+> - Tất cả mutations hotspot yêu cầu `expected_version` (optimistic locking)
+
+
+
 # Nền tảng Phân tích Hành trình CX, Dịch vụ & Nguyên nhân gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
-**Phiên bản:** 1.1  
+**Phiên bản:** 2.0 — cập nhật 19/08/2026 khớp routers thực tế  
 **Trạng thái:** Baseline Xây dựng Pilot P0  
 **Nguồn gốc (Derived from):** `docs/PRD.md` v1.3, `05_Data_Model.md` v1.1, `docs/System_Design.md` v1.1, `docs/Business_Rules.md` v1.1, `docs/service_taxonomy.md` v3.0.0  
 **Phong cách API (API style):** REST/JSON over HTTPS  

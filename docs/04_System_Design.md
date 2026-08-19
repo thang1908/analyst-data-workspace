@@ -1,8 +1,12 @@
 # 04 — Thiết kế Hệ thống
 
+> **Cập nhật v2.0 (19/08/2026):** Tech stack đồng bộ với requirements.txt thực tế. FastAPI 0.141.1, SQLAlchemy 2.0.52, psycopg v3 (async native), Pydantic 2.13.4, Vite 5.1.4, Recharts 3.10.1. Touchpoint table và Action Priority trên Hotspot đã được thêm (migration 019). Direct CSV import không qua worker. source_metadata_json → JSONB (migration 020).
+
+
+
 # Nền tảng Trí tuệ Phân tích Hành trình Khách hàng, Dịch vụ & Nguyên nhân Gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
-**Phiên bản:** 1.1  
+**Phiên bản:** 2.0 — cập nhật 19/08/2026 khớp implementation  
 **Trạng thái:** P0 Pilot Architecture Baseline  
 **Dựa trên:** `docs/PRD.md` v1.3, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.1  
 **Repository baseline:** Python 3.12, FastAPI, Pydantic, SQLAlchemy 2, psycopg 3, Alembic; kho lưu trữ đã tách biệt `apps/api`, `apps/web`, và `apps/worker`.

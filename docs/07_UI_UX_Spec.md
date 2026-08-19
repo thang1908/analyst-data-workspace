@@ -1,5 +1,14 @@
 # 07 — Đặc tả UI/UX
 
+> **Cập nhật v2.0 (19/08/2026) — thay đổi so với spec gốc:**
+> - **OverviewPage**: Layout 2 hàng — hàng 1: ServiceTaxonomyCard (50%) + ChannelBreakdownCard (50%); hàng 2: PainPointsList + TrendChart. ChannelBreakdownCard mới (donut + legend ngang).
+> - **FeedbackExplorerPage**: Default page size = **10** (không phải 50). FeedbackDataTable có minWidth 1250px horizontal scroll. Cột hiển thị: nội dung, khu đô thị, dịch vụ, vấn đề, touchpoint, bước hành trình, cảm xúc, thời gian.
+> - **HotspotPage**: Thêm `HotspotDashboard` phía trên HotspotActionQueue — 4 KPI boxes + Donut "Mức độ ưu tiên" + Donut "Trạng thái xử lý" + Bar chart "Top dịch vụ".
+> - **Sidebar nav**: "Điểm nóng & Căn nguyên" → **"Điểm nóng"**
+> - **Tech stack**: React 18 + Vite 5.1.4 + Recharts 3.10.1 + lucide-react + framer-motion 13 + date-fns 4
+
+
+
 # Nền tảng Phân tích Trải nghiệm Khách hàng, Dịch vụ & Nguyên nhân Gốc rễ (CX Journey, Service & Root Cause Intelligence Platform)
 
 > **Bổ sung vận hành (2026-08-17):** Dashboard phải tuân theo cấu trúc stage → step

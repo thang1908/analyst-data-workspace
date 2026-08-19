@@ -1,8 +1,12 @@
 # 05 — Mô hình Dữ liệu
 
+> **Cập nhật v2.0 (19/08/2026):** 20 migrations đã chạy. Thêm bảng `touchpoint` + `touchpoint_service_map` (migration 019). `hotspot` thêm cột `action_priority`. `classification_current` thêm `touchpoint_id`, `touchpoint_value_status`. `feedback.source_metadata_json` → **JSONB** với GIN index (migration 020). HotspotStatus thêm **REOPENED**.
+
+
+
 # Nền tảng Phân tích Hành trình CX, Dịch vụ & Nguyên nhân Gốc rễ
 
-**Phiên bản:** 1.1  
+**Phiên bản:** 2.0 — cập nhật 19/08/2026  
 **Trạng thái:** Baseline Xây dựng Pilot P0  
 **Trích xuất từ:** `docs/PRD.md` v1.3, `docs/service_taxonomy.md` v3.0.0, `docs/Business_Rules.md` v1.1, `docs/System_Design.md` v1.1  
 **Cơ sở dữ liệu baseline:** PostgreSQL  
@@ -1679,3 +1683,53 @@ Dành cho việc mở rộng sản xuất sau này:
 - sao chép sang warehouse/lakehouse.
 
 Các phần mở rộng này BẮT BUỘC KHÔNG ĐƯỢC yêu cầu thay đổi ý nghĩa cốt lõi của Feedback, Feedback Item, Prediction, Decision hoặc Classification Current.
+
+---
+
+## Phụ lục — Bảng Touchpoint (Migration 019)
+
+### `touchpoint`
+
+| Column | Type | Ghi chú |
+|---|---|---|
+| touchpoint_id | UUID PK | |
+| taxonomy_release_id | UUID FK | → taxonomy_release |
+| touchpoint_code | text | Pattern: TP-[STEP]-[NN] (ví dụ TP-RES-07-01) |
+| lifecycle_step_id | UUID FK | → customer_lifecycle_step |
+| name_vi | text | |
+| name_en | text | |
+| definition | text | |
+| sort_order | int | |
+| active | bool | |
+
+### `touchpoint_service_map`
+
+| Column | Type | Ghi chú |
+|---|---|---|
+| touchpoint_id | UUID FK PK | |
+| service_id | UUID FK PK | |
+| mapping_type | enum | PRIMARY \| SECONDARY |
+
+### Thay đổi trên bảng `hotspot` (Migration 019)
+
+Thêm cột: `action_priority` enum (IMMEDIATE, URGENT, PLANNED, MONITOR)
+
+### Thay đổi trên bảng `classification_current` (Migration 019)
+
+Thêm cột:
+- `touchpoint_id` UUID FK (nullable) → touchpoint
+- `touchpoint_value_status` enum (KNOWN, UNKNOWN, MISSING, NOT_APPLICABLE)
+
+### Thay đổi trên bảng `feedback` (Migration 020)
+
+- `source_metadata_json` đổi type TEXT → **JSONB**
+- GIN index trên `source_metadata_json` cho fast document queries
+- B-tree index trên `location.name` và `location.location_code`
+
+### HotspotStatus enum — thêm REOPENED
+
+```
+CANDIDATE → ACKNOWLEDGED → INVESTIGATING → RESOLVED
+                                         → DISMISSED
+RESOLVED | DISMISSED → REOPENED (→ INVESTIGATING)
+```

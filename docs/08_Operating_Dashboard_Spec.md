@@ -1,5 +1,17 @@
 # 08 — Đặc tả Dashboard Vận hành CX, Touchpoint & Hotspot
 
+> **Cập nhật v2.0 (19/08/2026) — trạng thái triển khai thực tế:**
+> - **OverviewPage (`/`)**: Đã implement — 2-row grid: KPI cards + Journey3DMatrix + ChannelBreakdownCard + PainPointsList + TrendChart
+> - **FeedbackExplorerPage (`/feedback`)**: Đã implement — 15+ filters, FeedbackDataTable 1250px, default 10/page
+> - **HotspotPage (`/hotspot`)**: Đã implement — HotspotDashboard (4 KPI + 2 Donut + Bar) + HotspotActionQueue
+> - **Touchpoint dimension**: Đã implement trong analytics breakdown, feedback filters, taxonomy API
+> - **Action Priority**: Đã implement trên Hotspot (IMMEDIATE/URGENT/PLANNED/MONITOR)
+> - **ChannelBreakdownCard**: Đã implement — donut + legend ngang
+> - **data-quality panel**: Chưa implement (API trả 501 Not Implemented)
+> - **MoM/YoY comparison**: Chưa implement (P1 reserved)
+
+
+
 **Trạng thái:** Canonical backlog specification
 **Cập nhật:** 2026-08-17
 **Phạm vi:** Làm rõ phần vận hành bổ sung cho `01_PRD.md`, `02_Business_Rules.md`, `03_service_taxonomy.md` và `07_UI_UX_Spec.md`.
@@ -179,3 +191,60 @@ Không dùng accuracy tổng để thay thế Macro-F1 khi label mất cân bằ
 4. `IMMEDIATE` không được kích hoạt nếu chưa có approved safety playbook.
 5. MoM/YoY chỉ hiện khi dữ liệu comparable; nếu không, UI nêu rõ thiếu ngày, location, lịch sử hoặc taxonomy comparability.
 6. UI không gọi technical group hoặc AI prediction là root cause đã xác nhận.
+
+---
+
+## Phụ lục — Trạng thái triển khai Dashboard (v2.0)
+
+### Tính năng đã implement (P0 ✅)
+
+| Tính năng | Component/File | Ghi chú |
+|---|---|---|
+| KPI Summary cards | `KPICard.tsx` | volume, negative_rate, unknown_rate, active_hotspots |
+| Journey matrix | `Journey3DMatrix.tsx` | 6 stages × 10 services |
+| Channel breakdown | `ChannelBreakdownCard.tsx` | Donut + legend ngang, 8 kênh |
+| Trend chart | `TrendChart.tsx` | Line chart, grain day/week/month |
+| Pain points list | `PainPointsList.tsx` | Top 5 vấn đề |
+| Feedback explorer | `FeedbackExplorerPage.tsx` | 15+ filters, pagination 10/page |
+| Hotspot dashboard | `HotspotDashboard.tsx` | 4 KPI + 2 Donut + Bar chart |
+| Hotspot queue | `HotspotActionQueue.tsx` | Cards ngang, filter priority/status |
+| Hotspot detail | `HotspotDetailModal.tsx` | Evidence list + timeline |
+| Detect hotspots | `POST /hotspots/detect` | Rolling window clustering |
+| Action Priority | `engine.py::calculate_action_priority` | IMMEDIATE/URGENT/PLANNED/MONITOR |
+| Touchpoint filter | Analytics + Feedback | Dimension touchpoint_code |
+| Direct CSV import | `POST /feedback-items/direct-import-csv` | Đồng bộ, không cần worker |
+| Hotspot REOPEN | `POST /hotspots/{id}/reopen` | RESOLVED/DISMISSED → INVESTIGATING |
+| Hotspot ASSIGN | `POST /hotspots/{id}/assign` | → INVESTIGATING + owner |
+
+### Tính năng chưa implement (P1/P2)
+
+| Tính năng | Trạng thái | Ghi chú |
+|---|---|---|
+| Data quality panel | 501 Not Implemented | API reserved, UI chưa build |
+| MoM/YoY comparison | P1 | Chưa implement |
+| AI classification review | Partial | AI router có, UI chưa đầy đủ |
+| Import wizard advanced mapping | Partial | Basic upload có, advanced map P1 |
+| Root Cause confirmation flow | P1 | Domain model có, UI chưa |
+| PDF/Excel export | P2 | Chưa implement |
+
+### Analytics API — breakdown dimensions đã implement
+
+```
+service, issue, location, journey_stage, journey_step,
+touchpoint, service_request_step, intake_channel,
+affected_channel, sentiment, severity
+```
+
+### Hotspot detect request (thực tế)
+
+```json
+{
+  "project_id": "uuid",
+  "window_days": 180,
+  "threshold_count": 3,
+  "rule_version": "v1.0.0",
+  "safety_playbook_approved": false,
+  "window_start": null,
+  "window_end": null
+}
+```
